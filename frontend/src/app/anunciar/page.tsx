@@ -6,8 +6,8 @@ export default function Anunciar() {
     return (
         <div className="min-h-screen flex flex-col">
             <section className="max-w-3xl mx-auto" >
-                <h3 className="text-xl font-bold text-center mb-6">Anunciar um Produto</h3>
-                <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-xl font-bold text-left mt-25 mb-6">Anunciar um Produto</h3>
+                <div className="bg-white rounded-xl shadow-sm  p-6">
                     <form className="space-y-4">
 
                         <div className="space-y-1">
