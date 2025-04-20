@@ -5,8 +5,8 @@ import "@/styles/globals.css"
 export default function Anunciar() {
     return (
         <div className="min-h-screen flex flex-col">
-            <section className="max-w-3xl mx-auto" >
-                <h3 className="text-xl font-bold text-left mt-25 mb-6">Anunciar um Produto</h3>
+            <section className="max-w-3xl mb-15 mx-auto" >
+                <h3 className="text-xl font-bold text-left mt-15 mb-3">Anunciar um Produto</h3>
                 <div className="bg-white rounded-xl shadow-sm  p-6">
                     <form className="space-y-4">
 
