@@ -96,8 +96,6 @@ export default function Anunciar() {
                                         <span className="ms-3 text-sm font-medium">Preço negociavel</span>
                                     </label>
                                 </div>
-
-
                             </div>
                         </div>
 
