@@ -1,7 +1,5 @@
 'use client'
 
-import "@/styles/globals.css"
-
 export default function Anunciar() {
     return (
         <div className="min-h-screen flex flex-col">
@@ -16,7 +14,7 @@ export default function Anunciar() {
                                 type="text"
                                 name="title"
                                 id="title"
-                                className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca"
                                 placeholder="Ex: Livro de Cálculo Vol.1 Thomas"
                                 required
                             />
@@ -27,7 +25,7 @@ export default function Anunciar() {
                             <textarea
                                 name="description"
                                 id="description"
-                                className="w-full border border-gray-300 rounded-md p-2 text-sm h-24 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="w-full border border-gray-300 rounded-md p-2 text-sm h-24 focus:ring-1 focus:ring-sanca focus:border-sanca"
                                 placeholder="Descreva detalhes importantes sobre o produto, como estado, marca, modelo, etc."
                                 required
                             ></textarea>
@@ -37,7 +35,7 @@ export default function Anunciar() {
                             <label className="text-sm font-medium block" htmlFor="price">Preço (R$)*</label>
                             <input
                                 type="text"
-                                className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca"
                                 placeholder="R$ 0.00"
                                 required
                             />
@@ -50,7 +48,7 @@ export default function Anunciar() {
                                     id="category"
                                     name="category"
                                     defaultValue="defaultValue"
-                                    className="border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca"
                                     required
                                 >
                                     <option value="defaultValue" disabled>Selecione</option>
@@ -67,7 +65,7 @@ export default function Anunciar() {
                                 <div className="mt-6">
                                     <label className="inline-flex items-center cursor-pointer">
                                         <input type="checkbox" className="sr-only peer" />
-                                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-300 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-300 peer-checked:bg-gray-600 dark:peer-checked:bg-blue-600"></div>
+                                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-300 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-300 peer-checked:bg-gray-600 dark:peer-checked:bg-sanca"></div>
                                         <span className="ms-3 text-sm font-medium">Preço negociavel</span>
                                     </label>
                                 </div>
@@ -80,7 +78,7 @@ export default function Anunciar() {
                                     name="condition"
                                     id="condition"
                                     defaultValue="defaultValue"
-                                    className=" border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                                    className=" border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca"
                                 >
                                     <option value="defaultValue" disabled>Selecione</option>
                                     <option value="new">Novo</option>
@@ -92,7 +90,7 @@ export default function Anunciar() {
                                 <div className="mt-6">
                                     <label className="inline-flex items-center cursor-pointer">
                                         <input type="checkbox" className="sr-only peer" />
-                                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-300 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-300 peer-checked:bg-gray-600 dark:peer-checked:bg-blue-600"></div>
+                                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-300 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-300 peer-checked:bg-gray-600 dark:peer-checked:bg-sanca"></div>
                                         <span className="ms-3 text-sm font-medium">Preço negociavel</span>
                                     </label>
                                 </div>
@@ -119,7 +117,7 @@ export default function Anunciar() {
                                         <circle cx="12" cy="13" r="3"></circle>
                                     </svg>
                                     <label className='text-center' htmlFor="image-upload">
-                                        <span className="cursor-pointer text-indigo-600 text-sm">Adicionar foto</span>
+                                        <span className="cursor-pointer text-sanca text-sm">Adicionar foto</span>
                                         <input id="image-upload" className='hidden' accept="image/*" type="file" required/>
                                     </label>
                                 </div>
@@ -149,7 +147,7 @@ export default function Anunciar() {
                                 </div>
                                 <p className="text-sm text-gray-500">Lembre-se de que você é responsável pelo contato, negociação e entrega do produto.</p>
                             </div>
-                            <button type="submit" className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-indigo-500 hover:bg-indigo-400">
+                            <button type="submit" className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90">
                                 Publicar Anúncio
                             </button>
                         </div>
