@@ -1,0 +1,38 @@
+# ─── Build Stage ───────────────────────────────────────────────────────────────
+FROM golang:1.24-alpine AS builder
+
+# Install git (needed for go modules) and ca-certificates
+RUN apk add --no-cache git ca-certificates
+
+WORKDIR /src
+
+# Cache go.mod & go.sum, then download deps
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy rest of source and compile
+COPY . .
+
+# Build a statically linked, optimized binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/backend .
+
+# ─── Production Stage ──────────────────────────────────────────────────────────
+FROM alpine:3.21
+
+# Install only ca-certificates to verify TLS endpoints
+RUN apk add --no-cache ca-certificates
+
+WORKDIR /app
+
+# Copy the compiled binary from builder
+COPY --from=builder /app/backend .
+
+# Expose application port
+EXPOSE 8080
+
+# Use a non‑root user for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
+# Default command
+ENTRYPOINT ["./backend"]

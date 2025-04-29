@@ -1,0 +1,42 @@
+services:
+  backend:
+    build: .
+    image: boost-aex-backend
+    environment:
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - 5432:5432
+    volumes:
+      - boost-aex_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgweb:
+    image: sosedoff/pgweb
+    restart: on-failure
+    ports:
+      - "8081:8081"
+    environment:
+      PGWEB_DATABASE_URL: ${PGWEB_DATABASE_URL}
+    depends_on:
+      - db
+
+volumes:
+  boost-aex_pgdata:

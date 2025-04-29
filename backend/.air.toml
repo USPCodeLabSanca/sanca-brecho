@@ -1,0 +1,12 @@
+# Air configuration file
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o /app/main ."
+bin = "/app/main"
+full_bin = "sh -c '/app/main'"
+
+[watcher]
+extensions = ["go"]
+exclude_dirs = ["tmp", "vendor"]
