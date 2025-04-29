@@ -2,9 +2,14 @@ package main
 
 import (
 	"api/controllers"
+	"api/services"
 
 	"github.com/gin-gonic/gin"
 )
+
+func init() {
+	services.LoadEnvs()
+}
 
 func main() {
 	router := gin.Default()
