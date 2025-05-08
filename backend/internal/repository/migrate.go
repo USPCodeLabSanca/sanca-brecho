@@ -1,4 +1,4 @@
-package database
+package repository
 
 import (
 	"api/internal/models"
@@ -23,7 +23,7 @@ func Migrate() {
 		log.Fatal("Failed to migrate User model: ", err)
 	}
 
-	log.Printf("✅ Database migrated successfully")
+	log.Println("✅ Database migrated successfully")
 }
 
 // Enable the uuid-ossp extension for UUID generation
