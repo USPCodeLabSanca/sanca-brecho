@@ -1,4 +1,4 @@
-package database
+package repository
 
 import (
 	"fmt"
@@ -42,5 +42,6 @@ func Connect() {
 	sqlDB.SetConnMaxLifetime(time.Hour) // set the maximum amount of time a connection may be reused
 
 	DB = db
-	fmt.Println("Connected to the database successfully")
+
+	log.Println("✅ Database connected successfully")
 }

@@ -1,8 +1,5 @@
 # Environment files
 .env
 
-# Go build output
-main
-
 # Temp files
 /tmp/*
