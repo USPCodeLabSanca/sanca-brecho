@@ -3,3 +3,9 @@
 @theme {
   --color-sanca: #8b5cf6;
 }
+
+/* Simular App Nativo com PWA */
+html, body {
+  touch-action: manipulation; /* reduz chances de zoom acidental */
+  overscroll-behavior-y: none; /* bloqueia pull-to-refresh */
+}
