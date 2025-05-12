@@ -9,3 +9,18 @@ html, body {
   touch-action: manipulation; /* reduz chances de zoom acidental */
   overscroll-behavior-y: none; /* bloqueia pull-to-refresh */
 }
+
+/* Setas do carrossel de imagens de produto */
+.swiper-button-prev,
+.swiper-button-next {
+  color: white !important;
+  font-size: 2rem;
+  width: 40px;
+  height: 40px;
+}
+
+/* Pontos da paginação no carrossel de imagens de produto */
+.swiper-pagination-bullet,
+.swiper-pagination-bullet-active {
+  background-color: white !important;
+}

@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import ProductImageCarousel from "@/app/components/productImageCarousel";
 
 type ProdutoProps = {
   product: {
@@ -24,20 +24,6 @@ type ProdutoProps = {
 };
 
 export default function ProdutoClient({ product }: ProdutoProps) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  // TODO: Melhorar o carrossel de imagens (permitir deslizar na imagem e clicar nas thumbnails pra trocar)
-  const nextImage = () => {
-    setCurrentImageIndex((prevIndex) => 
-      prevIndex === product.images.length - 1 ? 0 : prevIndex + 1
-    );
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prevIndex) => 
-      prevIndex === 0 ? product.images.length - 1 : prevIndex - 1
-    );
-  };
-
   {/*}
   const handleWishlistClick = () => {
     if (isAuthenticated) {
@@ -84,57 +70,9 @@ export default function ProdutoClient({ product }: ProdutoProps) {
             </Link>
           </div>
           
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Product Images */}
-            <div className="relative">
-              <div className="overflow-hidden rounded-lg bg-gray-100 mb-4 h-80">
-                <img 
-                  src={product.images[currentImageIndex]} 
-                  alt={product.title}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              
-              {product.images.length > 1 && (
-                <div className="absolute inset-y-0 flex items-center justify-between w-full px-2">
-                  <button 
-                    onClick={prevImage}
-                    className="rounded-full h-8 w-8 p-0 bg-white/80 backdrop-blur-sm border-gray-200"
-                  >
-                    ←
-                  </button>
-                  <button 
-                    onClick={nextImage}
-                    className="rounded-full h-8 w-8 p-0 bg-white/80 backdrop-blur-sm border-gray-200"
-                  >
-                    →
-                  </button>
-                </div>
-              )}
-              
-              {/* Thumbnail Navigation */}
-              {product.images.length > 1 && (
-                <div className="flex gap-2 mt-4">
-                  {product.images.map((image, index) => (
-                    <button 
-                      key={index}
-                      className={`w-16 h-16 rounded border-2 overflow-hidden ${
-                        index === currentImageIndex 
-                          ? 'border-sanca' 
-                          : 'border-transparent'
-                      }`}
-                      onClick={() => setCurrentImageIndex(index)}
-                    >
-                      <img 
-                        src={image} 
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ProductImageCarousel images={product.images} />
             
             {/* Product Info */}
             <div>
