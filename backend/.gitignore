@@ -1,2 +1,5 @@
+# Environment files
 .env
-main
+
+# Temp files
+/tmp/*
