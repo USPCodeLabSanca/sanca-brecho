@@ -2,4 +2,4 @@
 .env
 
 # Log files
-*.log
+firebase-debug.log
