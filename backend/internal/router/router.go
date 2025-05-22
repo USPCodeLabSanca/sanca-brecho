@@ -13,13 +13,14 @@ func New() *gin.Engine {
 	api := router.Group("/api")
 	{
 		api.POST("/login", handler.Login)
+		api.GET("/profile/:slug", handler.FindProfile)
 
 		userRouter := api.Group("/user")
 		userRouter.Use(middleware.Auth)
 		{
-			userRouter.GET("/", handler.GetUser)
-			userRouter.PUT("/", handler.UpdateUser)
-			userRouter.DELETE("/", handler.DeleteUser)
+			userRouter.GET("/me", handler.GetUser)
+			userRouter.PUT("/me", handler.UpdateUser)
+			userRouter.DELETE("/me", handler.DeleteUser)
 		}
 	}
 
