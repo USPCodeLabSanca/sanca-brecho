@@ -12,7 +12,7 @@ import (
 
 // AuthMiddleware verifies the Bearer token and fetches the user.
 // It expects an "Authorization" header in the format "Bearer <token>".
-func Auth(c *gin.Context) {
+func AdminAuth(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
@@ -40,6 +40,11 @@ func Auth(c *gin.Context) {
 	err = repository.DB.Where("id = ?", token.UID).Find(&user).Error
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	if user.Role != models.RoleAdmin {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "You are not admin"})
 		return
 	}
 

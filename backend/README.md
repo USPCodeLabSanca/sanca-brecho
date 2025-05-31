@@ -17,3 +17,11 @@ Follow these steps:
 
 docker ps
 docker logs -f <CONTAINER ID>
+
+### To setup firebase
+
+- Go to the Firebase console and search for the project.
+- Go to the Project Settings and go to the Service Accounts tab.
+- Click on the Generate New Private Key button.
+- Download the JSON file.
+- Put the file in the root folder of the project, and rename it to `credentials.json`.
