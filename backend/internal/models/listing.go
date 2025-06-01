@@ -1,5 +1,11 @@
 package models
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 type Condition string
 
 const (
@@ -10,9 +16,9 @@ const (
 )
 
 type Listing struct {
-	ID          string `json:"id" gorm:"type: uuid;default:uuid_generate_v4();primary_key"`
-	UserID      string `json:"user_id" gorm:"type:uuid;not null"`
-	User        User   `json:"user" gorm:"foreignKey:UserID;references:ID"`
+	ID          uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	UserID      string    `json:"user_id" gorm:"not null"` // string, compatível com ID do Firebase
+	User        User      `json:"user" gorm:"foreignKey:UserID;references:ID"`
 	CategoryID  int
 	Category    Category  `json:"category" gorm:"foreignKey:CategoryID;references:ID"`
 	Title       string    `json:"title" gorm:"not null"`
@@ -22,7 +28,7 @@ type Listing struct {
 	Condition   Condition `json:"condition" gorm:"type:condition_enum;not null"`
 	AcceptTrade bool      `json:"accept_trade" gorm:"not null"`
 	Location    string    `json:"location" gorm:"not null"`
-	IsActive    bool      `json:"is_active" gorm:"not null"`
-	CreatedAt   string    `json:"created_at" gorm:"default.now()"`
-	UpdatedAt   string    `json:"updated_at" gorm:"default.now()"`
+	IsActive    bool      `json:"is_active" gorm:"default:true"`
+	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }

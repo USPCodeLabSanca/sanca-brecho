@@ -1,10 +1,13 @@
 module api
 
-go 1.24.2
+go 1.23.0
+
+toolchain go1.23.9
 
 require (
 	firebase.google.com/go/v4 v4.15.2
 	github.com/gin-gonic/gin v1.10.0
+	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	google.golang.org/api v0.233.0
 	gorm.io/driver/postgres v1.5.11
@@ -12,6 +15,13 @@ require (
 )
 
 require (
+
+	firebase.google.com/go/v4 v4.15.2
+	github.com/gin-gonic/gin v1.10.0
+	github.com/joho/godotenv v1.5.1
+	google.golang.org/api v0.233.0
+	gorm.io/driver/postgres v1.5.11
+	gorm.io/gorm v1.26.1
 	cel.dev/expr v0.20.0 // indirect
 	cloud.google.com/go v0.117.0 // indirect
 	cloud.google.com/go/auth v0.16.1 // indirect
