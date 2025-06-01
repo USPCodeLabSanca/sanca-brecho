@@ -4,3 +4,6 @@ credentials.json
 
 # Temp files
 /tmp/*
+
+# Builds
+main
