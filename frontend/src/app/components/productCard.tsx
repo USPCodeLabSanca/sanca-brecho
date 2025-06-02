@@ -87,7 +87,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
               alt={product.userName}
               className="h-4 w-4 rounded-full mr-1 object-cover"
             />
-            <span className="truncate">{product.location}</span>
+            <span className="truncate">{product.userName}</span>
           </div>
         </div>
       </div>
