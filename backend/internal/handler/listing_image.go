@@ -16,7 +16,7 @@ func CreateListingImage(c *gin.Context) {
 		return
 	}
 
-	img.ID = uuid.NewString()
+	img.ID = uuid.New()
 
 	if err := repository.DB.Create(&img).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create image"})
