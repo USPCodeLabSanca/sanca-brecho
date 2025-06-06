@@ -19,7 +19,7 @@ type Listing struct {
 	ID          uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	UserID      string    `json:"user_id" gorm:"not null"` // string, compatível com ID do Firebase
 	User        User      `json:"user" gorm:"foreignKey:UserID;references:ID"`
-	CategoryID  int
+	CategoryID  int       `json:"category_id" gorm:"not null"`
 	Category    Category  `json:"category" gorm:"foreignKey:CategoryID;references:ID"`
 	Title       string    `json:"title" gorm:"not null"`
 	Slug        string    `json:"slug" gorm:"not null;uniqueIndex"`
