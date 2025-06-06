@@ -3,7 +3,8 @@ package repository
 import (
 	"api/internal/models"
 	"log"
-	"time"
+	"math/rand/v2"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
@@ -54,29 +55,25 @@ func Seed() error {
 		/* ------------------------------------------------------------------
 		   2. Usuários
 		------------------------------------------------------------------*/
-		now := time.Now()
 		users := []*models.User{
 			{
-				ID:          uuid.New().String(),
+				ID:          "kCIjyDgvJpNbpCiaePDXHlQwkU02", // Fixando uid (gerado pelo firebase)
 				DisplayName: "Admin",
 				Email:       "admin@example.com",
 				Role:        models.RoleAdmin,
 				Verified:    true,
-				CreatedAt:   now, UpdatedAt: now,
 			},
 			{
-				ID:          uuid.New().String(),
+				ID:          "1UlfK3Ha5jdmreJQzG0L5EMR2BI3",
 				DisplayName: "João Silva",
 				Email:       "joao@example.com",
 				Verified:    true,
-				CreatedAt:   now, UpdatedAt: now,
 			},
 			{
-				ID:          uuid.New().String(),
+				ID:          "pSKSJ1PWTTYqSn1GiB2zgQJ2NUj2",
 				DisplayName: "Maria Souza",
 				Email:       "maria@example.com",
 				Verified:    false,
-				CreatedAt:   now, UpdatedAt: now,
 			},
 		}
 		for _, u := range users {
@@ -196,18 +193,31 @@ func Seed() error {
 		   4. Imagens
 		------------------------------------------------------------------*/
 		for _, lst := range listings {
+			var count int64
+			if err := tx.Model(&models.ListingImage{}).Where("listing_id = ?", lst.ID).Count(&count).Error; err != nil {
+				return err
+			}
+
+			if count > 0 {
+				// Já existem imagens para esse listing, então pula
+				// isso é útil para evitar duplicação de imagens em seeds idempotentes
+				continue
+			}
+
+			// Se não existem, cria duas imagens
 			prim := &models.ListingImage{
-				ID:        uuid.New().String(),
+				ID:        uuid.New(),
 				ListingID: lst.ID,
-				Src:       "https://loremflickr.com/640/480/product?lock=" + lst.ID[:6],
+				Src:       "https://loremflickr.com/640/480/product?lock=" + strconv.Itoa(rand.Int()),
 				IsPrimary: true,
 			}
 			sec := &models.ListingImage{
-				ID:        uuid.New().String(),
+				ID:        uuid.New(),
 				ListingID: lst.ID,
-				Src:       "https://loremflickr.com/640/480/close-up?lock=" + lst.ID[6:12],
+				Src:       "https://loremflickr.com/640/480/close-up?lock=" + strconv.Itoa(rand.Int()),
 			}
-			if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create([]*models.ListingImage{prim, sec}).Error; err != nil {
+
+			if err := tx.Create([]*models.ListingImage{prim, sec}).Error; err != nil {
 				return err
 			}
 		}
