@@ -18,12 +18,31 @@ func AddFavorite(c *gin.Context) {
 
 	fav.CreatedAt = time.Now().Format(time.RFC3339)
 
+	// Criar o favorito no banco de dados
 	if err := repository.DB.Create(&fav).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to favorite listing"})
 		return
 	}
 
+	// Carregar os dados relacionados (User e Listing) após a criação
+	if err := repository.DB.Preload("User").Preload("Listing").First(&fav, "user_id = ? AND listing_id = ?", fav.UserID, fav.ListingID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load related data"})
+		return
+	}
+
 	c.JSON(http.StatusCreated, fav)
+}
+
+func ListFavorites(c *gin.Context) {
+	var favorites []models.Favorite
+
+	// Obter todos os favoritos
+	if err := repository.DB.Preload("User").Preload("Listing.User").Preload("Listing.Category").Find(&favorites).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch favorites"})
+		return
+	}
+
+	c.JSON(http.StatusOK, favorites)
 }
 
 func RemoveFavorite(c *gin.Context) {
@@ -47,7 +66,7 @@ func ListFavoritesByUser(c *gin.Context) {
 	userID := c.Param("user_id")
 
 	var favorites []models.Favorite
-	if err := repository.DB.Preload("Listing").Where("user_id = ?", userID).Find(&favorites).Error; err != nil {
+	if err := repository.DB.Preload("User").Preload("Listing.User").Preload("Listing.Category").Where("user_id = ?", userID).Find(&favorites).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch favorites"})
 		return
 	}

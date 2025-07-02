@@ -23,22 +23,50 @@ func CreateCategory(c *gin.Context) {
 	c.JSON(http.StatusCreated, cat)
 }
 
+func GetCategories(c *gin.Context) {
+	var categories []models.Category
+	if err := repository.DB.Find(&categories).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve categories"})
+		return
+	}
+
+	c.JSON(http.StatusOK, categories)
+}
+
 func GetCategory(c *gin.Context) {
 	id := c.Param("id")
 	var cat models.Category
 	if err := repository.DB.First(&cat, "id = ?", id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve category"})
+		}
 		return
 	}
 
 	c.JSON(http.StatusOK, cat)
 }
 
+func GetCategories(c *gin.Context) {
+	var cats []models.Category
+	if err := repository.DB.Find(&cats).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve categories"})
+		return
+	}
+
+	c.JSON(http.StatusOK, cats)
+}
+
 func UpdateCategory(c *gin.Context) {
 	id := c.Param("id")
 	var cat models.Category
 	if err := repository.DB.First(&cat, "id = ?", id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve category"})
+		}
 		return
 	}
 
@@ -48,14 +76,25 @@ func UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	repository.DB.Model(&cat).Updates(updates)
+	if err := repository.DB.Model(&cat).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update category"})
+		return
+	}
+
 	c.JSON(http.StatusOK, cat)
 }
 
 func DeleteCategory(c *gin.Context) {
 	id := c.Param("id")
-	if err := repository.DB.Delete(&models.Category{}, "id = ?", id).Error; err != nil {
+	result := repository.DB.Delete(&models.Category{}, "id = ?", id)
+
+	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete category"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
 		return
 	}
 

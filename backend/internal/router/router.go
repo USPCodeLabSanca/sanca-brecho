@@ -25,7 +25,9 @@ func New() *gin.Engine {
 
 		listingRouter := api.Group("/listings")
 		{
+			listingRouter.GET("/", handler.GetListings)
 			listingRouter.POST("/", handler.CreateListing)
+			listingRouter.GET("/", handler.GetListings)
 			listingRouter.GET("/:id", handler.GetListing)
 			listingRouter.PUT("/:id", handler.UpdateListing)
 			listingRouter.DELETE("/:id", handler.DeleteListing)
@@ -33,7 +35,9 @@ func New() *gin.Engine {
 
 		categorieRouter := api.Group("/categories")
 		{
+			categorieRouter.GET("/", handler.GetCategories)
 			categorieRouter.POST("/", handler.CreateCategory)
+			categorieRouter.GET("/", handler.GetCategories)
 			categorieRouter.GET("/:id", handler.GetCategory)
 			categorieRouter.PUT("/:id", handler.UpdateCategory)
 			categorieRouter.DELETE("/:id", handler.DeleteCategory)
@@ -42,6 +46,7 @@ func New() *gin.Engine {
 		listingImageRouter := api.Group("/listing-images")
 		{
 			listingImageRouter.POST("/", handler.CreateListingImage)
+			listingImageRouter.GET("/", handler.GetListingImages)
 			listingImageRouter.GET("/:id", handler.GetListingImage)
 			listingImageRouter.PUT("/:id", handler.UpdateListingImage)
 			listingImageRouter.DELETE("/:id", handler.DeleteListingImage)
@@ -50,6 +55,7 @@ func New() *gin.Engine {
 		favoriteRouter := api.Group("/favorites")
 		{
 			favoriteRouter.POST("/", handler.AddFavorite)
+			favoriteRouter.GET("/", handler.ListFavorites)
 			favoriteRouter.DELETE("/", handler.RemoveFavorite)
 			favoriteRouter.GET("/:user_id", handler.ListFavoritesByUser)
 		}
