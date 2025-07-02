@@ -46,6 +46,7 @@ func New() *gin.Engine {
 			listingImageRouter.POST("/", handler.CreateListingImage)
 			listingImageRouter.GET("/", handler.GetListingImages)
 			listingImageRouter.GET("/:id", handler.GetListingImage)
+			listingImageRouter.GET("/listing/:listingID", handler.GetListingImagesByListing)
 			listingImageRouter.PUT("/:id", handler.UpdateListingImage)
 			listingImageRouter.DELETE("/:id", handler.DeleteListingImage)
 		}

@@ -60,6 +60,24 @@ func GetListingImage(c *gin.Context) {
 	c.JSON(http.StatusOK, img)
 }
 
+func GetListingImagesByListing(c *gin.Context) {
+    listingID := c.Param("listingID") 
+    var images []models.ListingImage
+
+    // Buscar todas as imagens relacionadas ao ListingID
+    if err := repository.DB.Where("listing_id = ?", listingID).Find(&images).Error; err != nil {
+        if err.Error() == "record not found" {
+            c.JSON(http.StatusNotFound, gin.H{"error": "No images found for the specified listing"})
+        } else {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve images"})
+        }
+        return
+    }
+
+    c.JSON(http.StatusOK, images)
+}
+
+
 func GetListingImages(c *gin.Context) {
 	var images []models.ListingImage
 
