@@ -26,6 +26,17 @@ func CreateListing(c *gin.Context) {
 	c.JSON(http.StatusCreated, listing)
 }
 
+func GetListings(c *gin.Context) {
+	var listings []models.Listing
+
+	if err := database.DB.Preload("User").Preload("Category").Find(&listings).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
+		return
+	}
+
+	c.JSON(http.StatusOK, listings)
+}
+
 func GetListing(c *gin.Context) {
 	id := c.Param("id")
 
