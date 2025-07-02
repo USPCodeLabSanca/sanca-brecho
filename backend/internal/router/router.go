@@ -25,6 +25,7 @@ func New() *gin.Engine {
 
 		listingRouter := api.Group("/listings")
 		{
+			listingRouter.GET("/", handler.GetListings)
 			listingRouter.POST("/", handler.CreateListing)
 			listingRouter.GET("/", handler.GetListings)
 			listingRouter.GET("/:id", handler.GetListing)
@@ -34,6 +35,7 @@ func New() *gin.Engine {
 
 		categorieRouter := api.Group("/categories")
 		{
+			categorieRouter.GET("/", handler.GetCategories)
 			categorieRouter.POST("/", handler.CreateCategory)
 			categorieRouter.GET("/", handler.GetCategories)
 			categorieRouter.GET("/:id", handler.GetCategory)
