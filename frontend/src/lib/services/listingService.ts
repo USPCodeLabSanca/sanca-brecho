@@ -16,13 +16,13 @@ export const getListingById = async(id: string): Promise<ListingType> => {
 }
 
 // Criar um novo listing
-export const createListing = async(listing: Partial<ListingType>): Promise<ListingType> => {
+export const createListing = async(listing: Omit<ListingType, 'user' | 'category'>): Promise<ListingType> => {
     const response = await api.post('/listings', listing);
     return response.data;
 }
 
 // Atualizar um listing existente
-export const updateListing = async(id: string, listing: Partial<ListingType>): Promise<ListingType> => {
+export const updateListing = async(id: string, listing: Omit<ListingType, 'user' | 'category'>): Promise<ListingType> => {
     const response = await api.put(`/listings/${id}`, listing);
     return response.data;
 }
@@ -33,12 +33,10 @@ export const deleteListing = async(id: string): Promise<void> => {
 }
 
 // Criar uma imagem de listing
-export const createListingImage = async(image: Partial<ListingImageType>): Promise<ListingImageType> => {
+export const createListingImage = async(image: Omit<ListingImageType, 'listing'>): Promise<ListingImageType> => {
     const response = await api.post('/listing-images', image);
     return response.data;
 }
-
-
 
 // Buscar uma imagem de listing específica pelo ID
 export const getListingImageById = async (id: string): Promise<ListingImageType> => {
@@ -47,13 +45,19 @@ export const getListingImageById = async (id: string): Promise<ListingImageType>
 };
 
 // Buscar todas as imagens de listings
-export const getListingImages = async (): Promise<ListingImageType[]> => {
+export const getAllListingsImages = async (): Promise<ListingImageType[]> => {
     const response = await api.get('/listing-images');
     return response.data;
 };
 
+// Buscar todas as imagens de um listing específico pelo ListingID
+export const getListingImages = async (listingID: string): Promise<ListingImageType[]> => {
+    const response = await api.get(`/listing-images/listing/${listingID}`);
+    return response.data;
+};
+
 // Atualizar uma imagem de listing
-export const updateListingImage = async (id: string, updates: Partial<ListingImageType>): Promise<ListingImageType> => {
+export const updateListingImage = async (id: string, updates: Omit<ListingImageType, 'Listing'>): Promise<ListingImageType> => {
     const response = await api.put(`/listing-images/${id}`, updates);
     return response.data;
 };

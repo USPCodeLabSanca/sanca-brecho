@@ -68,8 +68,7 @@ export interface ListingImageType{
     isPrimary: boolean;
 }
 
-//inutilizado no backend
-export interface Profile{
+export interface ProfileType{
     displayName: string;
     slug: string;
     email: string;
