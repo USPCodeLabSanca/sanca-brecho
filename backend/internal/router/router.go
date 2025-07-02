@@ -27,7 +27,6 @@ func New() *gin.Engine {
 		{
 			listingRouter.GET("/", handler.GetListings)
 			listingRouter.POST("/", handler.CreateListing)
-			listingRouter.GET("/", handler.GetListings)
 			listingRouter.GET("/:id", handler.GetListing)
 			listingRouter.PUT("/:id", handler.UpdateListing)
 			listingRouter.DELETE("/:id", handler.DeleteListing)
@@ -37,7 +36,6 @@ func New() *gin.Engine {
 		{
 			categorieRouter.GET("/", handler.GetCategories)
 			categorieRouter.POST("/", handler.CreateCategory)
-			categorieRouter.GET("/", handler.GetCategories)
 			categorieRouter.GET("/:id", handler.GetCategory)
 			categorieRouter.PUT("/:id", handler.UpdateCategory)
 			categorieRouter.DELETE("/:id", handler.DeleteCategory)
