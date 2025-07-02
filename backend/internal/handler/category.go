@@ -23,16 +23,6 @@ func CreateCategory(c *gin.Context) {
 	c.JSON(http.StatusCreated, cat)
 }
 
-func GetCategories(c *gin.Context) {
-	var categories []models.Category
-	if err := repository.DB.Find(&categories).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve categories"})
-		return
-	}
-
-	c.JSON(http.StatusOK, categories)
-}
-
 func GetCategory(c *gin.Context) {
 	id := c.Param("id")
 	var cat models.Category
