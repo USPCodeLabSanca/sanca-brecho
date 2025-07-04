@@ -4,11 +4,14 @@ import (
 	"api/internal/handler"
 	"api/internal/middleware"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func New() *gin.Engine {
 	router := gin.Default()
+
+	router.Use(cors.Default())
 
 	api := router.Group("/api")
 	{
@@ -43,6 +46,7 @@ func New() *gin.Engine {
 
 		listingImageRouter := api.Group("/listing-images")
 		{
+			listingImageRouter.POST("/s3", handler.GeneratePresignedURL)
 			listingImageRouter.POST("/", handler.CreateListingImage)
 			listingImageRouter.GET("/", handler.GetListingImages)
 			listingImageRouter.GET("/:id", handler.GetListingImage)
