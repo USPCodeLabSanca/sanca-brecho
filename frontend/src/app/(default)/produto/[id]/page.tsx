@@ -167,7 +167,7 @@ export default function ProdutoClient() {
                 </Link>
                 
                 <Link href={`/usuario/${product.userId}`} className="ml-auto">
-                  <button className="border border-gray-300 hover:bg-gray-100 h-9 rounded-md px-3">
+                  <button className="border border-gray-300 hover:bg-gray-100 h-9 rounded-md px-3 cursor-pointer">
                     Ver perfil
                   </button>
                 </Link>

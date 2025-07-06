@@ -38,7 +38,9 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   return (
     <Link href={`/produto/${product.id}`}>
       <div
-        className={`bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md relative cursor-pointer ${className || ""}`}
+        className={`bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md relative cursor-pointer ${
+          className || ""
+        }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -85,7 +87,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
               alt={product.userName}
               className="h-4 w-4 rounded-full mr-1 object-cover"
             />
-            <span className="truncate">{product.location}</span>
+            <span className="truncate">{product.userName}</span>
           </div>
         </div>
       </div>

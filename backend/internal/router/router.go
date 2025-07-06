@@ -13,14 +13,52 @@ func New() *gin.Engine {
 	api := router.Group("/api")
 	{
 		api.POST("/login", handler.Login)
+		api.GET("/profile/:slug", handler.FindProfile)
 
-		userRouter := api.Group("/user")
+		userRouter := api.Group("/users")
 		userRouter.Use(middleware.Auth)
 		{
-			userRouter.GET("/", handler.GetUser)
-			userRouter.PUT("/", handler.UpdateUser)
-			userRouter.DELETE("/", handler.DeleteUser)
+			userRouter.GET("/me", handler.GetUser)
+			userRouter.PUT("/me", handler.UpdateUser)
+			userRouter.DELETE("/me", handler.DeleteUser)
 		}
+
+		listingRouter := api.Group("/listings")
+		{
+			listingRouter.GET("/", handler.GetListings)
+			listingRouter.POST("/", handler.CreateListing)
+			listingRouter.GET("/:id", handler.GetListing)
+			listingRouter.PUT("/:id", handler.UpdateListing)
+			listingRouter.DELETE("/:id", handler.DeleteListing)
+		}
+
+		categorieRouter := api.Group("/categories")
+		{
+			categorieRouter.GET("/", handler.GetCategories)
+			categorieRouter.POST("/", handler.CreateCategory)
+			categorieRouter.GET("/:id", handler.GetCategory)
+			categorieRouter.PUT("/:id", handler.UpdateCategory)
+			categorieRouter.DELETE("/:id", handler.DeleteCategory)
+		}
+
+		listingImageRouter := api.Group("/listing-images")
+		{
+			listingImageRouter.POST("/", handler.CreateListingImage)
+			listingImageRouter.GET("/", handler.GetListingImages)
+			listingImageRouter.GET("/:id", handler.GetListingImage)
+			listingImageRouter.GET("/listing/:listingID", handler.GetListingImagesByListing)
+			listingImageRouter.PUT("/:id", handler.UpdateListingImage)
+			listingImageRouter.DELETE("/:id", handler.DeleteListingImage)
+		}
+
+		favoriteRouter := api.Group("/favorites")
+		{
+			favoriteRouter.POST("/", handler.AddFavorite)
+			favoriteRouter.GET("/", handler.ListFavorites)
+			favoriteRouter.DELETE("/", handler.RemoveFavorite)
+			favoriteRouter.GET("/:user_id", handler.ListFavoritesByUser)
+		}
+
 	}
 
 	return router

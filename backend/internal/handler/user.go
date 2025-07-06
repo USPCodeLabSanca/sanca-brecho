@@ -61,3 +61,30 @@ func DeleteUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
+
+func FindProfile(c *gin.Context) {
+	slug := c.Param("slug")
+
+	var user models.User
+	result := repository.DB.Where("slug=?", slug).Find(&user)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"messsage": result.Error.Error()})
+		return
+	}
+
+	// Only public data
+	resp := models.Profile{
+		DisplayName: user.DisplayName,
+		Slug:        user.Slug,
+		Email:       user.Email,
+		PhotoURL:    user.PhotoURL,
+		University:  user.University,
+		Whatsapp:    user.Whatsapp,
+		Telegram:    user.Telegram,
+		Verified:    user.Verified,
+		Role:        user.Role,
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": resp})
+
+}

@@ -37,9 +37,8 @@ export default function Footer() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-3"> Ajuda e Suporte</h3>
                 <ul className="space-y-2">
                 <li><Link className="text-gray-600 hover:text-indigo-500" href="/faq">FAQ</Link></li>
-                <li><Link className="text-gray-600 hover:text-indigo-500" href="/contato">Contato</Link></li>
-                <li><Link className="text-gray-600 hover:text-indigo-500" href="/termos-de-uso">Termos de Uso</Link></li>
-                <li><Link className="text-gray-600 hover:text-indigo-500" href="/politica-da-privacidade">Políticas de Privacidade</Link></li>
+                <li><Link className="text-gray-600 hover:text-indigo-500" href="/termos">Termos de Uso</Link></li>
+                <li><Link className="text-gray-600 hover:text-indigo-500" href="/privacidade">Políticas de Privacidade</Link></li>
                 </ul>
               </div>
 
