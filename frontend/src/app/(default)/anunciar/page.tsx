@@ -1,23 +1,127 @@
 'use client'
 
 import { useAuth } from "@/lib/context/AuthContext";
-import { useRouter } from "next/navigation";
-import { AlertCircle, Camera, CheckCircle2, Upload } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AlertCircle, ArrowLeft, Camera, CheckCircle2, Upload } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { DndProvider } from "react-dnd";
+import DraggableImage from "@/app/components/draggableImage";
+import { HTML5Backend } from "react-dnd-html5-backend";
+
+type presignedUrl = {
+  key: string,
+  publicURL: string,
+  url: string
+}
+
+type previewImage = {
+  key: string,
+  publicURL: string,
+}
 
 export default function Anunciar() {
-    const { user, loading } = useAuth();
-    const router = useRouter();
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams()
 
-    if (loading) {
+  // Estados de imagem
+  const [previewImages, setPreviewImages] = useState<previewImage[]>([]);
+  const [activeImage, setActiveImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [loading, user, router]);
+
+  // Faz upload da imagem no s3 (chama o backend)
+  // TODO: Mudar a chamada da API para axios
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      // Request do presigned URL
+      const response = await fetch("http://localhost:8080/api/listing-images/s3", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          filename: file?.name,
+          contentType: file?.type
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Falha ao gerar URL (status ${response.status})`);
+      }
+
+      // Upload do objeto para aws
+      const data: presignedUrl = await response.json();
+      const upload = await fetch(data.url, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type
+        }
+      });
+
+      if (upload.ok) {
+        console.log("Upload successful");
+      } else {
+        throw new Error(`Falha no upload (status ${upload.status})`);
+      }
+
+      setPreviewImages([...previewImages, { publicURL: data.publicURL, key: data.key }]);
+    } catch (err: any) {
+      // TODO: mostrar toast de erro
+      const message = err.message || 'Erro desconhecido ao enviar';
+      console.error(message);
+    } finally {
+      event.target.value = '';
+    }
+  }
+
+  /* Abre a tela cheia da imagem clicada */
+  const openViewer = (image: previewImage) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('pid', image.key)
+    router.push(`?${params.toString()}`, { scroll: false })
+    setActiveImage(image.publicURL);
+  }
+
+  /* Fecha a tela cheia da imagem clicada */
+  const closeViewer = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('pid')
+    router.replace(`?${params.toString()}`, { scroll: false })
+    setActiveImage(null);
+  }
+
+  /* Move a imagem e mudar a ordem */
+  const moveImage = useCallback((from: number, to: number) => {
+    setPreviewImages((imgs) => {
+      const updated = [...imgs];
+      const [moved] = updated.splice(from, 1);
+      updated.splice(to, 0, moved);
+      return updated;
+    });
+  }, []);
+
+  /* Remove a imagem */
+  const removeImage = useCallback((idx: number) => {
+    setPreviewImages((imgs) => imgs.filter((_, i) => i !== idx));
+  }, []);
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#f3eefe]">
         <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite]  border-sanca"></div>
       </div>
     );
-  }
-
-  if (!user) {
-    router.push("/login");
   }
 
   return (
@@ -50,7 +154,7 @@ export default function Anunciar() {
                 required
               ></textarea>
             </div>
-            
+
             {/* Preço */}
             <div className="space-y-1">
               <label className="text-sm font-medium block" htmlFor="price">Preço (R$)*</label>
@@ -63,78 +167,100 @@ export default function Anunciar() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Categoria */}
-            <div className="space-y-1">
+              {/* Categoria */}
+              <div className="space-y-1">
                 <label htmlFor="category" className="text-sm font-medium block">Categoria*</label>
                 <select
-                id="category"
-                name="category"
-                defaultValue="defaultValue"
-                className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
-                required
+                  id="category"
+                  name="category"
+                  defaultValue="defaultValue"
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
+                  required
                 >
-                <option value="defaultValue" disabled>Selecione</option>
-                <option value="books">📚 Livros</option>
-                <option value="eletronics">💻 Eletrônicos</option>
-                <option value="furnitures">🪑 Móveis</option>
-                <option value="transport">🚲 Transporte</option>
-                <option value="clothes">👕 Roupas</option>
-                <option value="music">🎸 Música</option>
-                <option value="sports">⚽️ Esportes</option>
-                <option value="games">🎮 Jogos</option>
+                  <option value="defaultValue" disabled>Selecione</option>
+                  <option value="books">📚 Livros</option>
+                  <option value="eletronics">💻 Eletrônicos</option>
+                  <option value="furnitures">🪑 Móveis</option>
+                  <option value="transport">🚲 Transporte</option>
+                  <option value="clothes">👕 Roupas</option>
+                  <option value="music">🎸 Música</option>
+                  <option value="sports">⚽️ Esportes</option>
+                  <option value="games">🎮 Jogos</option>
                 </select>
-            </div>
+              </div>
 
-            {/* Condição */}
-            <div className="space-y-1">
+              {/* Condição */}
+              <div className="space-y-1">
                 <label htmlFor="condition" className="text-sm font-medium block">Condição*</label>
                 <select
-                name="condition"
-                id="condition"
-                defaultValue="defaultValue"
-                className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca"
-                required
+                  name="condition"
+                  id="condition"
+                  defaultValue="defaultValue"
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca"
+                  required
                 >
-                <option value="defaultValue" disabled>Selecione</option>
-                <option value="new">Novo</option>
-                <option value="usedLikeANew">Usado - Como novo</option>
-                <option value="usedLikeGood">Usado - Bom estado</option>
-                <option value="usedLikeBad">Usado - Com marcas de uso</option>
+                  <option value="defaultValue" disabled>Selecione</option>
+                  <option value="new">Novo</option>
+                  <option value="usedLikeANew">Usado - Como novo</option>
+                  <option value="usedLikeGood">Usado - Bom estado</option>
+                  <option value="usedLikeBad">Usado - Com marcas de uso</option>
                 </select>
-            </div>
+              </div>
 
-            {/* Preço negociável */}
-            <div>
+              {/* Preço negociável */}
+              <div>
                 <label className="inline-flex items-center cursor-pointer mt-2">
-                <input type="checkbox" className="sr-only peer" />
-                <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
-                <span className="ml-3 text-sm font-medium">Preço negociável</span>
+                  <input type="checkbox" className="sr-only peer" />
+                  <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
+                  <span className="ml-3 text-sm font-medium">Preço negociável</span>
                 </label>
-            </div>
+              </div>
 
-            {/* Posso entregar */}
-            <div>
+              {/* Posso entregar */}
+              <div>
                 <label className="inline-flex items-center cursor-pointer sm:mt-2">
-                <input type="checkbox" className="sr-only peer" />
-                <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
-                <span className="ml-3 text-sm font-medium">Posso entregar o produto</span>
+                  <input type="checkbox" className="sr-only peer" />
+                  <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
+                  <span className="ml-3 text-sm font-medium">Posso entregar o produto</span>
                 </label>
-            </div>
-            </div>
-
-            {/* Imagens */}
-            <div className="mb-6">
-              <label className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-sm font-medium">Imagens do produto* (máximo 5)</label>
-              <div className='grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4'>
-                <div className="aspect-square border-2 border-dashed border-gray-200 rounded-md flex flex-col items-center justify-center p-2 w-30 h-30">
-                  <Camera className="text-slate-500"/>
-                  <label className='text-center' htmlFor="image-upload">
-                    <span className="cursor-pointer text-sanca text-sm">Adicionar foto</span>
-                    <input id="image-upload" className='hidden' accept="image/*" type="file" required/>
-                  </label>
-                </div>
               </div>
             </div>
+
+            {/* Grid de imagens com DnD */}
+            <DndProvider backend={HTML5Backend}>
+              {/* Imagens */}
+              <div className="mb-6">
+                <label className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-sm font-medium">Imagens do produto* (máximo 5)</label>
+                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
+                  {previewImages.map((img, idx) => (
+                    <DraggableImage
+                      key={img.key}
+                      image={img}
+                      index={idx}
+                      moveImage={moveImage}
+                      openViewer={openViewer}
+                      removeImage={removeImage}
+                    />
+                  ))}
+
+                  {previewImages.length < 5 && (
+                    <div className="aspect-square border-2 border-dashed border-gray-200 rounded-md flex flex-col items-center justify-center p-2">
+                      <Camera className="text-slate-500" />
+                      <label htmlFor="image-upload" className="text-center">
+                        <span className="cursor-pointer text-sanca text-sm">Adicionar fotos</span>
+                        <input
+                          id="image-upload"
+                          className="hidden"
+                          accept="image/png, image/jpeg, image/jpg"
+                          type="file"
+                          onChange={handleImageUpload}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </DndProvider>
 
             <div className="flex items-center space-x-2">
               <Upload className="text-slate-500 w-4 h-4 sm:w-5 sm:h-5" />
@@ -158,6 +284,34 @@ export default function Anunciar() {
 
           </form>
         </div>
+
+        {/* Visualizador de imagens fullscreen */}
+        {activeImage && (
+          <div
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+            onClick={closeViewer}
+          >
+            <TransformWrapper>
+              <button
+                className="absolute top-2.5 left-2.5 z-50 text-white bg-black/80 px-3 py-3 rounded-full"
+                onClick={closeViewer}
+              >
+                <ArrowLeft />
+              </button>
+              <TransformComponent>
+                <div className="h-screen w-screen flex items-center justify-center">
+                  <img
+                    src={activeImage}
+                    alt="Preview"
+                    className="object-contain max-h-screen max-w-screen !pointer-events-auto"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </TransformComponent>
+            </TransformWrapper>
+          </div>
+        )}
+
       </section>
     </div>
   );

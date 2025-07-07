@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -35,6 +36,20 @@ func GeneratePresignedURL(c *gin.Context) {
 		return
 	}
 
+	// Validate the Content-Type
+	allowed := []string{"image/png", "image/jpeg", "image/jpg"}
+	if req.ContentType == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Content-Type header is required"})
+		return
+	}
+
+	valid := slices.Contains(allowed, req.ContentType)
+	if !valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Content-Type must be one of: %v", allowed)})
+		return
+	}
+
+	// Start building the presigned URL request
 	// S3 Key will be a UUID, which is a unique identifier for the object
 	key := uuid.New().String()
 
