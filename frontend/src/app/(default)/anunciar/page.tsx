@@ -28,7 +28,8 @@ type previewImage = {
 export default function Anunciar() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
+  const [isUploading, setIsUploading] = useState(false);
 
   // Estados de imagem
   const [previewImages, setPreviewImages] = useState<previewImage[]>([]);
@@ -46,6 +47,8 @@ export default function Anunciar() {
   // Faz upload da imagem no s3 (chama o backend)
   // TODO: Mudar a chamada da API para axios
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsUploading(true);
+
     try {
       if (previewImages.length > 5) {
         throw new Error('Limite de imagens atingido');
@@ -106,6 +109,7 @@ export default function Anunciar() {
       const message = err.message || 'Erro desconhecido ao enviar';
       alert(message);
     } finally {
+      setIsUploading(false);
       event.target.value = '';
     }
   }
@@ -151,6 +155,13 @@ export default function Anunciar() {
 
   return (
     <div className="flex flex-col sm:bg-[#f3eefe]">
+      
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
+          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite] border-white"></div>
+        </div>
+      )}
+
       <section className="max-w-3xl p-4 mb-5 mx-auto" >
         <h3 className="sm:text-2xl text-xl font-bold text-center sm:mt-5 mb-3">Anunciar um Produto</h3>
         <div className="bg-white sm:rounded-xl sm:shadow-sm sm:p-6">
