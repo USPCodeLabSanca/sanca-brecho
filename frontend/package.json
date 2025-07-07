@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "browser-image-compression": "^2.0.2",
     "firebase": "^11.8.0",
     "lucide-react": "^0.509.0",
     "next": "15.3.0",

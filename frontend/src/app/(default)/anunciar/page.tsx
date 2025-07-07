@@ -4,11 +4,14 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, ArrowLeft, Camera, CheckCircle2, Upload } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { DndProvider } from "react-dnd";
 import DraggableImage from "@/app/components/draggableImage";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import imageCompression from 'browser-image-compression'
+
+const MAX_SIZE_MB = 5
+const MAX_WIDTH_OR_HEIGHT = 1024
 
 type presignedUrl = {
   key: string,
@@ -40,8 +43,18 @@ export default function Anunciar() {
   // TODO: Mudar a chamada da API para axios
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
+      if (previewImages.length > 5) {
+        throw new Error('Limite de imagens atingido');
+      }
+
       const file = event.target.files && event.target.files[0];
       if (!file) return;
+
+      // Verifica tamanho bruto
+      const sizeMB = file.size / (1024 * 1024)
+      if (sizeMB > MAX_SIZE_MB) {
+        throw new Error(`Arquivo muito grande (${sizeMB.toFixed(1)} MB). Máximo permitido: ${MAX_SIZE_MB} MB.`);
+      }
 
       // Request do presigned URL
       const response = await fetch("http://localhost:8080/api/listing-images/s3", {
@@ -56,30 +69,38 @@ export default function Anunciar() {
       });
 
       if (!response.ok) {
-        throw new Error(`Falha ao gerar URL (status ${response.status})`);
+        throw new Error(`Falha ao Enviar arquivo (status ${response.status})`);
       }
+
+      // Compressão
+      const options = {
+        maxSizeMB: MAX_SIZE_MB,
+        maxWidthOrHeight: MAX_WIDTH_OR_HEIGHT,
+        useWebWorker: true,
+      }
+      const compressedFile = await imageCompression(file, options)
 
       // Upload do objeto para aws
       const data: presignedUrl = await response.json();
       const upload = await fetch(data.url, {
         method: "PUT",
-        body: file,
+        body: compressedFile,
         headers: {
-          "Content-Type": file.type
+          "Content-Type": compressedFile.type
         }
       });
 
       if (upload.ok) {
         console.log("Upload successful");
       } else {
-        throw new Error(`Falha no upload (status ${upload.status})`);
+        throw new Error(`Falha no upload ao servidor (status ${upload.status})`);
       }
 
       setPreviewImages([...previewImages, { publicURL: data.publicURL, key: data.key }]);
     } catch (err: any) {
       // TODO: mostrar toast de erro
       const message = err.message || 'Erro desconhecido ao enviar';
-      console.error(message);
+      alert(message);
     } finally {
       event.target.value = '';
     }
