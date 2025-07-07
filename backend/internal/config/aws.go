@@ -1,8 +1,5 @@
 package config
 
-// snippet-start:[gov2.s3.Presigner.complete]
-// snippet-start:[gov2.Presigner.struct]
-
 import (
 	"context"
 	"log"
@@ -16,8 +13,8 @@ import (
 // It contains PresignClient, a client that is used to presign requests to Amazon S3.
 // Presigned requests contain temporary credentials and can be made from any HTTP client.
 var (
-	AwsRegion     = "us-east-1"
-	BucketName    = "my-app-uploads"
+	AwsRegion     = "us-east-2"
+	BucketName    = "sancabrechobucket"
 	PresignClient *s3.PresignClient
 )
 

@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -28,39 +28,36 @@ type PresignResponse struct {
 	Key       string `json:"key"`       // the S3 key you asked for
 }
 
-func generatePresignedURL(c *gin.Context) {
+func GeneratePresignedURL(c *gin.Context) {
 	var req PresignRequest
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON"})
 		return
 	}
 
-	// Decide on the S3 key (you might want to prefix with a folder or timestamp)
-	// A common pattern is: `uploads/{timestamp}_{randomUUID}_{originalFilename}`.
-	//  Here, for simplicity, let’s just use exactly what client said:
-	key := req.Filename
+	// S3 Key will be a UUID, which is a unique identifier for the object
+	key := uuid.New().String()
 
-	// 2.2. Build the PutObjectInput
+	// Build the PutObjectInput
 	input := &s3.PutObjectInput{
 		Bucket:      aws.String(config.BucketName),
 		Key:         aws.String(key),
 		ContentType: aws.String(req.ContentType),
 	}
 
-	// 2.3. Ask the presignClient to generate a presigned URL valid for, say, 15 minutes
-	presignedReq, err := presignClient.PresignPutObject(context.TODO(), input,
-		manager.WithPresignExpires(15*time.Minute),
+	// Ask the presignClient to generate a presigned URL for 15 minutes
+	presignedReq, err := config.PresignClient.PresignPutObject(context.TODO(), input,
+		s3.WithPresignExpires(15*time.Minute),
 	)
+
 	if err != nil {
 		log.Printf("presign error: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate presigned URL"})
 		return
 	}
 
-	// 2.4. Build the “public URL” (this assumes you’re using the standard S3 endpoint
-	//      and the object is ACL=public-read). If you’re using a CloudFront distribution
-	//      or a custom domain, swap this out accordingly.
-	publicURL := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", config.BucketName, config.AwsRegion, key)
+	// Build the public URL
+	publicURL := fmt.Sprintf("https://%s.s3.amazonaws.com/%s", config.BucketName, key)
 
 	c.JSON(http.StatusOK, PresignResponse{
 		URL:       presignedReq.URL,
@@ -121,22 +118,21 @@ func GetListingImage(c *gin.Context) {
 }
 
 func GetListingImagesByListing(c *gin.Context) {
-    listingID := c.Param("listingID") 
-    var images []models.ListingImage
+	listingID := c.Param("listingID")
+	var images []models.ListingImage
 
-    // Buscar todas as imagens relacionadas ao ListingID
-    if err := repository.DB.Where("listing_id = ?", listingID).Find(&images).Error; err != nil {
-        if err.Error() == "record not found" {
-            c.JSON(http.StatusNotFound, gin.H{"error": "No images found for the specified listing"})
-        } else {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve images"})
-        }
-        return
-    }
+	// Buscar todas as imagens relacionadas ao ListingID
+	if err := repository.DB.Where("listing_id = ?", listingID).Find(&images).Error; err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "No images found for the specified listing"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve images"})
+		}
+		return
+	}
 
-    c.JSON(http.StatusOK, images)
+	c.JSON(http.StatusOK, images)
 }
-
 
 func GetListingImages(c *gin.Context) {
 	var images []models.ListingImage
@@ -207,8 +203,4 @@ func DeleteListingImage(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Image deleted"})
-}
-
-func GeneratePresignedURL(c *gin.Context) {
-
 }
