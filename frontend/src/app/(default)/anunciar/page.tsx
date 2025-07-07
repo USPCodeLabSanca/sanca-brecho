@@ -9,6 +9,7 @@ import { DndProvider } from "react-dnd";
 import DraggableImage from "@/app/components/draggableImage";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import imageCompression from 'browser-image-compression'
+import { NumericFormat } from 'react-number-format';
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -32,6 +33,9 @@ export default function Anunciar() {
   // Estados de imagem
   const [previewImages, setPreviewImages] = useState<previewImage[]>([]);
   const [activeImage, setActiveImage] = useState<string | null>(null);
+
+  // Formatação de preço
+  const [price, setPrice] = useState<string>('0');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -178,11 +182,21 @@ export default function Anunciar() {
 
             {/* Preço */}
             <div className="space-y-1">
-              <label className="text-sm font-medium block" htmlFor="price">Preço (R$)*</label>
-              <input
-                type="text"
+              <label htmlFor="price" className="text-sm font-medium block">Preço (R$)*</label>
+              <NumericFormat
+                id="price"
+                name="price"
+                thousandSeparator='.'
+                decimalSeparator=','
+                decimalScale={2}
+                fixedDecimalScale={true}
+                prefix='R$ '
+                allowLeadingZeros={false}
+                value={price}
+                onValueChange={({ formattedValue }) => setPrice(formattedValue)}
+                inputMode="decimal"
                 className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
-                placeholder="R$ 0,00"
+                placeholder="R$ 0,00"
                 required
               />
             </div>
@@ -194,11 +208,11 @@ export default function Anunciar() {
                 <select
                   id="category"
                   name="category"
-                  defaultValue="defaultValue"
+                  defaultValue=""
                   className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
                   required
                 >
-                  <option value="defaultValue" disabled>Selecione</option>
+                  <option value="" disabled>Selecione</option>
                   <option value="books">📚 Livros</option>
                   <option value="eletronics">💻 Eletrônicos</option>
                   <option value="furnitures">🪑 Móveis</option>
@@ -216,11 +230,11 @@ export default function Anunciar() {
                 <select
                   name="condition"
                   id="condition"
-                  defaultValue="defaultValue"
+                  defaultValue=""
                   className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca"
                   required
                 >
-                  <option value="defaultValue" disabled>Selecione</option>
+                  <option value="" disabled>Selecione</option>
                   <option value="new">Novo</option>
                   <option value="usedLikeANew">Usado - Como novo</option>
                   <option value="usedLikeGood">Usado - Bom estado</option>
