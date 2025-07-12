@@ -10,6 +10,7 @@ import (
 func init() {
 	config.LoadEnvs()
 	config.InitFirebase()
+	config.InitAwsPresignClient()
 }
 
 func main() {

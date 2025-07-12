@@ -53,6 +53,7 @@ func New() *gin.Engine {
 
 		listingImageRouter := api.Group("/listing-images")
 		{
+			listingImageRouter.POST("/s3", handler.GeneratePresignedURL)
 			listingImageRouter.POST("/", handler.CreateListingImage)
 			listingImageRouter.GET("/", handler.GetListingImages)
 			listingImageRouter.GET("/:id", handler.GetListingImage)
