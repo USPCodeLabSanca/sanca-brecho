@@ -22,7 +22,7 @@ const PriceInput: React.FC<PriceInputProps> = ({ value, onValueChange, ...props 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = e.target.value.replace(/\D/g, '');
     if (digits === '') {
-      onValueChange(undefined);
+      onValueChange(0);
       return;
     }
     const numericValue = Number(digits) / 100;

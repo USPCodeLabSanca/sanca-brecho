@@ -121,33 +121,35 @@ func UpdateListing(c *gin.Context) {
 		return
 	}
 
-	// Bind JSON
-	var updates models.Listing
-	if err := c.ShouldBindJSON(&updates); err != nil {
+	// Bind JSON to a map[string]interface{} to handle zero values correctly
+	var updatesMap map[string]interface{}
+	if err := c.ShouldBindJSON(&updatesMap); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Updates the slug if the title is provided
-	if updates.Title != "" {
-		updates.Slug = slug.Make(updates.Title)
+	if title, ok := updatesMap["title"].(string); ok && title != "" {
+		updatesMap["slug"] = slug.Make(title)
 	}
 
-	// If CategoryID is provided and different from the existing one, validate it
-	if updates.CategoryID != 0 && updates.CategoryID != existing.CategoryID {
-		var category models.Category
-		if err := database.DB.First(&category, "id = ?", updates.CategoryID).Error; err != nil {
-			if err.Error() == "record not found" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid CategoryID"})
-			} else {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve category"})
+	if categoryIDFloat, ok := updatesMap["category_id"].(float64); ok {
+		categoryID := int(categoryIDFloat)
+		if categoryID != existing.CategoryID {
+			var category models.Category
+			if err := database.DB.First(&category, "id = ?", categoryID).Error; err != nil {
+				if err.Error() == "record not found" {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid CategoryID"})
+				} else {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve category"})
+				}
+				return
 			}
-			return
 		}
 	}
 
 	// Use the existing listing as a base and apply updates
-	if err := database.DB.Model(&existing).Updates(updates).Error; err != nil {
+	if err := database.DB.Model(&existing).Updates(updatesMap).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update listing"})
 		return
 	}
