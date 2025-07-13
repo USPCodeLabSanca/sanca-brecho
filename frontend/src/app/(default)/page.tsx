@@ -2,65 +2,59 @@
 
 import ProductCard from "../components/productCard";
 import Categories from "../components/categories";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { CategoryType, ListingType } from "@/lib/types/api"
 import { ArrowRight, Filter, Search } from "lucide-react";
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css';
 import Link from "next/link";
 
-const exemploProduto = {
-  location: "São Paulo, SP",
-  userName: "Maria Silva",
-  userAvatar: "https://randomuser.me/api/portraits/women/44.jpg",
-  sellerHandlesDelivery: true,
-  isNegotiable: true,
-  id: "produto-123",
-  userId: "user-456",
-  title: "Notebook Dell Inspiron 15",
-  description: "Notebook em ótimo estado, pouco uso, com carregador.",
-  price: 2999.99,
-  images: ["https://i.pravatar.cc/150?img=1"],
-  createdAt: "2025-05-19T12:00:00Z",
-  category: "Eletrônicos",
-};
-
- const exemplosCategorias = [
-  {
-    name: 'Livros',
-    icon: '📚'
-  },
-  {
-    name: 'Eletrônicos',
-    icon: '💻'
-  },
-  {
-    name: 'Móveis',
-    icon: '🪑'
-  },
-  {
-    name: 'Transporte',
-    icon: '🚲'
-  },
-  {
-    name: 'Roupas',
-    icon: '👕'
-  },
-  {
-    name: 'Música',
-    icon: '🎸'
-  },
-  {
-    name: 'Esportes',
-    icon: '⚽'
-  },
-  {
-    name: 'Jogos',
-    icon: '🎮'
-  },
-  ];
-
-export default function Exemplo() {
+export default function Home() {
   const [clicked, setClicked] = useState(1);
+  const [categories, setCategories] = useState<CategoryType[]>([]);
+  const [products, setProducts] = useState<ListingType[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [errorCategories, setErrorCategories] = useState<string | null>(null);
+  const [errorProducts, setErrorProducts] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories/`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setCategories(data);
+      } catch (error: any) {
+        setErrorCategories(error.message);
+        console.error("Failed to fetch categories:", error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setProducts(data);
+      } catch (error: any) {
+        setErrorProducts(error.message);
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   return (
     <>
@@ -73,16 +67,16 @@ export default function Exemplo() {
           vida universitária.
         </p>
         <div className="flex flex-row items-center justify-center gap-5 text-lg">
-          <Link href={"anunciar"}>
+          <Link href={"/anunciar"}>
             <button className="inline-flex items-center justify-center gap-2 p-3 text-sm font-medium text-sanca bg-white rounded-md cursor-pointer hover:bg-gray-100">
               Anunciar Produto
             </button>
           </Link>
-          <a href="" className="visited:text-inherit">
+          <Link href="/categorias" className="visited:text-inherit">
             <button className="inline-flex items-center justify-center gap-2 p-3 text-sm font-medium text-white rounded-md cursor-pointer border border-white hover:bg-black/5">
               Ver Categorias
             </button>
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -90,36 +84,34 @@ export default function Exemplo() {
         <div className="container mx-auto">
           <div className="flex justify-between items-center pb-4">
             <h1 className="text-2xl font-bold">Categorias</h1>
-            <a className="flex items-center text-sanca visited:text-sanca" href="">
+            <Link className="flex items-center text-sanca visited:text-sanca" href="/categorias">
               Ver Todas{" "}
               <ArrowRight className="w-4 h-4"/>
-            </a>
+            </Link>
           </div>
 
-        <Swiper
-          spaceBetween={15}
-          slidesPerView={2}
-        breakpoints={{
-            320: {
-            slidesPerView: 3,
-            },
-            768: {
-            slidesPerView: 4,
-            },
-            1024: {
-            slidesPerView: 6,
-            },
-            1280: {
-            slidesPerView: 8,
-            },
-        }}
-        >
-          {exemplosCategorias.map((categoria, index) => (
-            <SwiperSlide key={index}>
-              <Categories name={categoria.name} icon={categoria.icon} />
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        {loadingCategories ? (
+          <p>Carregando categorias...</p>
+        ) : errorCategories ? (
+          <p className="text-red-500">Erro ao carregar as categorias: {errorCategories}</p>
+        ) : (
+          <Swiper
+            spaceBetween={15}
+            slidesPerView={2}
+            breakpoints={{
+              320: { slidesPerView: 3 },
+              768: { slidesPerView: 4 },
+              1024: { slidesPerView: 6 },
+              1280: { slidesPerView: 8 },
+            }}
+          >
+            {categories.map((categoria) => (
+              <SwiperSlide key={categoria.id}>
+                <Categories name={categoria.name} icon={categoria.icon} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
         </div>
       </section>
 
@@ -131,28 +123,16 @@ export default function Exemplo() {
               <div className="flex justify-between p-1 rounded-lg bg-slate-100">
                 <button
                   onClick={() => setClicked(1)}
-                  className={`px-3 py-1.5 rounded-lg cursor-pointer font-medium ${
-                    clicked === 1 ? "bg-white text-black shadow-xs" : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  Todos
-                </button>
+                  className={`px-3 py-1.5 rounded-lg cursor-pointer font-medium ${clicked === 1 ? "bg-white text-black shadow-xs" : "bg-slate-100 text-slate-500"}`}
+                > Todos </button>
                 <button
                   onClick={() => setClicked(2)}
-                  className={`px-3 py-1.51 rounded-lg cursor-pointer font-medium ${
-                    clicked === 2 ? "bg-white text-black shadow-xs" : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  Populares
-                </button>
+                  className={`px-3 py-1.51 rounded-lg cursor-pointer font-medium ${clicked === 2 ? "bg-white text-black shadow-xs" : "bg-slate-100 text-slate-500"}`}
+                > Populares </button>
                 <button
                   onClick={() => setClicked(3)}
-                  className={`px-3 py-1.5 rounded-lg cursor-pointer font-medium ${
-                    clicked === 3 ? "bg-white text-black shadow-xs" : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  Recentes
-                </button>
+                  className={`px-3 py-1.5 rounded-lg cursor-pointer font-medium ${clicked === 3 ? "bg-white text-black shadow-xs" : "bg-slate-100 text-slate-500"}`}
+                > Recentes </button>
               </div>
             </div>
 
@@ -162,13 +142,7 @@ export default function Exemplo() {
                 <input
                   type="text"
                   placeholder="Buscar produtos..."
-                  className="
-                    flex w-full h-10 px-3 py-2 pl-10 pr-4
-                    text-base md:text-sm rounded-md border border-slate-300 bg-background
-                    ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanca focus-visible:ring-offset-2
-                    disabled:cursor-not-allowed disabled:opacity-50
-                    file:border-0 file:bg-transparent
-                  "
+                  className="flex w-full h-10 px-3 py-2 pl-10 pr-4 text-base md:text-sm rounded-md border border-slate-300 bg-background ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanca focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 file:border-0 file:bg-transparent"
                 />
               </div>
               <div>
@@ -179,31 +153,23 @@ export default function Exemplo() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            <div className="max-w-xs">
-              <ProductCard product={exemploProduto} />
+          {loadingProducts ? (
+            <p>Carregando produtos...</p>
+          ) : errorProducts ? (
+            <p className="text-red-500">Erro ao carregar os produtos: {errorProducts}</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {products.map((product) => (
+                <div className="max-w-xs" key={product.id}>
+                  <ProductCard
+                    product={product}
+                  />
+                </div>
+              ))}
             </div>
-            <div className="max-w-xs">
-              <ProductCard product={exemploProduto} />
-            </div>
-            <div className="max-w-xs">
-              <ProductCard product={exemploProduto} />
-            </div>
-            <div className="max-w-xs">
-              <ProductCard product={exemploProduto} />
-            </div>
-            <div className="max-w-xs">
-              <ProductCard product={exemploProduto} />
-            </div>
-            <div className="max-w-xs">
-              <ProductCard product={exemploProduto} />
-            </div>
-            <div className="max-w-xs">
-              <ProductCard product={exemploProduto} />
-            </div>
-          </div>
+          )}
 
-          <div className="flex justify-center pt-8">
+          <div className="flex justify-center pt-8"> {/* Não implementado */}
             <button className="px-3 py-2 font-medium border-1 border-gray-300 rounded-md cursor-pointer hover:bg-purple-100">
               Carregar mais
             </button>
@@ -219,13 +185,11 @@ export default function Exemplo() {
           Anuncie seus produtos usados no Sanca Brechó e ajude outros
           universitários enquanto ganha um dinheiro extra.
         </p>
-        <a href="" className="visited:text-inherit">
-        
-        
+        <Link href="/anunciar" className="visited:text-inherit">
           <button className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-sm font-medium text-white bg-sanca rounded-md cursor-pointer hover:opacity-50">
             Anunciar Produto
           </button>
-        </a>
+        </Link>
       </section>
     </>
   );

@@ -18,17 +18,17 @@ const UserRole = {
 
 export interface UserType{
     id: string;
-    displayName: string;
+    display_name: string;
     slug: string;
     email: string;
-    photoURL: string | null;
+    photo_url: string | null;
     university: string | null;
     whatsapp: string | null;
     telegram: string | null;
     verified: boolean;
     role: UserRole;
-    createdAt: Date;
-    updatedAt: Date;
+    created_at: Date;
+    updated_at: Date;
 }
 
 
@@ -36,43 +36,45 @@ export interface UserType{
 export interface CategoryType{
     id: number;
     name: string;
-    parentId: number | null;
+    icon: string;
+    parent_id: number | null;
     parent: CategoryType | null;
     children: CategoryType[];
 }
 
 
 export interface ListingType{
-    Id: UUID;
-    userID: string;
+    id: UUID;
+    user_id: string;
     user: UserType;
-    categoryID: number;
+    category_id: number;
     category: CategoryType;
     title: string;
     slug: string;
     description: string;
     price: number;
     condition: Condition;
-    acceptTrade: boolean;
+    is_negotiable: boolean;
+    seller_can_deliver: boolean;
     location: string;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    is_active: boolean;
+    created_at: Date;
+    updated_at: Date;
 }
 
 export interface ListingImageType{
     id: UUID;
-    listingID: UUID;
+    listing_id: UUID;
     listing: ListingType;
     src: string;
-    isPrimary: boolean;
+    is_primary: boolean;
 }
 
 export interface ProfileType{
-    displayName: string;
+    display_name: string;
     slug: string;
     email: string;
-    photoURL: string | null;
+    photo_url: string | null;
     university: string | null;
     whatsApp: string | null;
     telegram: string | null;
@@ -82,9 +84,9 @@ export interface ProfileType{
 
 
 export interface FavoriteType{
-    userID: string;
+    user_id: string;
     user: UserType;
-    listingID: UUID;
+    listing_id: UUID;
     listing: ListingType;
-    createdAt: Date;
+    created_at: Date;
 }
