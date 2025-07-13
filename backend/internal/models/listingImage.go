@@ -7,5 +7,5 @@ type ListingImage struct {
 	ListingID uuid.UUID `json:"listing_id" gorm:"type:uuid;not null"`
 	Listing   Listing   `json:"listing" gorm:"foreignKey:ListingID;references:ID"`
 	Src       string    `json:"src" gorm:"not null"`
-	IsPrimary bool      `json:"is_primary" gorm:"default:false"`
+	Order     int       `json:"order" gorm:"default:0"`
 }

@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/globals.css"
-import { Viewport } from "next";
+import { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/lib/context/AuthContext";
 
 const geistSans = Geist({
@@ -12,6 +12,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+export const metadata: Metadata = {
+  title: "Sanca Brechó",
+  description: "Compre e venda entre universitários de São Carlos",
+  icons: [{ rel: "icon", url: "/favicon.ico" }],
+};
 
 export const viewport: Viewport = {
   width: 'device-width',

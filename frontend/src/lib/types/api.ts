@@ -67,7 +67,7 @@ export interface ListingImageType{
     listing_id: UUID;
     listing: ListingType;
     src: string;
-    is_primary: boolean;
+    order: number;
 }
 
 export interface ProfileType{

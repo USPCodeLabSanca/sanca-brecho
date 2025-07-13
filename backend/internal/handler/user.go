@@ -23,7 +23,7 @@ func UpdateUser(c *gin.Context) {
 		PhotoURL *string `json:"photo_url"`
 		Whatsapp *string `json:"whatsapp"`
 		Telegram *string `json:"telegram"`
-		Verified *bool   `json:"verified"` // ADDED: Field for verification status
+		Verified *bool   `json:"verified"`
 	}
 	var request UpdateUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {

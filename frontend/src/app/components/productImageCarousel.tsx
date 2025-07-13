@@ -39,16 +39,17 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  /* Busca as imagens do produto na API */
   useEffect(() => {
     const fetchImages = async () => {
       setLoadingImages(true);
       setErrorImages(null);
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/listing/${productId}`); //
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/listing/${productId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
+        const data: ListingImageType[] = await response.json();
         setImages(data);
       } catch (error: any) {
         setErrorImages(error.message);
@@ -124,10 +125,10 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
           ref={swiperRef}
         >
           {images.map((img, index) => (
-            <SwiperSlide key={index}>
+            <SwiperSlide key={img.id}>
               <Image
                 src={img.src}
-                alt={`Foto ${index}`}
+                alt={`Foto ${index + 1}`}
                 width={1280}
                 height={900}
                 className="mx-auto object-cover aspect-square md:aspect-[1280/900] w-full h-auto"
@@ -150,10 +151,10 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
           className="thumbSwiper mt-4"
         >
           {images.map((img, index) => (
-            <SwiperSlide key={index} className="aspect-square w-full h-auto">
+            <SwiperSlide key={img.id} className="aspect-square w-full h-auto">
               <Image
                 src={img.src}
-                alt={`Thumb ${index}`}
+                alt={`Thumb ${index + 1}`}
                 width={150}
                 height={150}
                 className={`w-full h-full object-cover rounded cursor-pointer border transition-all ${
@@ -167,7 +168,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
         </Swiper>
       )}
 
-      {activeIndex !== null && isZoomActive && (
+      {activeIndex !== null && isZoomActive && images.length > 0 && (
         <div
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
           onClick={closeViewer}

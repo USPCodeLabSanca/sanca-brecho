@@ -1,116 +1,234 @@
 "use client"
 
 import Link from "next/link";
-import Image from "next/image";
-import { notFound, useParams } from "next/navigation";
-import { useState } from "react";
-import { ArrowLeft, Upload, X, Save, Eye } from "lucide-react";
+import { notFound, useParams, useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, FormEvent } from "react";
+import { ArrowLeft, Camera, Save, Eye } from "lucide-react";
+import { useAuth } from "@/lib/context/AuthContext";
+import { ListingType, CategoryType, ListingImageType } from "@/lib/types/api";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import DraggableImage from "@/app/components/draggableImage";
+import imageCompression from 'browser-image-compression';
+import PriceInput from "@/app/components/priceInput";
 
-type EditProductProps = {
-  product: {
-    id: number;
-    title: string;
-    description: string;
-    price: number;
-    category: string;
-    condition: string;
-    location: string;
-    createdAt: string;
-    images: string[];
-    userId: number;
-    userName: string;
-    userAvatar: string;
-    phone: string;
-    views: number;
-  };
-};
+const MAX_SIZE_MB = 5
+const MAX_WIDTH_OR_HEIGHT = 1024
+
+type presignedUrl = {
+  key: string,
+  publicURL: string,
+  url: string
+}
+
+type previewImage = {
+  id: string,
+  publicURL: string,
+  isNew?: boolean,
+  file?: File,
+}
 
 export default function EditarProdutoClient() {
-  const { id } = useParams<{ id: string }>()
-  
-  const originalProduct = {
-    id: parseInt(id),
-    title: "Macbook Air 2020",
-    description: "Macbook Air 2020 com M1.\nUsado, mas em ótimo estado. \nAcompanha carregador e caixa original.",
-    price: 3999.99,
-    category: "Eletrônicos",
-    condition: "Usado",
-    location: "São Carlos, SP",
-    createdAt: new Date().toISOString(),
-    images: ["https://picsum.photos/id/0/1280/900", 
-              "https://picsum.photos/id/2/1280/900",
-              "https://picsum.photos/id/9/1280/900",
-              "https://picsum.photos/id/5/1280/900",
-              "https://picsum.photos/id/6/1280/900",
-            ],
-    userId: 1,
-    userName: "João Silva",
-    userAvatar: "https://placehold.co/50x50.jpg",
-    phone: "+5511999999999",
-    views: 100,
-  };
+  const { slug } = useParams<{ slug: string }>();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
+  const [product, setProduct] = useState<ListingType | null>(null);
   const [formData, setFormData] = useState({
-    title: originalProduct.title,
-    description: originalProduct.description,
-    price: originalProduct.price,
-    category: originalProduct.category,
-    condition: originalProduct.condition,
   });
 
-  const [images, setImages] = useState(originalProduct.images);
-  const [isLoading] = useState(false);
+  const [images, setImages] = useState<previewImage[]>([]);
+  const [originalImages, setOriginalImages] = useState<ListingImageType[]>([]);
+  const [categories, setCategories] = useState<CategoryType[]>([]);
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!originalProduct) {
-    notFound()
-  }
+  useEffect(() => {
+    if (!slug) return;
 
-  const categories = [
-    "Eletrônicos",
-    "Roupas e Acessórios",
-    "Casa e Jardim",
-    "Livros",
-    "Esportes",
-    "Veículos",
-    "Móveis",
-    "Outros"
-  ];
+    const fetchProductAndCategories = async () => {
+      setIsLoading(true);
+      try {
+        const productRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/slug/${slug}`);
+        if (!productRes.ok) throw new Error('Produto não encontrado.');
+        const productData: ListingType = await productRes.json();
+        setProduct(productData);
+        setFormData({
+          title: productData.title,
+          description: productData.description,
+          price: productData.price,
+          category_id: productData.category_id.toString(),
+          condition: productData.condition,
+          is_negotiable: productData.is_negotiable,
+          seller_can_deliver: productData.seller_can_deliver,
+        });
 
-  const conditions = [
-    "Novo",
-    "Semi-novo",
-    "Usado",
-    "Para reparo"
-  ];
+        const imagesRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/listing/${productData.id}`);
+        if(imagesRes.ok) {
+          const imagesData: ListingImageType[] = await imagesRes.json();
+          setImages(imagesData.map(img => ({ id: img.id, publicURL: img.src })));
+          setOriginalImages(imagesData);
+        }
+
+        const categoriesRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories/`);
+        if (!categoriesRes.ok) throw new Error('Falha ao carregar categorias.');
+        const categoriesData: CategoryType[] = await categoriesRes.json();
+        setCategories(categoriesData);
+
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProductAndCategories();
+  }, [slug]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'price' ? parseFloat(value) || 0 : value
-    }));
+    const { name, value, type } = e.target;
+    const isCheckbox = type === 'checkbox';
+    if (isCheckbox) {
+        const { checked } = e.target as HTMLInputElement;
+        setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleImageRemove = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (images.length >= 5) {
+        alert('Você pode adicionar no máximo 5 imagens.');
+        return;
+    }
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const newPreview: previewImage = {
+        id: tempId,
+        publicURL: URL.createObjectURL(file),
+        isNew: true,
+        file: file,
+    };
+    setImages(prev => [...prev, newPreview]);
+    event.target.value = '';
   };
 
-  const handleImageAdd = () => {
-};
+  const handleImageRemove = (idToRemove: string) => {
+    setImages(prev => prev.filter(img => img.id !== idToRemove));
+  };
+  
+  const moveImage = useCallback((dragIndex: number, hoverIndex: number) => {
+    setImages((prevImages) => {
+      const updatedImages = [...prevImages];
+      const [draggedItem] = updatedImages.splice(dragIndex, 1);
+      updatedImages.splice(hoverIndex, 0, draggedItem);
+      return updatedImages;
+    });
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-};
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!product || !user) {
+        setError("Não foi possível salvar. Tente novamente.");
+        return;
+    }
+    setIsSubmitting(true);
+    setError(null);
+    try {
+        const idToken = await user.getIdToken();
 
-  const handlePreview = () => {
-    window.open(`/produto/${id}`, '_blank');
-};
+        const newImagesToUpload = images.filter(img => img.isNew && img.file);
+        const uploadedImageUrls: { [tempId: string]: string } = {};
+
+        for (const img of newImagesToUpload) {
+            const presignedRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/s3`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ filename: img.file!.name, contentType: img.file!.type }),
+            });
+            if (!presignedRes.ok) throw new Error("Falha ao obter URL para upload.");
+            const presignedData: presignedUrl = await presignedRes.json();
+            const compressedFile = await imageCompression(img.file!, { maxSizeMB: MAX_SIZE_MB, maxWidthOrHeight: MAX_WIDTH_OR_HEIGHT });
+            const uploadRes = await fetch(presignedData.url, {
+                method: "PUT", body: compressedFile, headers: { "Content-Type": compressedFile.type },
+            });
+            if (!uploadRes.ok) throw new Error("Falha no upload da imagem para o S3.");
+            uploadedImageUrls[img.id] = presignedData.publicURL;
+        }
+
+        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/${product.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+            body: JSON.stringify({ ...formData, category_id: parseInt(formData.category_id), price: Number(formData.price) }),
+        });
+
+        const originalImageIds = new Set(originalImages.map(img => img.id));
+        const finalImageIds = new Set(images.filter(img => !img.isNew).map(img => img.id));
+
+        const imagesToDelete = originalImages.filter(img => !finalImageIds.has(img.id));
+        const imagesToAdd = images.filter(img => img.isNew);
+        const imagesToUpdate = images.filter(img => !img.isNew);
+
+        const deletePromises = imagesToDelete.map(img =>
+            fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/${img.id}`, {
+                method: 'DELETE', headers: { 'Authorization': `Bearer ${idToken}` }
+            })
+        );
+        
+        const addPromises = imagesToAdd.map((img) => {
+            const order = images.findIndex(i => i.id === img.id);
+            return fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                body: JSON.stringify({ listing_id: product.id, src: uploadedImageUrls[img.id], order }),
+            });
+        });
+
+        const updatePromises = imagesToUpdate.map(img => {
+            const newOrder = images.findIndex(i => i.id === img.id);
+            const originalImg = originalImages.find(orig => orig.id === img.id);
+            if (originalImg && originalImg.order !== newOrder) {
+                return fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/${img.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                    body: JSON.stringify({ order: newOrder }),
+                });
+            }
+            return null;
+        });
+
+        await Promise.all([...deletePromises, ...addPromises, ...updatePromises.filter(p => p !== null)]);
+        
+        router.push(`/produto/${slug}`);
+    } catch (err: any) {
+        setError(err.message);
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading || authLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-sanca"></div></div>;
+  }
+
+  if (error) {
+    return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+  }
+
+  if (!product) {
+    notFound();
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow pb-10">
         <div className="container mx-auto px-4">
           <div className="py-4">
-            <Link href={`/produto/${id}`} className="text-gray-500 hover:text-sanca flex items-center text-sm">
+            <Link href={`/produto/${slug}`} className="text-gray-500 hover:text-sanca flex items-center text-sm">
               <ArrowLeft className="h-4 w-4 mr-1" />
               Voltar para o produto
             </Link>
@@ -120,10 +238,9 @@ export default function EditarProdutoClient() {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Editar Produto</h1>
-                <p className="text-gray-500">ID: {originalProduct.id}</p>
               </div>
               <button
-                onClick={handlePreview}
+                onClick={() => window.open(`/produto/${slug}`, '_blank')}
                 className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"
               >
                 <Eye className="h-4 w-4" />
@@ -133,44 +250,37 @@ export default function EditarProdutoClient() {
           </div>
 
           <form onSubmit={handleSubmit}>
+            {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md text-sm mb-4" role="alert">{error}</div>}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Imagens do Produto</h3>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  {images.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <Image
-                        src={image}
-                        alt={`Produto ${index + 1}`}
-                        width={200}
-                        height={150}
-                        className="w-full h-32 object-cover rounded-lg border"
+              <DndProvider backend={HTML5Backend}>
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Imagens do Produto</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                    {images.map((image, index) => (
+                      <DraggableImage
+                        key={image.id}
+                        image={{key: image.id, publicURL: image.publicURL}}
+                        index={index}
+                        moveImage={moveImage}
+                        openViewer={() => {}}
+                        removeImage={() => handleImageRemove(image.id)}
                       />
-                      <button
-                        type="button"
-                        onClick={() => handleImageRemove(index)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                  
-                  {images.length < 10 && (
-                    <button
-                      type="button"
-                      onClick={handleImageAdd}
-                      className="h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:text-sanca hover:border-sanca transition-colors"
-                    >
-                      <Upload className="h-6 w-6 mb-2" />
-                      <span className="text-sm">Adicionar</span>
-                    </button>
-                  )}
+                    ))}
+                    
+                    {images.length < 5 && (
+                      <label htmlFor="image-upload" className="h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:text-sanca hover:border-sanca transition-colors cursor-pointer">
+                        <Camera className="h-6 w-6 mb-2" />
+                        <span className="text-sm">Adicionar</span>
+                        <input id="image-upload" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleImageUpload} />
+                      </label>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Máximo de 5 imagens. A primeira imagem será a capa.
+                  </p>
                 </div>
-                <p className="text-xs text-gray-500">
-                  Máximo de 10 imagens. Primeira imagem será a principal.
-                </p>
-              </div>              
+              </DndProvider>
+              
               <div className="space-y-6">
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
@@ -184,40 +294,36 @@ export default function EditarProdutoClient() {
                     onChange={handleInputChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent"
-                    placeholder="Ex: iPhone 12 Pro Max 128GB"
                   />
                 </div>
                 <div>
                   <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
                     Preço (R$) *
                   </label>
-                  <input
-                    type="number"
-                    id="price"
-                    name="price"
+                  <PriceInput
                     value={formData.price}
-                    onChange={handleInputChange}
-                    required
-                    step="0.01"
-                    min="0"
+                    onValueChange={(values) => {
+                      setFormData(prev => ({ ...prev, price: values ?? 0 }));
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent"
-                    placeholder="0.00"
+                    required
                   />
                 </div>
                 <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-2">
                     Categoria *
                   </label>
                   <select
-                    id="category"
-                    name="category"
-                    value={formData.category}
+                    id="category_id"
+                    name="category_id"
+                    value={formData.category_id}
                     onChange={handleInputChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent"
                   >
+                    <option value="" disabled>Selecione</option>
                     {categories.map(category => (
-                      <option key={category} value={category}>{category}</option>
+                      <option key={category.id} value={category.id}>{category.name}</option>
                     ))}
                   </select>
                 </div>
@@ -233,10 +339,24 @@ export default function EditarProdutoClient() {
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent"
                   >
-                    {conditions.map(condition => (
-                      <option key={condition} value={condition}>{condition}</option>
-                    ))}
+                    <option value="" disabled>Selecione</option>
+                    <option value="new">Novo</option>
+                    <option value="used">Usado</option>
+                    <option value="refurbished">Recondicionado</option>
+                    <option value="broken">Com defeito</option>
                   </select>
+                </div>
+                <div className="flex gap-4">
+                    <label className="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_negotiable" checked={formData.is_negotiable} onChange={handleInputChange} className="sr-only peer" />
+                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
+                        <span className="ml-3 text-sm font-medium">Preço negociável</span>
+                    </label>
+                    <label className="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="seller_can_deliver" checked={formData.seller_can_deliver} onChange={handleInputChange} className="sr-only peer" />
+                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
+                        <span className="ml-3 text-sm font-medium">Pode entregar</span>
+                    </label>
                 </div>
                 <div>
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
@@ -250,27 +370,11 @@ export default function EditarProdutoClient() {
                     required
                     rows={6}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent resize-vertical"
-                    placeholder="Descreva seu produto em detalhes..."
                   />
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-3">Informações do Vendedor</h4>
-                  <div className="flex items-center gap-3">
-                    <Image
-                      width={40}
-                      height={40}
-                      src={originalProduct.userAvatar}
-                      alt={originalProduct.userName}
-                      className="rounded-full"
-                    />
-                    <div>
-                      <p className="font-medium text-gray-800">{originalProduct.userName}</p>
-                      <p className="text-sm text-gray-500">{originalProduct.location}</p>
-                    </div>
-                  </div>
-                </div>
+                
                 <div className="flex gap-4 pt-4">
-                  <Link href={`/produto/${id}`} className="flex-1">
+                  <Link href={`/produto/${slug}`} className="flex-1">
                     <button
                       type="button"
                       className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
@@ -280,10 +384,10 @@ export default function EditarProdutoClient() {
                   </Link>
                   <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                     className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-sanca text-white rounded-md hover:bg-sanca/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? (
+                    {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                         Salvando...
