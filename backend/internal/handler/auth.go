@@ -44,6 +44,21 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// VALIDATION: Check if the university email is allowed
+	universityName, isAllowed := parseUniversity(userRecord.Email)
+	if !isAllowed {
+		// If email is not allowed, delete the user from Firebase Authentication
+		deleteErr := config.AuthClient.DeleteUser(ctx, token.UID)
+		if deleteErr != nil {
+			fmt.Printf("Error deleting non-institutional user %s from Firebase: %v\n", token.UID, deleteErr)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Falha ao processar login devido a e-mail não institucional. Por favor, tente novamente."})
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Para acessar o Sanca Brechó é necessário utilizar um e-mail de uma instituição de ensino superior."})
+		return
+	}
+
 	// Get the user from the token
 	var user models.User
 	result := repository.DB.
@@ -53,7 +68,7 @@ func Login(c *gin.Context) {
 			DisplayName: userRecord.DisplayName,
 			Email:       userRecord.Email,
 			PhotoURL:    &userRecord.PhotoURL,
-			University:  parseUniversity(userRecord.Email),
+			University:  universityName, // Use the allowed university name
 		}).
 		FirstOrCreate(&user)
 
@@ -69,10 +84,18 @@ func Login(c *gin.Context) {
 			user.DisplayName = userRecord.DisplayName
 			changed = true
 		}
-		if user.PhotoURL != &userRecord.PhotoURL {
-			user.PhotoURL = &userRecord.PhotoURL
+		if user.PhotoURL != &userRecord.PhotoURL { // Compare pointers or dereferenced values correctly
+			if user.PhotoURL == nil || (user.PhotoURL != nil && *user.PhotoURL != userRecord.PhotoURL) {
+				user.PhotoURL = &userRecord.PhotoURL
+				changed = true
+			}
+		}
+		// Also update university if it changed based on the email domain
+		if user.University == nil || (user.University != nil && *user.University != *universityName) {
+			user.University = universityName
 			changed = true
 		}
+
 		if changed {
 			if err := repository.DB.WithContext(ctx).Save(&user).Error; err != nil {
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -85,19 +108,24 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
-func parseUniversity(email string) *string {
-	domain := strings.SplitN(email, "@", 2)[1]
+func parseUniversity(email string) (*string, bool) {
+	parts := strings.SplitN(email, "@", 2)
+	if len(parts) < 2 {
+		return nil, false
+	}
+	domain := parts[1]
+
 	switch domain {
 	case "usp.br":
 		u := "Universidade de São Paulo"
-		return &u
+		return &u, true
 	case "estudante.ufscar.br":
 		u := "Universidade Federal de São Carlos"
-		return &u
+		return &u, true
 	case "aluno.ifsp.edu.br":
 		u := "Instituto Federal de São Paulo"
-		return &u
+		return &u, true
 	default:
-		return nil
+		return nil, false
 	}
 }

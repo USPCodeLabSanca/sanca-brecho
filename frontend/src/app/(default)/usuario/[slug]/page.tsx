@@ -176,7 +176,7 @@ const Usuario = () => {
                       </div>
                     )}
                   </h1>
-                  <div className="flex items-center mt-1 space-x-4 text-sm text-gray-500">
+                  <div className="flex items-center mt-1 mb-4 space-x-4 text-sm text-gray-500">
                     <div className="flex items-center"><MapPin size={16} className="mr-1" />{userProfile.university}</div>
                     <div className="flex items-center"><Calendar size={16} className="mr-1" />Membro desde {new Date(userProfile.created_at).toLocaleDateString('pt-BR')}</div>
                     {/* {userProducts.length > 0 &&
@@ -231,12 +231,12 @@ const Usuario = () => {
                   }
                 </div>
                 ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                <div className="text-center py-16 bg-gray-50 rounded-lg">
                   <Package className="h-12 w-12 mx-auto text-gray-300" />
-                  <p className="mt-2 text-gray-500">Nenhum produto anunciado</p>
+                  <p className="mt-2 mb-6 text-gray-500">Nenhum produto anunciado</p>
                   {isOwnerProfile && (
                   <Link href="/anunciar">
-                    <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90">
+                    <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-48 bg-sanca hover:bg-sanca/90">
                       Anunciar Produto
                     </button>
                   </Link>

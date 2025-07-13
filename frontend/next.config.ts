@@ -22,6 +22,16 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "sancabrechobucket.s3.amazonaws.com",
         pathname: "/**"
+      },
+      {
+        protocol: "https",
+        hostname: "sancabrechobucket.s3.us-east-2.amazonaws.com",
+        pathname: "/**"
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**"
       }
     ]
   },
