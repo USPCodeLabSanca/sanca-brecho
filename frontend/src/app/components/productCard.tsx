@@ -55,7 +55,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   }).format(product.price);
 
   return (
-    <Link href={`/produto/${product.id}`}>
+    <Link href={`/produto/${product.slug}`}>
       <div
         className={`bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md relative cursor-pointer ${
           className || ""

@@ -38,6 +38,7 @@ func New() *gin.Engine {
 			listingRouter.GET("/", handler.GetListings)
 			listingRouter.POST("/", handler.CreateListing)
 			listingRouter.GET("/:id", handler.GetListing)
+			listingRouter.GET("/slug/:slug", handler.GetListingBySlug)
 			listingRouter.PUT("/:id", handler.UpdateListing)
 			listingRouter.DELETE("/:id", handler.DeleteListing)
 		}

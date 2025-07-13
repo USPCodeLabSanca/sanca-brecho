@@ -7,18 +7,18 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Thumbs, Pagination } from 'swiper/modules'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { ArrowLeft } from 'lucide-react'
+import { ListingImageType } from '@/lib/types/api'
 
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/thumbs'
 import 'swiper/css/pagination'
 
-/* Array de URLs das imagens do produto */
 type ProductImageCarouselProps = {
-  images: string[]
+  productId: string; // ID do produto para buscar as imagens
 }
 
-const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images }) => {
+const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }) => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const swiperRef = useRef<any>(null)
@@ -27,6 +27,9 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images }) =
   const [windowWidth, setWindowWidth] = useState(0)
   const [activeIndex, setActiveIndex] = useState(0)
   const [isZoomActive, setIsZoomActive] = useState(false)
+  const [images, setImages] = useState<ListingImageType[]>([]);
+  const [loadingImages, setLoadingImages] = useState(true);
+  const [errorImages, setErrorImages] = useState<string | null>(null);
 
   /* Guarda a largura da tela para uso em layouts responsivos */
   useEffect(() => {
@@ -35,6 +38,30 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images }) =
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      setLoadingImages(true);
+      setErrorImages(null);
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/listing/${productId}`); //
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setImages(data);
+      } catch (error: any) {
+        setErrorImages(error.message);
+        console.error(`Failed to fetch images for product ${productId}:`, error);
+      } finally {
+        setLoadingImages(false);
+      }
+    };
+
+    if (productId) {
+      fetchImages();
+    }
+  }, [productId]);
 
   /* Inicia com uma imagem em tela cheia se houver o parâmetro 'pid' na URL */
   useEffect(() => {
@@ -99,7 +126,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images }) =
           {images.map((img, index) => (
             <SwiperSlide key={index}>
               <Image
-                src={img}
+                src={img.src}
                 alt={`Foto ${index}`}
                 width={1280}
                 height={900}
@@ -125,7 +152,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images }) =
           {images.map((img, index) => (
             <SwiperSlide key={index} className="aspect-square w-full h-auto">
               <Image
-                src={img}
+                src={img.src}
                 alt={`Thumb ${index}`}
                 width={150}
                 height={150}
@@ -155,7 +182,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images }) =
             <TransformComponent>
               <div className="w-screen h-screen flex items-center justify-center">
                 <img
-                  src={images[activeIndex]}
+                  src={images[activeIndex].src}
                   alt="Imagem do Produto"
                   className="object-contain !pointer-events-auto"
                   /* Não fechar a tela cheia ao clicar na imagem em si */
