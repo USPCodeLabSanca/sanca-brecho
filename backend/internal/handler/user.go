@@ -62,6 +62,33 @@ func DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
+func CheckProfileOwnership(c *gin.Context) {
+	profileSlug := c.Param("slug")
+
+	currentUser, exists := c.Get("currentUser")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	loggedInUser := currentUser.(models.User)
+
+	var profileOwner models.User
+	if err := repository.DB.Where("slug = ?", profileSlug).First(&profileOwner).Error; err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"is_owner": false, "message": "Profile not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profile owner"})
+		}
+		return
+	}
+
+	if loggedInUser.ID == profileOwner.ID {
+		c.JSON(http.StatusOK, gin.H{"is_owner": true})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"is_owner": false})
+	}
+}
+
 func FindProfile(c *gin.Context) {
 	slug := c.Param("slug")
 
@@ -82,6 +109,7 @@ func FindProfile(c *gin.Context) {
 		Whatsapp:    user.Whatsapp,
 		Telegram:    user.Telegram,
 		Verified:    user.Verified,
+		CreatedAt:   user.CreatedAt,
 		Role:        user.Role,
 	}
 

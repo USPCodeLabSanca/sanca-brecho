@@ -85,6 +85,28 @@ func GetListingBySlug(c *gin.Context) {
 	c.JSON(http.StatusOK, listing)
 }
 
+func GetListingsByUser(c *gin.Context) {
+	userSlug := c.Param("user_slug")
+
+	var user models.User
+	if err := database.DB.Where("slug = ?", userSlug).First(&user).Error; err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+		}
+		return
+	}
+
+	var listings []models.Listing
+	if err := database.DB.Preload("User").Preload("Category").Where("user_id = ?", user.ID).Find(&listings).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings for user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, listings)
+}
+
 func UpdateListing(c *gin.Context) {
 	id := c.Param("id")
 

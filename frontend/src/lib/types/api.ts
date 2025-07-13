@@ -76,9 +76,10 @@ export interface ProfileType{
     email: string;
     photo_url: string | null;
     university: string | null;
-    whatsApp: string | null;
+    whatsapp: string | null;
     telegram: string | null;
     verified: boolean;
+    created_at: Date;
     role: UserRole;
 }
 

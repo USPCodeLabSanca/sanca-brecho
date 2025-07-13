@@ -65,6 +65,8 @@ func Seed() error {
 				Email:       "admin@example.com",
 				PhotoURL:    StringPtr("https://i.pravatar.cc/150?u=kCIjyDgvJpNbpCiaePDXHlQwkU02"),
 				Role:        models.RoleAdmin,
+				University:  StringPtr("Universidade Federal de São Carlos"),
+				Whatsapp:    StringPtr("5511999999999"),
 				Verified:    true,
 			},
 			{
@@ -72,6 +74,8 @@ func Seed() error {
 				DisplayName: "João Silva",
 				Email:       "joao@example.com",
 				PhotoURL:    StringPtr("https://i.pravatar.cc/150?u=1UlfK3Ha5jdmreJQzG0L5EMR2BI3"),
+				University:  StringPtr("Universidade de São Paulo"),
+				Whatsapp:    StringPtr("5511999999999"),
 				Verified:    true,
 			},
 			{
@@ -79,6 +83,8 @@ func Seed() error {
 				DisplayName: "Maria Souza",
 				Email:       "maria@example.com",
 				PhotoURL:    StringPtr("https://i.pravatar.cc/150?u=pSKSJ1PWTTYqSn1GiB2zgQJ2NUj2"),
+				University:  StringPtr("Universidade de São Paulo"),
+				Whatsapp:    StringPtr("5511999999999"),
 				Verified:    false,
 			},
 		}

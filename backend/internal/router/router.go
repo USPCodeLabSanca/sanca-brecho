@@ -24,6 +24,7 @@ func New() *gin.Engine {
 	{
 		api.POST("/login", handler.Login)
 		api.GET("/profile/:slug", handler.FindProfile)
+		api.GET("/profile/:slug/is-owner", middleware.Auth, handler.CheckProfileOwnership)
 
 		userRouter := api.Group("/users")
 		userRouter.Use(middleware.Auth)
@@ -39,6 +40,7 @@ func New() *gin.Engine {
 			listingRouter.POST("/", handler.CreateListing)
 			listingRouter.GET("/:id", handler.GetListing)
 			listingRouter.GET("/slug/:slug", handler.GetListingBySlug)
+			listingRouter.GET("/user/:user_slug", handler.GetListingsByUser)
 			listingRouter.PUT("/:id", handler.UpdateListing)
 			listingRouter.DELETE("/:id", handler.DeleteListing)
 		}
