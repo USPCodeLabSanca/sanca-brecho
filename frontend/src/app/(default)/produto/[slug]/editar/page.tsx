@@ -35,6 +35,13 @@ export default function EditarProdutoClient() {
 
   const [product, setProduct] = useState<ListingType | null>(null);
   const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    price: 0,
+    category_id: '',
+    condition: '',
+    is_negotiable: false,
+    seller_can_deliver: false,
   });
 
   const [images, setImages] = useState<previewImage[]>([]);
