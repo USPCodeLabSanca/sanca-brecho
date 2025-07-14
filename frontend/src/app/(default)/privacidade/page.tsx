@@ -80,7 +80,7 @@ export default function Privacidade() {
             <ul className="list-disc pl-6 mb-4 text-gray-700">
             <li className="mb-2">Confirmar a existência do tratamento de seus dados;</li>
             <li className="mb-2">Acessar seus dados e solicitar correções;</li>
-            <li className="mb-2">Solicitar a exclusão de seus dados a qualquer momento, bastando entrar em contato pelo e-mail codelab@icmc.usp.br, salvo quando o armazenamento for obrigatório por lei.</li>
+            <li className="mb-2">Solicitar a exclusão de seus dados a qualquer momento, bastando entrar em contato pelo e-mail contato@sancabrecho.com.br, salvo quando o armazenamento for obrigatório por lei.</li>
             </ul>
             
             <h2 className="text-xl font-semibold mt-8 mb-4">7. Cookies e tecnologias similares</h2>

@@ -4,17 +4,54 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/context/AuthContext";
 import { Bell, Search, Menu, User as UserIcon, LogOut, Plus, LogIn } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { signOutUser } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
+import { UserType } from "@/lib/types/api";
 
 export default function Navbar() {
-  const userId = 1; // TODO: Pegar o slug do usuário logado
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading: loadingAuth } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [loggedInUserProfile, setLoggedInUserProfile] = useState<UserType | null>(null);
+  const [loadingUserProfile, setLoadingUserProfile] = useState(true);
+
+  useEffect(() => {
+    const fetchLoggedInUserProfile = async () => {
+      if (!user) {
+        setLoadingUserProfile(false);
+        setLoggedInUserProfile(null);
+        return;
+      }
+      setLoadingUserProfile(true);
+      try {
+        const idToken = await user.getIdToken();
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/me`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setLoggedInUserProfile(data.user);
+      } catch (error) {
+        console.error("Failed to fetch logged-in user profile:", error);
+        setLoggedInUserProfile(null);
+      } finally {
+        setLoadingUserProfile(false);
+      }
+    };
+
+    if (!loadingAuth) {
+      fetchLoggedInUserProfile();
+    }
+  }, [user, loadingAuth]);
 
   const handleLogout = async () => {
     await signOutUser();
@@ -36,6 +73,11 @@ export default function Navbar() {
       setProfileOpen(false);
     }, 200);
   };
+
+  const isLoading = loadingAuth || loadingUserProfile;
+
+  const userProfileSlug = loggedInUserProfile?.slug;
+  const userAvatarSrc = loggedInUserProfile?.photo_url || 'https://sancabrechobucket.s3.us-east-2.amazonaws.com/Portrait_Placeholder.png';
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200">
@@ -67,9 +109,9 @@ export default function Navbar() {
 
           {/* Navegação Desktop */}
           <div className="hidden md:flex items-center space-x-4 z-10"> 
-            {loading ? (
+            {isLoading ? (
               <div className="relative flex shrink-0 overflow-hidden rounded-full h-9 w-9 bg-gray-200 animate-pulse" />
-            ) : user ? (
+            ) : user && loggedInUserProfile ? (
               <>
               <Link className="text-gray-700 hover:text-sanca" href="/anunciar">
               Anunciar
@@ -82,25 +124,25 @@ export default function Navbar() {
                 onMouseEnter={handleMouseEnterProfile}
                 onMouseLeave={handleMouseLeaveProfile}
               >
-                <button aria-label="Menu do usuário" onClick={() => router.push('/usuario/' + userId)} className="cursor-pointer">
+                <button aria-label="Menu do usuário" onClick={() => router.push(`/usuario/${userProfileSlug}`)} className="cursor-pointer">
                   <span className="relative flex shrink-0 overflow-hidden rounded-full h-9 w-9">
                     <Image
                       alt="foto de perfil"
                       width={36}
                       height={36}
                       className="aspect-square h-full w-full"
-                      src={"https://i.pravatar.cc/150?img=1"} // TODO: Pegar a foto real do usuário
+                      src={userAvatarSrc}
                     />
                   </span>
                 </button>
                 {profileOpen && (
                   <div
                     className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200"
-                    onMouseEnter={handleMouseEnterProfile} // Mantém aberto ao entrar no dropdown
-                    onMouseLeave={handleMouseLeaveProfile} // Fecha ao sair do dropdown
+                    onMouseEnter={handleMouseEnterProfile}
+                    onMouseLeave={handleMouseLeaveProfile}
                   >
                     <Link
-                      href={'/usuario/' + userId}
+                      href={`/usuario/${userProfileSlug}`}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-sanca"
                       onClick={() => setProfileOpen(false)}
                     >
@@ -156,7 +198,9 @@ export default function Navbar() {
           }
         >
           <nav className="flex flex-col space-y-1">
-            {user && (
+            {isLoading ? (
+                <div className="relative flex shrink-0 overflow-hidden rounded-full h-9 w-9 bg-gray-200 animate-pulse my-2 mx-auto" />
+            ) : user && loggedInUserProfile ? (
               <>
               <Link
                 href="/anunciar"
@@ -175,16 +219,13 @@ export default function Navbar() {
                 Notificações
               </Link>
               <Link
-                href={'/usuario/' + userId}
+                href={`/usuario/${userProfileSlug}`}
                 className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
                 onClick={() => setMobileOpen(false)}
               >
                 <UserIcon className="w-4 h-4 mr-2" />
                 Perfil
               </Link>
-              </>
-            )}
-            {user ? (
               <button
                 onClick={handleLogout}
                 className="flex items-center w-full text-left p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
@@ -192,6 +233,7 @@ export default function Navbar() {
                 <LogOut className="w-4 h-4 mr-2" />
                 Sair
               </button>            
+              </>
             ) : (
               <Link
                 href="/login"
