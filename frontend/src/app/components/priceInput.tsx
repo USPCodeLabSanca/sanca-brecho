@@ -32,6 +32,7 @@ const PriceInput: React.FC<PriceInputProps> = ({ value, onValueChange, ...props 
   return (
     <input
       {...props}
+      maxLength={14}
       value={formatToBRL(value)}
       onChange={handleChange}
       placeholder="R$ 0,00"

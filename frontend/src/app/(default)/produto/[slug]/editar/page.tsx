@@ -167,13 +167,21 @@ export default function EditarProdutoClient() {
             uploadedImageUrls[img.id] = presignedData.publicURL;
         }
 
-        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/${product.id}`, {
+        const listingUpdateResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/${product.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
             body: JSON.stringify({ ...formData, category_id: parseInt(formData.category_id), price: Number(formData.price) }),
         });
 
-        const originalImageIds = new Set(originalImages.map(img => img.id));
+        if (!listingUpdateResponse.ok) {
+            const errorData = await listingUpdateResponse.json();
+            throw new Error(errorData.error || 'Falha ao atualizar o anúncio.');
+        }
+
+        // Extrai o objeto de listing atualizado da resposta e o novo slug (no caso de atualização de título)
+        const updatedListing: ListingType = await listingUpdateResponse.json();
+        const newSlug = updatedListing.slug;
+
         const finalImageIds = new Set(images.filter(img => !img.isNew).map(img => img.id));
 
         const imagesToDelete = originalImages.filter(img => !finalImageIds.has(img.id));
@@ -210,7 +218,7 @@ export default function EditarProdutoClient() {
 
         await Promise.all([...deletePromises, ...addPromises, ...updatePromises.filter(p => p !== null)]);
         
-        router.push(`/produto/${slug}`);
+        router.push(`/produto/${newSlug}`);
     } catch (err: any) {
         setError(err.message);
     } finally {
