@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
 import { useState } from "react";
+import { showLoginSuccessToast } from "@/lib/toast";
 
 export default function Login() {
     const router = useRouter();
@@ -37,6 +38,7 @@ export default function Login() {
                 const user = backendResponse.user;
 
                 if (user && user.whatsapp) {
+                    showLoginSuccessToast(user.display_name.split(' ')[0] || "Usuário");
                     router.push("/");
                 } else {
                     router.push("/onboarding");

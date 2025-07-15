@@ -11,6 +11,7 @@ import PriceInput from "@/app/components/priceInput";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import imageCompression from 'browser-image-compression'
 import { CategoryType, ListingType } from "@/lib/types/api";
+import { showSuccessToast } from "@/lib/toast";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -143,7 +144,7 @@ export default function Anunciar() {
       if (failedImageResponses.length > 0) {
         throw new Error('Falha ao salvar uma ou mais imagens.');
       }
-
+      showSuccessToast("Anúncio publicado com sucesso!");
       router.push(`/produto/${newListing.slug}`);
 
     } catch (error: any) {

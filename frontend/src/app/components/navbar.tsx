@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from "react";
 import { signOutUser } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import { UserType } from "@/lib/types/api";
+import { showLogoutSuccessToast } from "@/lib/toast";
 
 export default function Navbar() {
   const router = useRouter();
@@ -58,6 +59,7 @@ export default function Navbar() {
     
     setMobileOpen(false);
     setProfileOpen(false);
+    showLogoutSuccessToast();
     router.push('/login');
   };
 
