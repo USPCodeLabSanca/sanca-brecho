@@ -3,6 +3,7 @@ import { Navbar, Footer } from "@/app/components";
 import "@/styles/globals.css"
 import { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/lib/context/AuthContext";
+import ToastProvider from "../components/toast-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <Navbar />
+          <ToastProvider /> {/*Para notificacoes Toast*/}
           {children}
           <Footer />
         </AuthProvider>
