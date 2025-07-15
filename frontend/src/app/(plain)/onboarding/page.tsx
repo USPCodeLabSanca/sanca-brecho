@@ -130,11 +130,6 @@ export default function Onboarding() {
         'Authorization': `Bearer ${idToken}`,
       },
     });
-
-    if (response.status !== 200) {
-      const errorData = response.data;
-      throw new Error(errorData.error || 'Falha ao atualizar o perfil.');
-    }
   };
 
   // Função para verificar o código de verificação

@@ -43,12 +43,6 @@ export default function ProdutoClient() {
       }
       try {
         const response = await api.get(`/listings/slug/${slug}`);
-        if (response.status !== 200) {
-          if (response.status === 404) {
-            setProduct(undefined);
-          }
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
         const data = response.data;
         setProduct(data);
       } catch (error: any) {

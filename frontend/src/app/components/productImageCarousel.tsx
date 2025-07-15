@@ -47,9 +47,6 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
       setErrorImages(null);
       try {
         const response = await api.get(`/listing-images/listing/${productId}`);
-        if (response.status !== 200) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
         const data: ListingImageType[] = response.data;
         setImages(data);
       } catch (error: any) {

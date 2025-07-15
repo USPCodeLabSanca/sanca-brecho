@@ -50,14 +50,11 @@ const Usuario = () => {
       }
       try {
         const response = await api.get(`/profile/${slug}`);
-        if (response.status === 404) {
-          setUserProfile(undefined);
-          setLoadingProfile(false);
-          return;
-        }
         const data = response.data;
         setUserProfile(data.user);
       } catch (error: any) {
+        setUserProfile(undefined);
+        setLoadingProfile(false);
         setErrorProfile(error.message);
         console.error("Falha ao buscar perfil:", error);
       } finally {
@@ -83,10 +80,6 @@ const Usuario = () => {
           },
         });
         
-        if (response.status !== 200) {
-            setIsOwnerProfile(false);
-            throw new Error(`Erro ao verificar propriedade: ${response.status}`);
-        }
         const data = response.data;
         setIsOwnerProfile(data.is_owner);
       } catch (error: any) {
@@ -115,17 +108,10 @@ const Usuario = () => {
       }
       try {
         const response = await api.get(`/listings/user/${userProfile.slug}`);
-        if (response.status === 404) {
-          setUserProducts([]);
-          setLoadingProducts(false);
-          return;
-        }
-        if (response.status !== 200) {
-          throw new Error(`Erro HTTP! Status: ${response.status}`);
-        }
         const data = await response.data;
         setUserProducts(data);
       } catch (error: any) {
+        setUserProducts([]);
         setErrorProducts(error.message);
         console.error("Falha ao buscar produtos do usuário:", error);
       } finally {

@@ -65,9 +65,6 @@ export default function Anunciar() {
       try {
         setLoadingCategories(true);
         const response = await api.get('/categories/');
-        if (response.status !== 200) {
-          throw new Error('Erro ao carregar categorias');
-        }
         setCategories(response.data);
       } catch (error) {
         setFormError('Não foi possível carregar as categorias. Tente recarregar a página.');
@@ -112,11 +109,6 @@ export default function Anunciar() {
           'Authorization': `Bearer ${idToken}`,
         },
       });
-
-      if (listingResponse.status !== 201) {
-        const errorData = listingResponse.data;
-        throw new Error(errorData.error || 'Falha ao criar o anúncio.');
-      }
 
       const newListing: ListingType = listingResponse.data;
 
@@ -170,10 +162,6 @@ export default function Anunciar() {
         filename: file.name,
         contentType: file.type
       });
-
-      if (response.status !== 200) {
-        throw new Error(`Falha ao obter URL de upload (status ${response.status})`);
-      }
 
       const options = {
         maxSizeMB: MAX_SIZE_MB,

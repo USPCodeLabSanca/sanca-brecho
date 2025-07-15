@@ -26,12 +26,6 @@ export default function Login() {
                     },
                 });
 
-                if (response.status === 401) {
-                    const errorData = response.data;
-                    setErrorMessage(errorData.error || 'Falha desconhecida no login.');
-                    return;
-                }
-
                 const user = response.data.user;
                 if (user && user.whatsapp) {
                     router.push("/");

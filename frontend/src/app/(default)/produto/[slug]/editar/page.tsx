@@ -60,13 +60,6 @@ export default function EditarProdutoClient() {
       setIsLoading(true);
       try {
         const productResponse = await api.get(`/listings/slug/${slug}`);
-        if (productResponse.status !== 200) {
-          if (productResponse.status === 404) {
-            setProduct(null);
-            return;
-          }
-          throw new Error(`HTTP error! status: ${productResponse.status}`);
-        }
         const productData: ListingType = productResponse.data;
         setProduct(productData);
         setFormData({
@@ -80,17 +73,11 @@ export default function EditarProdutoClient() {
         });
 
         const imagesResponse = await api.get(`/listing-images/listing/${productData.id}`);
-        if (imagesResponse.status !== 200) {
-          throw new Error(`HTTP error! status: ${imagesResponse.status}`);
-        }
-        
         const imagesData: ListingImageType[] = imagesResponse.data;
+
         setImages(imagesData.map(img => ({ id: img.id, publicURL: img.src })));
         setOriginalImages(imagesData);
         const categoriesResponse = await api.get('/categories/');
-        if (categoriesResponse.status !== 200) {
-          throw new Error(`HTTP error! status: ${categoriesResponse.status}`);
-        }
         const categoriesData: CategoryType[] = categoriesResponse.data;
         setCategories(categoriesData);
       } catch (err: any) {

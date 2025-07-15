@@ -37,9 +37,6 @@ export default function Navbar() {
           },
         });
 
-        if (response.status !== 200) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
         const data = response.data;
         console.log("Fetched user profile:", data);
         setLoggedInUserProfile(data.user);

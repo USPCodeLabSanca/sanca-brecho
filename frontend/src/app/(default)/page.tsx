@@ -23,9 +23,6 @@ export default function Home() {
     const fetchCategories = async () => {
       try {
         const response = await api.get('/categories/');
-        if (response.status !== 200) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
         const data = await response.data;
         setCategories(data);
       } catch (error: any) {
@@ -42,9 +39,6 @@ export default function Home() {
     const fetchProducts = async () => {
       try {
         const response = await api.get('/listings/');
-        if (response.status !== 200) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
         const data = response.data;
         setProducts(data);
       } catch (error: any) {

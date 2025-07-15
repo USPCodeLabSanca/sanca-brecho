@@ -25,9 +25,6 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
       setErrorImage(null);
       try {
         const response = await api.get(`/listing-images/listing/${product.id}`);
-        if (response.status !== 200) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
         const data = response.data;
         
         if (data && Array.isArray(data) && data.length > 0 && data[0].src) {
