@@ -18,6 +18,7 @@ import {
 import { useEffect, useState } from "react";
 import { ProfileType, ListingType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
+import api from "@/lib/api/axiosConfig";
 
 
 const Usuario = () => {
@@ -48,14 +49,13 @@ const Usuario = () => {
         return;
       }
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/profile/${slug}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            setUserProfile(undefined);
-          }
-          throw new Error(`Erro HTTP! Status: ${response.status}`);
+        const response = await api.get(`/profile/${slug}`);
+        if (response.status === 404) {
+          setUserProfile(undefined);
+          setLoadingProfile(false);
+          return;
         }
-        const data = await response.json();
+        const data = response.data;
         setUserProfile(data.user);
       } catch (error: any) {
         setErrorProfile(error.message);
@@ -77,16 +77,17 @@ const Usuario = () => {
       }
       try {
         const idToken = await currentUserFirebase.getIdToken();
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/profile/${slug}/is-owner`, {
-            headers: {
-                'Authorization': `Bearer ${idToken}`,
-            },
+        const response = await api.get(`/profile/${slug}/is-owner`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+          },
         });
-        if (!response.ok) {
+        
+        if (response.status !== 200) {
             setIsOwnerProfile(false);
             throw new Error(`Erro ao verificar propriedade: ${response.status}`);
         }
-        const data = await response.json();
+        const data = response.data;
         setIsOwnerProfile(data.is_owner);
       } catch (error: any) {
         setErrorOwnership(error.message);
@@ -113,11 +114,16 @@ const Usuario = () => {
         return;
       }
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/user/${userProfile.slug}`);
-        if (!response.ok) {
+        const response = await api.get(`/listings/user/${userProfile.slug}`);
+        if (response.status === 404) {
+          setUserProducts([]);
+          setLoadingProducts(false);
+          return;
+        }
+        if (response.status !== 200) {
           throw new Error(`Erro HTTP! Status: ${response.status}`);
         }
-        const data = await response.json();
+        const data = await response.data;
         setUserProducts(data);
       } catch (error: any) {
         setErrorProducts(error.message);

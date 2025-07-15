@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
 import { useState } from "react";
+import api from "@/lib/api/axiosConfig";
 
 export default function Login() {
     const router = useRouter();
@@ -19,23 +20,19 @@ export default function Login() {
             if (userCredential && userCredential.user) {
                 const idToken = await userCredential.user.getIdToken();
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/login`, {
-                    method: 'POST',
+                const response = await api.post('/login', {}, {
                     headers: {
-                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${idToken}`,
                     },
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
+                if (response.status === 401) {
+                    const errorData = response.data;
                     setErrorMessage(errorData.error || 'Falha desconhecida no login.');
                     return;
                 }
 
-                const backendResponse = await response.json();
-                const user = backendResponse.user;
-
+                const user = response.data.user;
                 if (user && user.whatsapp) {
                     router.push("/");
                 } else {

@@ -8,6 +8,7 @@ import { ArrowRight, Filter, Search } from "lucide-react";
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css';
 import Link from "next/link";
+import api from "@/lib/api/axiosConfig";
 
 export default function Home() {
   const [clicked, setClicked] = useState(1);
@@ -21,11 +22,11 @@ export default function Home() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories/`);
-        if (!response.ok) {
+        const response = await api.get('/categories/');
+        if (response.status !== 200) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
+        const data = await response.data;
         setCategories(data);
       } catch (error: any) {
         setErrorCategories(error.message);
@@ -40,11 +41,11 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/`);
-        if (!response.ok) {
+        const response = await api.get('/listings/');
+        if (response.status !== 200) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
+        const data = response.data;
         setProducts(data);
       } catch (error: any) {
         setErrorProducts(error.message);

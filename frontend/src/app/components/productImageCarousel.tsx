@@ -13,6 +13,7 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/thumbs'
 import 'swiper/css/pagination'
+import api from '@/lib/api/axiosConfig'
 
 type ProductImageCarouselProps = {
   productId: string; // ID do produto para buscar as imagens
@@ -45,11 +46,11 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
       setLoadingImages(true);
       setErrorImages(null);
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/listing/${productId}`);
-        if (!response.ok) {
+        const response = await api.get(`/listing-images/listing/${productId}`);
+        if (response.status !== 200) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data: ListingImageType[] = await response.json();
+        const data: ListingImageType[] = response.data;
         setImages(data);
       } catch (error: any) {
         setErrorImages(error.message);
@@ -182,12 +183,12 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
             </button>
             <TransformComponent>
               <div className="w-screen h-screen flex items-center justify-center">
-                <img
+                <Image
                   src={images[activeIndex].src}
-                  alt="Imagem do Produto"
-                  className="object-contain !pointer-events-auto"
-                  /* Não fechar a tela cheia ao clicar na imagem em si */
-                  onClick={(e) => e.stopPropagation()}
+                  alt={`Foto ${activeIndex + 1}`}
+                  width={1280}
+                  height={900}
+                  className="object-contain max-h-screen max-w-screen !pointer-events-auto"
                 />
               </div>
             </TransformComponent>

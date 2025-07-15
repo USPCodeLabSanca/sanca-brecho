@@ -10,6 +10,7 @@ import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
 import { useEffect, useState } from "react";
 import { ListingType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
+import api from "@/lib/api/axiosConfig";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
@@ -41,14 +42,14 @@ export default function ProdutoClient() {
         return;
       }
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/slug/${slug}`);
-        if (!response.ok) {
+        const response = await api.get(`/listings/slug/${slug}`);
+        if (response.status !== 200) {
           if (response.status === 404) {
             setProduct(undefined);
           }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
+        const data = response.data;
         setProduct(data);
       } catch (error: any) {
         setErrorProduct(error.message);

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase/config';
 import { RecaptchaVerifier, linkWithCredential, PhoneAuthProvider } from 'firebase/auth';
 import { IMaskInput } from 'react-imask';
+import api from '@/lib/api/axiosConfig';
 
 declare global {
   interface Window {
@@ -120,14 +121,18 @@ export default function Onboarding() {
     const idToken = await user.getIdToken();
     const dbWhatsapp = inputPhone.replace(/\D/g, '');
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/me`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-      body: JSON.stringify({ whatsapp: `55${dbWhatsapp}`, telegram, verified: isPhoneVerified }),
+    const response = await api.put(`/profile/${user.uid}`, {
+      whatsapp: `55${dbWhatsapp}`,
+      telegram,
+      verified: isPhoneVerified,
+    }, {
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+      },
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
+    if (response.status !== 200) {
+      const errorData = response.data;
       throw new Error(errorData.error || 'Falha ao atualizar o perfil.');
     }
   };

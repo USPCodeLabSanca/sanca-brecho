@@ -11,6 +11,8 @@ import PriceInput from "@/app/components/priceInput";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import imageCompression from 'browser-image-compression'
 import { CategoryType, ListingType } from "@/lib/types/api";
+import Image from "next/image";
+import api from "@/lib/api/axiosConfig";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -40,7 +42,7 @@ export default function Anunciar() {
   const [isNegotiable, setIsNegotiable] = useState(false);
   const [canDeliver, setCanDeliver] = useState(false);
   const [categories, setCategories] = useState<CategoryType[]>([]);
-  
+
   // Estados de UI
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -62,12 +64,11 @@ export default function Anunciar() {
     const fetchCategories = async () => {
       try {
         setLoadingCategories(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories/`);
-        if (!response.ok) {
-          throw new Error('Falha ao buscar categorias');
+        const response = await api.get('/categories/');
+        if (response.status !== 200) {
+          throw new Error('Erro ao carregar categorias');
         }
-        const data = await response.json();
-        setCategories(data);
+        setCategories(response.data);
       } catch (error) {
         setFormError('Não foi possível carregar as categorias. Tente recarregar a página.');
       } finally {
@@ -87,7 +88,7 @@ export default function Anunciar() {
       setFormError("Você precisa adicionar pelo menos uma imagem.");
       return;
     }
-    
+
     setIsSubmitting(true);
     setFormError(null);
 
@@ -106,46 +107,40 @@ export default function Anunciar() {
         location: "São Carlos, SP", // Provisório
       };
 
-      const listingResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/`, {
-        method: "POST",
+      const listingResponse = await api.post('/listings/', listingPayload, {
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`,
         },
-        body: JSON.stringify(listingPayload),
       });
 
-      if (!listingResponse.ok) {
-        const errorData = await listingResponse.json();
+      if (listingResponse.status !== 201) {
+        const errorData = listingResponse.data;
         throw new Error(errorData.error || 'Falha ao criar o anúncio.');
       }
 
-      const newListing: ListingType = await listingResponse.json();
+      const newListing: ListingType = listingResponse.data;
 
       const imagePromises = previewImages.map((img, index) => {
         const imagePayload = {
           listing_id: newListing.id,
           src: img.publicURL,
-          order: index, // <-- AQUI ESTÁ A MUDANÇA
+          order: index,
         };
-        return fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/`, {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`,
-            },
-            body: JSON.stringify(imagePayload),
+        return api.post('/listing-images/', imagePayload, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+          },
         });
       });
 
       const imageResponses = await Promise.all(imagePromises);
-      const failedImageResponses = imageResponses.filter(res => !res.ok);
+      const failedImageResponses = imageResponses.filter(res => res.status !== 201);
       if (failedImageResponses.length > 0) {
         throw new Error('Falha ao salvar uma ou mais imagens.');
       }
 
       router.push(`/produto/${newListing.slug}`);
-
     } catch (error: any) {
       console.error("Erro ao publicar anúncio:", error);
       setFormError(error.message || "Ocorreu um erro desconhecido.");
@@ -171,18 +166,12 @@ export default function Anunciar() {
         throw new Error(`Arquivo muito grande (${sizeMB.toFixed(1)} MB). Máximo permitido: ${MAX_SIZE_MB} MB.`);
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/s3`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          filename: file?.name,
-          contentType: file?.type
-        })
+      const response = await api.post('/listing-images/s3', {
+        filename: file.name,
+        contentType: file.type
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error(`Falha ao obter URL de upload (status ${response.status})`);
       }
 
@@ -193,16 +182,14 @@ export default function Anunciar() {
       }
       const compressedFile = await imageCompression(file, options)
 
-      const data: presignedUrl = await response.json();
-      const upload = await fetch(data.url, {
-        method: "PUT",
-        body: compressedFile,
+      const data: presignedUrl = response.data;
+      const upload = await api.put(data.url, compressedFile, {
         headers: {
           "Content-Type": compressedFile.type
         }
       });
 
-      if (!upload.ok) {
+      if (upload.status !== 200) {
         throw new Error(`Falha no upload ao servidor (status ${upload.status})`);
       }
 
@@ -253,7 +240,7 @@ export default function Anunciar() {
 
   return (
     <div className="flex flex-col sm:bg-[#f3eefe]">
-      
+
       {(isUploading || isSubmitting) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
           <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite] border-white"></div>
@@ -269,7 +256,7 @@ export default function Anunciar() {
                 <span>{formError}</span>
               </div>
             )}
-            
+
             <div className="space-y-1">
               <label className="text-sm font-medium block" htmlFor="title">Título do anúncio</label>
               <input
@@ -431,9 +418,11 @@ export default function Anunciar() {
               </button>
               <TransformComponent>
                 <div className="h-screen w-screen flex items-center justify-center">
-                  <img
+                  <Image
                     src={activeImage}
                     alt="Preview"
+                    width={1280}
+                    height={900}
                     className="object-contain max-h-screen max-w-screen !pointer-events-auto"
                     onClick={(e) => e.stopPropagation()}
                   />

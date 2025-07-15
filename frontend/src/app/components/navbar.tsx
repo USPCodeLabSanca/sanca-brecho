@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from "react";
 import { signOutUser } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import { UserType } from "@/lib/types/api";
+import api from "@/lib/api/axiosConfig";
 
 export default function Navbar() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const fetchLoggedInUserProfile = async () => {
+      console.log(user);
       if (!user) {
         setLoadingUserProfile(false);
         setLoggedInUserProfile(null);
@@ -29,16 +31,17 @@ export default function Navbar() {
       setLoadingUserProfile(true);
       try {
         const idToken = await user.getIdToken();
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/me`, {
+        const response = await api.get(`/users/me`, {
           headers: {
             'Authorization': `Bearer ${idToken}`,
           },
         });
 
-        if (!response.ok) {
+        if (response.status !== 200) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
+        const data = response.data;
+        console.log("Fetched user profile:", data);
         setLoggedInUserProfile(data.user);
       } catch (error) {
         console.error("Failed to fetch logged-in user profile:", error);
@@ -55,7 +58,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await signOutUser();
-    
+
     setMobileOpen(false);
     setProfileOpen(false);
     router.push('/login');
@@ -108,57 +111,57 @@ export default function Navbar() {
           </div>
 
           {/* Navegação Desktop */}
-          <div className="hidden md:flex items-center space-x-4 z-10"> 
+          <div className="hidden md:flex items-center space-x-4 z-10">
             {isLoading ? (
               <div className="relative flex shrink-0 overflow-hidden rounded-full h-9 w-9 bg-gray-200 animate-pulse" />
             ) : user && loggedInUserProfile ? (
               <>
-              <Link className="text-gray-700 hover:text-sanca" href="/anunciar">
-              Anunciar
-              </Link>
-              <Link href="/notifications" aria-label="Notificações">
-                <Bell className="text-gray-700 w-5 h-5 hover:text-sanca" />
-              </Link>
-              <div
-                className="relative"
-                onMouseEnter={handleMouseEnterProfile}
-                onMouseLeave={handleMouseLeaveProfile}
-              >
-                <button aria-label="Menu do usuário" onClick={() => router.push(`/usuario/${userProfileSlug}`)} className="cursor-pointer">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-9 w-9">
-                    <Image
-                      alt="foto de perfil"
-                      width={36}
-                      height={36}
-                      className="aspect-square h-full w-full"
-                      src={userAvatarSrc}
-                    />
-                  </span>
-                </button>
-                {profileOpen && (
-                  <div
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200"
-                    onMouseEnter={handleMouseEnterProfile}
-                    onMouseLeave={handleMouseLeaveProfile}
-                  >
-                    <Link
-                      href={`/usuario/${userProfileSlug}`}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-sanca"
-                      onClick={() => setProfileOpen(false)}
+                <Link className="text-gray-700 hover:text-sanca" href="/anunciar">
+                  Anunciar
+                </Link>
+                <Link href="/notifications" aria-label="Notificações">
+                  <Bell className="text-gray-700 w-5 h-5 hover:text-sanca" />
+                </Link>
+                <div
+                  className="relative"
+                  onMouseEnter={handleMouseEnterProfile}
+                  onMouseLeave={handleMouseLeaveProfile}
+                >
+                  <button aria-label="Menu do usuário" onClick={() => router.push(`/usuario/${userProfileSlug}`)} className="cursor-pointer">
+                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-9 w-9">
+                      <Image
+                        alt="foto de perfil"
+                        width={36}
+                        height={36}
+                        className="aspect-square h-full w-full"
+                        src={userAvatarSrc}
+                      />
+                    </span>
+                  </button>
+                  {profileOpen && (
+                    <div
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200"
+                      onMouseEnter={handleMouseEnterProfile}
+                      onMouseLeave={handleMouseLeaveProfile}
                     >
-                      <UserIcon className="w-4 h-4 mr-2" />
-                      Ver Perfil
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-sanca"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sair
-                    </button>
-                  </div>
-                )}
-              </div>
+                      <Link
+                        href={`/usuario/${userProfileSlug}`}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-sanca"
+                        onClick={() => setProfileOpen(false)}
+                      >
+                        <UserIcon className="w-4 h-4 mr-2" />
+                        Ver Perfil
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-sanca"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sair
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <Link className="flex items-center text-black hover:text-sanca" href="/login">
@@ -199,40 +202,40 @@ export default function Navbar() {
         >
           <nav className="flex flex-col space-y-1">
             {isLoading ? (
-                <div className="relative flex shrink-0 overflow-hidden rounded-full h-9 w-9 bg-gray-200 animate-pulse my-2 mx-auto" />
+              <div className="relative flex shrink-0 overflow-hidden rounded-full h-9 w-9 bg-gray-200 animate-pulse my-2 mx-auto" />
             ) : user && loggedInUserProfile ? (
               <>
-              <Link
-                href="/anunciar"
-                className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
-                onClick={() => setMobileOpen(false)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Anunciar
-              </Link>
-              <Link
-                href="/notifications"
-                className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
-                onClick={() => setMobileOpen(false)}
-              >
-                <Bell className="w-4 h-4 mr-2" />
-                Notificações
-              </Link>
-              <Link
-                href={`/usuario/${userProfileSlug}`}
-                className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
-                onClick={() => setMobileOpen(false)}
-              >
-                <UserIcon className="w-4 h-4 mr-2" />
-                Perfil
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="flex items-center w-full text-left p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sair
-              </button>            
+                <Link
+                  href="/anunciar"
+                  className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Anunciar
+                </Link>
+                <Link
+                  href="/notifications"
+                  className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Bell className="w-4 h-4 mr-2" />
+                  Notificações
+                </Link>
+                <Link
+                  href={`/usuario/${userProfileSlug}`}
+                  className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <UserIcon className="w-4 h-4 mr-2" />
+                  Perfil
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full text-left p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair
+                </button>
               </>
             ) : (
               <Link

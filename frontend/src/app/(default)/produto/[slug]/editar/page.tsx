@@ -11,6 +11,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import DraggableImage from "@/app/components/draggableImage";
 import imageCompression from 'browser-image-compression';
 import PriceInput from "@/app/components/priceInput";
+import api from "@/lib/api/axiosConfig";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -58,9 +59,15 @@ export default function EditarProdutoClient() {
     const fetchProductAndCategories = async () => {
       setIsLoading(true);
       try {
-        const productRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/slug/${slug}`);
-        if (!productRes.ok) throw new Error('Produto não encontrado.');
-        const productData: ListingType = await productRes.json();
+        const productResponse = await api.get(`/listings/slug/${slug}`);
+        if (productResponse.status !== 200) {
+          if (productResponse.status === 404) {
+            setProduct(null);
+            return;
+          }
+          throw new Error(`HTTP error! status: ${productResponse.status}`);
+        }
+        const productData: ListingType = productResponse.data;
         setProduct(productData);
         setFormData({
           title: productData.title,
@@ -72,18 +79,20 @@ export default function EditarProdutoClient() {
           seller_can_deliver: productData.seller_can_deliver,
         });
 
-        const imagesRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/listing/${productData.id}`);
-        if(imagesRes.ok) {
-          const imagesData: ListingImageType[] = await imagesRes.json();
-          setImages(imagesData.map(img => ({ id: img.id, publicURL: img.src })));
-          setOriginalImages(imagesData);
+        const imagesResponse = await api.get(`/listing-images/listing/${productData.id}`);
+        if (imagesResponse.status !== 200) {
+          throw new Error(`HTTP error! status: ${imagesResponse.status}`);
         }
-
-        const categoriesRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories/`);
-        if (!categoriesRes.ok) throw new Error('Falha ao carregar categorias.');
-        const categoriesData: CategoryType[] = await categoriesRes.json();
+        
+        const imagesData: ListingImageType[] = imagesResponse.data;
+        setImages(imagesData.map(img => ({ id: img.id, publicURL: img.src })));
+        setOriginalImages(imagesData);
+        const categoriesResponse = await api.get('/categories/');
+        if (categoriesResponse.status !== 200) {
+          throw new Error(`HTTP error! status: ${categoriesResponse.status}`);
+        }
+        const categoriesData: CategoryType[] = categoriesResponse.data;
         setCategories(categoriesData);
-
       } catch (err: any) {
         setError(err.message);
       } finally {
