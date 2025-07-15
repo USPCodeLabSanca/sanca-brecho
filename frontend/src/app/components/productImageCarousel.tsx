@@ -131,6 +131,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
                 height={900}
                 className="mx-auto object-cover aspect-square md:aspect-[1280/900] w-full h-auto"
                 onClick={() => openViewer(index)}
+                priority
               />
             </SwiperSlide>
           ))}
@@ -155,11 +156,10 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
                 alt={`Thumb ${index + 1}`}
                 width={150}
                 height={150}
-                className={`w-full h-full object-cover rounded cursor-pointer border transition-all ${
-                  index === activeIndex
+                className={`w-full h-full object-cover rounded cursor-pointer border transition-all ${index === activeIndex
                     ? 'border-sanca border-2'
                     : 'border-gray-300 hover:border-2 hover:border-sanca'
-                }`}
+                  }`}
               />
             </SwiperSlide>
           ))}

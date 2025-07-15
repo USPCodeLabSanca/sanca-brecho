@@ -67,6 +67,7 @@ export default function DraggableImage({ image, index, moveImage, openViewer, re
         height={1000}
         onClick={() => openViewer(image)}
         className="object-cover rounded-md border cursor-pointer"
+        priority
       />
       <button
         onClick={() => removeImage(index)}

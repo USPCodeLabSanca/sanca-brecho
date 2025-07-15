@@ -22,7 +22,6 @@ export default function Navbar() {
 
   useEffect(() => {
     const fetchLoggedInUserProfile = async () => {
-      console.log(user);
       if (!user) {
         setLoadingUserProfile(false);
         setLoggedInUserProfile(null);
@@ -38,7 +37,6 @@ export default function Navbar() {
         });
 
         const data = response.data;
-        console.log("Fetched user profile:", data);
         setLoggedInUserProfile(data.user);
       } catch (error) {
         console.error("Failed to fetch logged-in user profile:", error);

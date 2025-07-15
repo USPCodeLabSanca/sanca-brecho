@@ -26,7 +26,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
       try {
         const response = await api.get(`/listing-images/listing/${product.id}`);
         const data = response.data;
-        
+
         if (data && Array.isArray(data) && data.length > 0 && data[0].src) {
           setImageSrc(data[0].src);
         } else {
@@ -42,7 +42,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
     };
 
     if (product.id) {
-        fetchProductImage();
+      fetchProductImage();
     }
   }, [product.id]);
 
@@ -55,9 +55,8 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   return (
     <Link href={`/produto/${product.slug}`}>
       <div
-        className={`bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md relative cursor-pointer ${
-          className || ""
-        }`}
+        className={`bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md relative cursor-pointer ${className || ""
+          }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -65,14 +64,15 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
         <div className="aspect-square relative overflow-hidden">
           {loadingImage ? (
             <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                <div className="w-8 h-8 border-4 border-dashed rounded-full animate-spin border-gray-400"></div>
+              <div className="w-8 h-8 border-4 border-dashed rounded-full animate-spin border-gray-400"></div>
             </div>
           ) : errorImage ? (
             <div className="w-full h-full flex items-center justify-center bg-red-100 text-red-700 text-center p-2">
-                Erro ao carregar imagem
+              Erro ao carregar imagem
             </div>
           ) : (
             <Image
+              priority
               src={imageSrc}
               alt={product.title}
               width={500}
