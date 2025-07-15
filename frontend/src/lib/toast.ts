@@ -29,6 +29,19 @@ export const showErrorToast = (message: string)=>{
     })
 }
 
+
+export const showNotificationToast = (message: string)=>{
+    toast(message, {
+        icon: "🔔",
+        style: {
+            background: "#ffff",
+            color: "#8b5cf6",
+            fontWeight: "bold",
+        },
+        duration: 5000, // Duração de 5 segundos
+    })
+}
+
 /**
  * Notificacao para quando um usuario é logado com sucesso
  * @param userName - O nome do usuario
@@ -46,6 +59,9 @@ export const showLoginSuccessToast = (userName: string)=>{
     })
 }
 
+/**
+ * Notificacao para quando um usuario é deslogado com sucesso
+*/
 export const showLogoutSuccessToast = ()=>{
     toast.success("Você foi desconectado com sucesso.", {
         icon: "👋",
