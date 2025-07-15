@@ -12,6 +12,7 @@ import DraggableImage from "@/app/components/draggableImage";
 import imageCompression from 'browser-image-compression';
 import PriceInput from "@/app/components/priceInput";
 import api from "@/lib/api/axiosConfig";
+import axios from "axios";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -23,7 +24,7 @@ type presignedUrl = {
 }
 
 type previewImage = {
-  id: string,
+  key: string,
   publicURL: string,
   isNew?: boolean,
   file?: File,
@@ -45,11 +46,12 @@ export default function EditarProdutoClient() {
     seller_can_deliver: false,
   });
 
-  const [images, setImages] = useState<previewImage[]>([]);
+  const [previewImages, setPreviewImages] = useState<previewImage[]>([]);
   const [originalImages, setOriginalImages] = useState<ListingImageType[]>([]);
   const [categories, setCategories] = useState<CategoryType[]>([]);
-  
+
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,7 +77,7 @@ export default function EditarProdutoClient() {
         const imagesResponse = await api.get(`/listing-images/listing/${productData.id}`);
         const imagesData: ListingImageType[] = imagesResponse.data;
 
-        setImages(imagesData.map(img => ({ id: img.id, publicURL: img.src })));
+        setPreviewImages(imagesData.map(img => ({ key: img.id, publicURL: img.src })));
         setOriginalImages(imagesData);
         const categoriesResponse = await api.get('/categories/');
         const categoriesData: CategoryType[] = categoriesResponse.data;
@@ -90,43 +92,68 @@ export default function EditarProdutoClient() {
     fetchProductAndCategories();
   }, [slug]);
 
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const isCheckbox = type === 'checkbox';
     if (isCheckbox) {
-        const { checked } = e.target as HTMLInputElement;
-        setFormData(prev => ({ ...prev, [name]: checked }));
+      const { checked } = e.target as HTMLInputElement;
+      setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-        setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (images.length >= 5) {
-        alert('Você pode adicionar no máximo 5 imagens.');
-        return;
-    }
-    const file = event.target.files?.[0];
-    if (!file) return;
+    setIsUploading(true);
 
-    const tempId = `temp-${Date.now()}`;
-    const newPreview: previewImage = {
-        id: tempId,
-        publicURL: URL.createObjectURL(file),
-        isNew: true,
-        file: file,
-    };
-    setImages(prev => [...prev, newPreview]);
-    event.target.value = '';
-  };
+    try {
+      if (previewImages.length > 5) {
+        throw new Error('Limite de imagens atingido');
+      }
+
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const sizeMB = file.size / (1024 * 1024)
+      if (sizeMB > MAX_SIZE_MB) {
+        throw new Error(`Arquivo muito grande (${sizeMB.toFixed(1)} MB). Máximo permitido: ${MAX_SIZE_MB} MB.`);
+      }
+
+      const response = await api.post('/listing-images/s3', {
+        filename: file.name,
+        contentType: file.type
+      });
+
+      const options = {
+        maxSizeMB: MAX_SIZE_MB,
+        maxWidthOrHeight: MAX_WIDTH_OR_HEIGHT,
+        useWebWorker: true,
+      }
+      const compressedFile = await imageCompression(file, options)
+
+      const data: presignedUrl = response.data;
+      await axios.put(data.url, compressedFile, {
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      setPreviewImages(prev => [...prev, { publicURL: data.publicURL, key: data.key, isNew: true, file: compressedFile }]);
+    } catch (err: any) {
+      const message = err.message || 'Erro desconhecido ao enviar';
+      alert(message);
+    } finally {
+      setIsUploading(false);
+      event.target.value = '';
+    }
+  }
 
   const handleImageRemove = (idToRemove: string) => {
-    setImages(prev => prev.filter(img => img.id !== idToRemove));
+    setPreviewImages(prev => prev.filter(img => img.key !== idToRemove));
   };
-  
+
   const moveImage = useCallback((dragIndex: number, hoverIndex: number) => {
-    setImages((prevImages) => {
+    setPreviewImages((prevImages) => {
       const updatedImages = [...prevImages];
       const [draggedItem] = updatedImages.splice(dragIndex, 1);
       updatedImages.splice(hoverIndex, 0, draggedItem);
@@ -137,88 +164,75 @@ export default function EditarProdutoClient() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!product || !user) {
-        setError("Não foi possível salvar. Tente novamente.");
-        return;
+      setError("Não foi possível salvar. Tente novamente.");
+      return;
     }
+    if (previewImages.length === 0) {
+      setError("Você precisa adicionar pelo menos uma imagem.");
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
     try {
-        const idToken = await user.getIdToken();
+      const idToken = await user.getIdToken();
 
-        const newImagesToUpload = images.filter(img => img.isNew && img.file);
-        const uploadedImageUrls: { [tempId: string]: string } = {};
-
-        for (const img of newImagesToUpload) {
-            const presignedRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/s3`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ filename: img.file!.name, contentType: img.file!.type }),
-            });
-            if (!presignedRes.ok) throw new Error("Falha ao obter URL para upload.");
-            const presignedData: presignedUrl = await presignedRes.json();
-            const compressedFile = await imageCompression(img.file!, { maxSizeMB: MAX_SIZE_MB, maxWidthOrHeight: MAX_WIDTH_OR_HEIGHT });
-            const uploadRes = await fetch(presignedData.url, {
-                method: "PUT", body: compressedFile, headers: { "Content-Type": compressedFile.type },
-            });
-            if (!uploadRes.ok) throw new Error("Falha no upload da imagem para o S3.");
-            uploadedImageUrls[img.id] = presignedData.publicURL;
+      const listingUpdateResponse = await api.put(`/listings/${product.id}`, {
+        ...formData,
+        category_id: parseInt(formData.category_id),
+        price: Number(formData.price),
+      }, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
         }
+      });
 
-        const listingUpdateResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/${product.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-            body: JSON.stringify({ ...formData, category_id: parseInt(formData.category_id), price: Number(formData.price) }),
+      // Extrai o objeto de listing atualizado da resposta e o novo slug (no caso de atualização de título)
+      const updatedListing: ListingType = listingUpdateResponse.data;
+      const newSlug = updatedListing.slug;
+
+      const finalImageIds = new Set(previewImages.filter(img => !img.isNew).map(img => img.key));
+      const imagesToDelete = originalImages.filter(img => !finalImageIds.has(img.id));
+      const imagesToAdd = previewImages.filter(img => img.isNew);
+      const imagesToUpdate = previewImages.filter(img => !img.isNew);
+
+      const deletePromises = imagesToDelete.map(img =>
+        api.delete(`/listing-images/${img.id}`, {
+          headers: { 'Authorization': `Bearer ${idToken}` }
+        })
+      );
+
+      const addPromises = imagesToAdd.map((img) => {
+        const order = previewImages.findIndex(i => i.key === img.key);
+        return api.post('/listing-images/', {
+          listing_id: product.id,
+          src: img.publicURL,
+          order,
+        }, {
+          headers: { 'Authorization': `Bearer ${idToken}` },
         });
+      });
 
-        if (!listingUpdateResponse.ok) {
-            const errorData = await listingUpdateResponse.json();
-            throw new Error(errorData.error || 'Falha ao atualizar o anúncio.');
+      const updatePromises = imagesToUpdate.map(img => {
+        const newOrder = previewImages.findIndex(i => i.key === img.key);
+        const originalImg = originalImages.find(orig => orig.id === img.key);
+        if (originalImg && originalImg.order !== newOrder) {
+          return api.put(`/listing-images/${img.key}`, {
+            order: newOrder,
+          }, {
+            headers: { 'Authorization': `Bearer ${idToken}` },
+          });
         }
+        return null;
+      });
 
-        // Extrai o objeto de listing atualizado da resposta e o novo slug (no caso de atualização de título)
-        const updatedListing: ListingType = await listingUpdateResponse.json();
-        const newSlug = updatedListing.slug;
+      await Promise.all([...deletePromises, ...addPromises, ...updatePromises.filter(p => p !== null)]);
 
-        const finalImageIds = new Set(images.filter(img => !img.isNew).map(img => img.id));
-
-        const imagesToDelete = originalImages.filter(img => !finalImageIds.has(img.id));
-        const imagesToAdd = images.filter(img => img.isNew);
-        const imagesToUpdate = images.filter(img => !img.isNew);
-
-        const deletePromises = imagesToDelete.map(img =>
-            fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/${img.id}`, {
-                method: 'DELETE', headers: { 'Authorization': `Bearer ${idToken}` }
-            })
-        );
-        
-        const addPromises = imagesToAdd.map((img) => {
-            const order = images.findIndex(i => i.id === img.id);
-            return fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-                body: JSON.stringify({ listing_id: product.id, src: uploadedImageUrls[img.id], order }),
-            });
-        });
-
-        const updatePromises = imagesToUpdate.map(img => {
-            const newOrder = images.findIndex(i => i.id === img.id);
-            const originalImg = originalImages.find(orig => orig.id === img.id);
-            if (originalImg && originalImg.order !== newOrder) {
-                return fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/${img.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-                    body: JSON.stringify({ order: newOrder }),
-                });
-            }
-            return null;
-        });
-
-        await Promise.all([...deletePromises, ...addPromises, ...updatePromises.filter(p => p !== null)]);
-        
-        router.push(`/produto/${newSlug}`);
+      router.push(`/produto/${newSlug}`);
     } catch (err: any) {
-        setError(err.message);
+      setError(err.message);
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -236,6 +250,13 @@ export default function EditarProdutoClient() {
 
   return (
     <div className="min-h-screen flex flex-col">
+
+      {(isUploading || isSubmitting) && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
+          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite] border-white"></div>
+        </div>
+      )}
+
       <main className="flex-grow pb-10">
         <div className="container mx-auto px-4">
           <div className="py-4">
@@ -244,7 +265,7 @@ export default function EditarProdutoClient() {
               Voltar para o produto
             </Link>
           </div>
-          
+
           <div className="mb-6">
             <div className="flex justify-between items-center">
               <div>
@@ -267,18 +288,18 @@ export default function EditarProdutoClient() {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Imagens do Produto</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
-                    {images.map((image, index) => (
+                    {previewImages.map((image, index) => (
                       <DraggableImage
-                        key={image.id}
-                        image={{key: image.id, publicURL: image.publicURL}}
+                        key={image.key}
+                        image={{ key: image.key, publicURL: image.publicURL }}
                         index={index}
                         moveImage={moveImage}
-                        openViewer={() => {}}
-                        removeImage={() => handleImageRemove(image.id)}
+                        openViewer={() => { }}
+                        removeImage={() => handleImageRemove(image.key)}
                       />
                     ))}
-                    
-                    {images.length < 5 && (
+
+                    {previewImages.length < 5 && (
                       <label htmlFor="image-upload" className="h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:text-sanca hover:border-sanca transition-colors cursor-pointer">
                         <Camera className="h-6 w-6 mb-2" />
                         <span className="text-sm">Adicionar</span>
@@ -291,7 +312,7 @@ export default function EditarProdutoClient() {
                   </p>
                 </div>
               </DndProvider>
-              
+
               <div className="space-y-6">
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
@@ -358,16 +379,16 @@ export default function EditarProdutoClient() {
                   </select>
                 </div>
                 <div className="flex gap-4">
-                    <label className="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="is_negotiable" checked={formData.is_negotiable} onChange={handleInputChange} className="sr-only peer" />
-                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
-                        <span className="ml-3 text-sm font-medium">Preço negociável</span>
-                    </label>
-                    <label className="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="seller_can_deliver" checked={formData.seller_can_deliver} onChange={handleInputChange} className="sr-only peer" />
-                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
-                        <span className="ml-3 text-sm font-medium">Pode entregar</span>
-                    </label>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="is_negotiable" checked={formData.is_negotiable} onChange={handleInputChange} className="sr-only peer" />
+                    <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
+                    <span className="ml-3 text-sm font-medium">Preço negociável</span>
+                  </label>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="seller_can_deliver" checked={formData.seller_can_deliver} onChange={handleInputChange} className="sr-only peer" />
+                    <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
+                    <span className="ml-3 text-sm font-medium">Pode entregar</span>
+                  </label>
                 </div>
                 <div>
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
@@ -383,7 +404,7 @@ export default function EditarProdutoClient() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent resize-vertical"
                   />
                 </div>
-                
+
                 <div className="flex gap-4 pt-4">
                   <Link href={`/produto/${slug}`} className="flex-1">
                     <button

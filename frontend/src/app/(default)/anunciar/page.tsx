@@ -13,6 +13,7 @@ import imageCompression from 'browser-image-compression'
 import { CategoryType, ListingType } from "@/lib/types/api";
 import Image from "next/image";
 import api from "@/lib/api/axiosConfig";
+import axios from "axios";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -120,7 +121,6 @@ export default function Anunciar() {
         };
         return api.post('/listing-images/', imagePayload, {
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${idToken}`,
           },
         });
@@ -171,16 +171,12 @@ export default function Anunciar() {
       const compressedFile = await imageCompression(file, options)
 
       const data: presignedUrl = response.data;
-      const upload = await api.put(data.url, compressedFile, {
+      await axios.put(data.url, compressedFile, {
         headers: {
-          "Content-Type": compressedFile.type
-        }
+          'Content-Type': file.type,
+        },
       });
-
-      if (upload.status !== 200) {
-        throw new Error(`Falha no upload ao servidor (status ${upload.status})`);
-      }
-
+      
       setPreviewImages([...previewImages, { publicURL: data.publicURL, key: data.key }]);
     } catch (err: any) {
       const message = err.message || 'Erro desconhecido ao enviar';
