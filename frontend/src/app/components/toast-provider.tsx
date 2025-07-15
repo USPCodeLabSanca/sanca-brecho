@@ -6,7 +6,7 @@ const ToastProvider = () => {
     return (
         <Toaster
             position="top-right"
-            reverseOrder={false}
+            reverseOrder={true}
         />
     )
 }
