@@ -11,6 +11,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import DraggableImage from "@/app/components/draggableImage";
 import imageCompression from 'browser-image-compression';
 import PriceInput from "@/app/components/priceInput";
+import { showSuccessToast } from "@/lib/toast";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -217,7 +218,7 @@ export default function EditarProdutoClient() {
         });
 
         await Promise.all([...deletePromises, ...addPromises, ...updatePromises.filter(p => p !== null)]);
-        
+        showSuccessToast("Produto atualizado com sucesso!");
         router.push(`/produto/${newSlug}`);
     } catch (err: any) {
         setError(err.message);
