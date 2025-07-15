@@ -35,7 +35,7 @@ export const showErrorToast = (message: string)=>{
 */
 
 export const showLoginSuccessToast = (userName: string)=>{
-    toast.success("Olá, " + userName + "! Você está logado com sucesso.", {
+    toast.success("Olá, " + userName + "! Login realizado com sucesso.", {
         icon: "👋",
         style: {
             background: "#ffff",
