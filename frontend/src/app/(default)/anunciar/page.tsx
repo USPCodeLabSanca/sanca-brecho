@@ -10,7 +10,7 @@ import DraggableImage from "@/app/components/draggableImage";
 import PriceInput from "@/app/components/priceInput";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import imageCompression from 'browser-image-compression'
-import { CategoryType, ListingType, PresignedUrl } from "@/lib/types/api";
+import { CategoryType, ListingType } from "@/lib/types/api";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import Image from "next/image";
 import { getCategories } from "@/lib/services/categoryService";
@@ -230,6 +230,7 @@ export default function Anunciar() {
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                maxLength={100}
                 className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
                 placeholder="Ex: Livro de Cálculo Vol.1 Thomas"
                 required
@@ -252,6 +253,8 @@ export default function Anunciar() {
             <div className="space-y-1">
               <label htmlFor="price" className="text-sm font-medium block">Preço (R$)*</label>
               <PriceInput
+                name="price"
+                id="price"
                 value={price}
                 onValueChange={(value) => setPrice(value)}
                 className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
@@ -267,7 +270,7 @@ export default function Anunciar() {
                   name="category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca cursor-pointer"
                   required
                 >
                   <option value="" disabled>Selecione</option>
@@ -284,7 +287,7 @@ export default function Anunciar() {
                   id="condition"
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca"
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca cursor-pointer"
                   required
                 >
                   <option value="" disabled>Selecione</option>
