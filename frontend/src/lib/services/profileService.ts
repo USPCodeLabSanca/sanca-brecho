@@ -7,7 +7,7 @@ import { ProfileType } from '../types/api';
 export const getProfileBySlug = async (slug: string): Promise<ProfileType> => {
     const response = await api.get(`/profile/${slug}`);
 
-    return response.data;
+    return response.data.user;
 };
 
 // Buscar metricas de um perfil específico pelo slug
