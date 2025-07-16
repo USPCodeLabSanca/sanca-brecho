@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
 import { useState } from "react";
 import { showLoginSuccessToast } from "@/lib/toast";
+import { login } from "@/lib/services/authService";
 
 export default function Login() {
     const router = useRouter();
@@ -19,23 +20,7 @@ export default function Login() {
             const userCredential = await signInWithGoogle();
             if (userCredential && userCredential.user) {
                 const idToken = await userCredential.user.getIdToken();
-
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${idToken}`,
-                    },
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    setErrorMessage(errorData.error || 'Falha desconhecida no login.');
-                    return;
-                }
-
-                const backendResponse = await response.json();
-                const user = backendResponse.user;
+                const user = await login(idToken);
 
                 if (user && user.whatsapp) {
                     showLoginSuccessToast(user.display_name.split(' ')[0] || "Usuário");
@@ -57,7 +42,7 @@ export default function Login() {
             }
         }
     };
-  
+
     return (
         <div className="min-h-screen flex justify-center items-center bg-[#f3eefe]">
             <main className="max-w-md w-full">
@@ -82,7 +67,7 @@ export default function Login() {
                                 </div>
                             )}
 
-                            <button type="submit" onClick={handleLogin} className="cursor-pointer flex items-center justify-center gap-2 h-10 px-3 py-2 w-full bg-sanca hover:bg-sanca/90 rounded-md text-white text-sm font-medium"><FaGoogle/>Entrar com Google</button>
+                            <button type="submit" onClick={handleLogin} className="cursor-pointer flex items-center justify-center gap-2 h-10 px-3 py-2 w-full bg-sanca hover:bg-sanca/90 rounded-md text-white text-sm font-medium"><FaGoogle />Entrar com Google</button>
                         </section>
                     </section>
                 </section>

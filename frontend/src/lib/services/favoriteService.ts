@@ -3,13 +3,13 @@ import { FavoriteType } from '../types/api';
 
 // Adicionar um favorito
 export const addFavorite = async (favorite: Omit<FavoriteType, 'user'>): Promise<FavoriteType> => {
-    const response = await api.post('/favorites', favorite);
+    const response = await api.post('/favorites/', favorite);
     return response.data;
 };
 
 // Listar todos os favoritos
 export const listFavorites = async (): Promise<FavoriteType[]> => {
-    const response = await api.get('/favorites');
+    const response = await api.get('/favorites/');
     return response.data;
 };
 

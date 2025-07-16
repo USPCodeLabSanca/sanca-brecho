@@ -101,3 +101,9 @@ export interface ProfileMetricsType{
     member_since: string | null;
     profile_is_complete: boolean;
 }
+
+export interface PresignedUrl {
+    key: string;
+    publicURL: string;
+    url: string;
+  }

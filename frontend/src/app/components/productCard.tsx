@@ -5,6 +5,8 @@ import { Truck, TrendingDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ListingType } from "@/lib/types/api"
 import Image from "next/image";
+import { getListingImageById, getListingImages } from "@/lib/services/listingService";
+import { showErrorToast } from "@/lib/toast";
 
 interface ProductCardProps {
   product: ListingType;
@@ -23,12 +25,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
       setLoadingImage(true);
       setErrorImage(null);
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/listing/${product.id}`); //
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        
+        const data = await getListingImages(product.id);
         if (data && Array.isArray(data) && data.length > 0 && data[0].src) {
           setImageSrc(data[0].src);
         } else {
@@ -36,15 +33,15 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
         }
       } catch (error: any) {
         setErrorImage(error.message);
-        console.error(`Failed to fetch image for product ${product.id}:`, error);
         setImageSrc('https://sancabrechobucket.s3.us-east-2.amazonaws.com/notfound.png');
+        showErrorToast('Erro ao carregar a imagem do produto.');
       } finally {
         setLoadingImage(false);
       }
     };
 
     if (product.id) {
-        fetchProductImage();
+      fetchProductImage();
     }
   }, [product.id]);
 
@@ -57,9 +54,8 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   return (
     <Link href={`/produto/${product.slug}`}>
       <div
-        className={`bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md relative cursor-pointer ${
-          className || ""
-        }`}
+        className={`bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md relative cursor-pointer ${className || ""
+          }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -67,11 +63,11 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
         <div className="aspect-square relative overflow-hidden">
           {loadingImage ? (
             <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                <div className="w-8 h-8 border-4 border-dashed rounded-full animate-spin border-gray-400"></div>
+              <div className="w-8 h-8 border-4 border-dashed rounded-full animate-spin border-gray-400"></div>
             </div>
           ) : errorImage ? (
             <div className="w-full h-full flex items-center justify-center bg-red-100 text-red-700 text-center p-2">
-                Erro ao carregar imagem
+              Erro ao carregar imagem
             </div>
           ) : (
             <Image

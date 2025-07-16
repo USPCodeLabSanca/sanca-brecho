@@ -3,7 +3,7 @@ import { CategoryType } from '../types/api';
 
 // Buscar todas as categorias
 export const getCategories = async (): Promise<CategoryType[]> => {
-    const response = await api.get('/categories');
+    const response = await api.get('/categories/');
     return response.data;
 };
 
@@ -15,7 +15,7 @@ export const getCategoryById = async (id: number): Promise<CategoryType> => {
 
 // Criar uma nova categoria
 export const createCategory = async (category: Omit<CategoryType, 'id' | 'parent' | 'children'>): Promise<CategoryType> => {
-    const response = await api.post('/categories', category);
+    const response = await api.post('/categories/', category);
     return response.data;
 };
 
