@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func GetUser(c *gin.Context) {
@@ -119,4 +120,53 @@ func FindProfile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"user": resp})
 
+}
+
+func GetProfileMetrics(c *gin.Context) {
+	userSlug := c.Param("slug")
+
+	// Finding the user by slug
+	var user models.User
+	if err := repository.DB.Where("slug=?", userSlug).First(&user).Error; err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+		}
+		return
+	}
+
+	// starting the metrics struct
+	var metrics models.SellerMetrics
+
+	// Fetching the metrics data
+	metrics.IsVerified = user.Verified
+	if (user.Whatsapp != nil && *user.Whatsapp != "") || (user.Telegram != nil && *user.Telegram != "") {
+		metrics.ProfileIsComplete = true
+	} else {
+		metrics.ProfileIsComplete = false
+	}
+
+	// Counting active listings
+	repository.DB.Model(&models.Listing{}).Where("user_id = ? AND is_active = ?", user.ID, true).Count(&metrics.ActiveListingsCount)
+	repository.DB.Model(&models.Listing{}).Where("user_id = ? AND is_active = ?", user.ID, false).Count(&metrics.ItemsSold)
+
+	// Counting total listings
+	repository.DB.Model(&models.Listing{}).Where("user_id = ?", user.ID).Count(&metrics.TotalListingsCount)
+
+	// Counting total favorites
+	var listingIDs []uuid.UUID
+	repository.DB.Model(&models.Listing{}).Where("user_id = ?", user.ID).Pluck("id", &listingIDs)
+	if len(listingIDs) > 0 {
+		repository.DB.Model(&models.Favorite{}).Where("listing_id IN ?", listingIDs).Count(&metrics.TotalFavoritesCount)
+	}
+
+	// Setting the member since date
+	if !user.CreatedAt.IsZero() {
+		metrics.MemberSince = &user.CreatedAt
+	} else {
+		metrics.MemberSince = nil
+	}
+
+	c.JSON(http.StatusOK, gin.H{"metrics": metrics})
 }
