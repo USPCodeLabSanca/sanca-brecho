@@ -91,3 +91,10 @@ export interface FavoriteType{
     listing: ListingType;
     created_at: Date;
 }
+
+
+export interface PresignedUrl {
+    key: string;
+    publicURL: string;
+    url: string;
+  }
