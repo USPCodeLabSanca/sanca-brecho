@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 export const showSuccessToast = (message: string)=>{
     toast.success(message,{
         style:{
-            fontSize: "16px",
             fontWeight: "bold",
             border: "1px solid #4caf50",
         },
@@ -18,7 +17,6 @@ export const showSuccessToast = (message: string)=>{
 export const showErrorToast = (message: string)=>{
     toast.error(message,{
         style:{
-            fontSize: "16px",
             fontWeight: "bold",
             border: "1px solid #dc3545",
         },

@@ -8,7 +8,7 @@ const ToastProvider = () => {
             position="bottom-center"
             toastOptions={{
                 style: {
-                    fontSize: "22px",
+                    fontSize: "16px",
                 },
 
             }}
