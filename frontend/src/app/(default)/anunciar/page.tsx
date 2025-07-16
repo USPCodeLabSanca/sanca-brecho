@@ -13,7 +13,6 @@ import imageCompression from 'browser-image-compression'
 import { CategoryType, ListingType, PresignedUrl } from "@/lib/types/api";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import Image from "next/image";
-import api from "@/lib/api/axiosConfig";
 import { getCategories } from "@/lib/services/categoryService";
 import { createListing, createListingImage, createListingImagePresignedUrl } from "@/lib/services/listingService";
 import axios from "axios";
@@ -51,10 +50,21 @@ export default function Anunciar() {
   const [previewImages, setPreviewImages] = useState<previewImage[]>([]);
   const [activeImage, setActiveImage] = useState<string | null>(null);
 
-
+  // Redirecionar para a página de login se o usuário não estiver logado, ou para a de onboarding se não tiver telefone cadastrado
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) {
+      return;
+    }
+
+    if (!user) {
+      showErrorToast("Você precisa estar logado para criar um anúncio.");
       router.push("/login");
+      return;
+    }
+
+    if (!user.phoneNumber) {
+      showErrorToast("Você precisa completar seu cadastro antes de criar um anúncio.");
+      router.push("/onboarding");
     }
   }, [loading, user, router]);
 
@@ -75,7 +85,7 @@ export default function Anunciar() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!user) {
+    if (!user || (user && !user.phoneNumber)) {
       setFormError("Você precisa estar logado para criar um anúncio.");
       return;
     }

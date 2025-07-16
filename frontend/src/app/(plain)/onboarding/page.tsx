@@ -8,6 +8,7 @@ import { RecaptchaVerifier, linkWithCredential, PhoneAuthProvider } from 'fireba
 import { IMaskInput } from 'react-imask';
 import { updateMe } from '@/lib/services/userService';
 import { showErrorToast } from '@/lib/toast';
+import Link from 'next/link';
 
 declare global {
   interface Window {
@@ -182,11 +183,11 @@ export default function Onboarding() {
       <main className="max-w-md w-full p-4">
         <div className="text-center mb-4">
           {firstName && <h1 className="text-2xl mb-1 font-semibold">Olá, {firstName}!</h1>}
-          <h2 className="text-xl font-medium">Finalize seu cadastro</h2>
+          <h2 className="text-xl font-medium">Complete seu cadastro</h2>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm">
-          <form className="p-4 space-y-4" onSubmit={handleOnboardingSubmit}>
+          <form className="px-4 pt-4 space-y-4" onSubmit={handleOnboardingSubmit}>
             {onboardingSuccess && (
               <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-md text-sm" role="alert">
                 <span>{onboardingSuccess}</span>
@@ -259,10 +260,14 @@ export default function Onboarding() {
             </button>
             <div id="recaptcha-container" ref={recaptchaContainerRef}></div>
           </form>
-
           <p className="text-xs pb-4 px-4 text-center text-gray-500">
             Estas informações serão usadas apenas para comunicação entre usuários. Nunca compartilharemos seus dados com terceiros.
           </p>
+        </div>
+        <div className="pt-2 text-sm text-center text-gray-500 hover:text-sanca">
+          <Link href="/">
+            <p>Pular por enquanto</p>
+          </Link>
         </div>
       </main>
     </div>
