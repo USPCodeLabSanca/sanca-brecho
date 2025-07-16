@@ -103,7 +103,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
           <div className="mb-1 flex justify-between">
             <span className="font-semibold text-lg">{formattedPrice}</span>
           </div>
-          <h3 className="text-sm font-medium line-clamp-2">{product.title}</h3>
+          <h3 className="h-10 text-sm font-medium line-clamp-2">{product.title}</h3>
 
           <div className="flex items-center mt-2 text-xs text-gray-500">
             <img
