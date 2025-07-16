@@ -5,7 +5,13 @@ import {Toaster} from "react-hot-toast";
 const ToastProvider = () => {
     return (
         <Toaster
-            position="top-right"
+            position="bottom-center"
+            toastOptions={{
+                style: {
+                    fontSize: "22px",
+                },
+
+            }}
             reverseOrder={true}
         />
     )
