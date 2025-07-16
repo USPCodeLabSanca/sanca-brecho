@@ -8,12 +8,11 @@ import { FaWhatsapp } from 'react-icons/fa';
 import {
   MapPin,
   Calendar,
-  Star,
   Package,
-  Search,
   Settings,
   Edit,
-  BadgeCheck
+  BadgeCheck,
+  ShieldCheck
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProfileType, ListingType } from "@/lib/types/api";
@@ -142,9 +141,25 @@ const Usuario = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-grow py-10">
+      <main className="flex-grow py-5">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
+            {isOwnerProfile && !userProfile.verified && (
+              <div className="mb-6 rounded-lg bg-sanca/10 p-4 text-center">
+                <div className="flex justify-center mb-2">
+                  <ShieldCheck className="h-8 w-8 text-sanca" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800">Complete seu perfil para anunciar!</h3>
+                <p className="mt-1 mb-4 text-sm text-gray-600">
+                  A verificação do seu telefone aumenta a confiança e a segurança para todos na plataforma.
+                </p>
+                <Link href="/onboarding">
+                  <button className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium text-white h-10 px-4 py-2 w-full sm:w-auto bg-sanca hover:bg-sanca/90 transition-colors">
+                    Completar Cadastro
+                  </button>
+                </Link>
+              </div>
+            )}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
               <div className="h-32 bg-gradient-to-r from-sanca to-[#0ea5e9]"></div>
               <div className="px-6 py-4 relative">
@@ -188,14 +203,14 @@ const Usuario = () => {
                             </Link>
                           )}
                         </>
-                      ) : (
-                        <>
+                      ) : ( 
+                        userProfile.verified && (
                           <Link href={`https://wa.me/${userProfile.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`}>
                             <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-[#25D366] hover:bg-[#25D366]/90">
                               <FaWhatsapp className="text-white" />Entrar em contato
                             </button>
                           </Link>
-                        </>
+                        )
                       )}
                     </div>
                   </div>
