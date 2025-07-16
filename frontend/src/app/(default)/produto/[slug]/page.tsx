@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 import api from "@/lib/api/axiosConfig";
 import { getListingBySlug } from "@/lib/services/listingService";
 import { showErrorToast, showNotificationToast } from "@/lib/toast";
+import Spinner from "@/app/components/spinner";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
@@ -59,11 +60,7 @@ export default function ProdutoClient() {
   const isOwner = user && product && user.uid === product.user_id;
 
   if (loadingProduct || loadingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-sanca"></div>
-      </div>
-    );
+    return Spinner();
   }
 
   if (!product || !product.is_active) {

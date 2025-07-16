@@ -5,8 +5,9 @@ import { Truck, TrendingDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ListingType } from "@/lib/types/api"
 import Image from "next/image";
-import { getListingImageById, getListingImages } from "@/lib/services/listingService";
+import { getListingImages } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
+import Spinner from "./spinner";
 
 interface ProductCardProps {
   product: ListingType;
@@ -62,9 +63,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
         {/* Image Section */}
         <div className="aspect-square relative overflow-hidden">
           {loadingImage ? (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200">
-              <div className="w-8 h-8 border-4 border-dashed rounded-full animate-spin border-gray-400"></div>
-            </div>
+            Spinner()
           ) : errorImage ? (
             <div className="w-full h-full flex items-center justify-center bg-red-100 text-red-700 text-center p-2">
               Erro ao carregar imagem

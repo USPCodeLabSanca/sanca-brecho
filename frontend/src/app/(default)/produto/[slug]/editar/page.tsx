@@ -15,6 +15,7 @@ import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { createListingImage, createListingImagePresignedUrl, deleteListingImage, getListingBySlug, getListingImages, updateListing, updateListingImage } from "@/lib/services/listingService";
 import { getCategories } from "@/lib/services/categoryService";
 import axios from "axios";
+import Spinner from "@/app/components/spinner";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -221,7 +222,7 @@ export default function EditarProdutoClient() {
   };
 
   if (isLoading || authLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-sanca"></div></div>;
+    return Spinner();
   }
 
   if (error) {
@@ -230,6 +231,10 @@ export default function EditarProdutoClient() {
 
   if (!product) {
     notFound();
+  }
+
+  if (!user || user.uid !== product.user_id) {
+    return Spinner();
   }
 
   return (

@@ -16,6 +16,7 @@ import Image from "next/image";
 import { getCategories } from "@/lib/services/categoryService";
 import { createListing, createListingImage, createListingImagePresignedUrl } from "@/lib/services/listingService";
 import axios from "axios";
+import Spinner from "@/app/components/spinner";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -200,21 +201,15 @@ export default function Anunciar() {
     setPreviewImages((imgs) => imgs.filter((_, i) => i !== idx));
   }, []);
 
-  if (loading || loadingCategories) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f3eefe]">
-        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite] border-sanca"></div>
-      </div>
-    );
+  if (loading || loadingCategories || !user || (user && !user.phoneNumber)) {
+    return Spinner();
   }
 
   return (
     <div className="flex flex-col sm:bg-[#f3eefe]">
 
       {(isUploading || isSubmitting) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
-          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite] border-white"></div>
-        </div>
+        Spinner()
       )}
 
       <section className="max-w-3xl p-4 mb-5 mx-auto" >

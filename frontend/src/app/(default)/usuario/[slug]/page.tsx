@@ -21,6 +21,7 @@ import { getProfileBySlug } from "@/lib/services/profileService";
 import { getMe } from "@/lib/services/userService";
 import { getListingsByUser } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
+import Spinner from "@/app/components/spinner";
 
 const Usuario = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -117,11 +118,7 @@ const Usuario = () => {
   }, [userProfile?.slug]);
 
   if (loadingProfile || loadingProducts || loadingAuth || loadingOwnership) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-sanca"></div>
-      </div>
-    );
+    return Spinner();
   }
 
   if (!userProfile || (userProfile && !userProfile.role)) {

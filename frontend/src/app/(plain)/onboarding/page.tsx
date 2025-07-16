@@ -9,6 +9,7 @@ import { IMaskInput } from 'react-imask';
 import { updateMe } from '@/lib/services/userService';
 import { showErrorToast } from '@/lib/toast';
 import Link from 'next/link';
+import Spinner from '@/app/components/spinner';
 
 declare global {
   interface Window {
@@ -169,11 +170,7 @@ export default function Onboarding() {
 
   // Renderiza um spinner enquanto os dados do usuário estão sendo carregados
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f3eefe]">
-        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite] border-sanca"></div>
-      </div>
-    );
+    return Spinner();
   }
 
   if (!user) return null;
