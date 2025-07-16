@@ -92,6 +92,15 @@ export interface FavoriteType{
     created_at: Date;
 }
 
+export interface ProfileMetricsType{
+    is_verified: boolean;
+    active_listings_count: number;
+    items_sold: number;
+    total_listings_count: number;
+    total_favorites_count: number;
+    member_since: string | null;
+    profile_is_complete: boolean;
+}
 
 export interface PresignedUrl {
     key: string;
