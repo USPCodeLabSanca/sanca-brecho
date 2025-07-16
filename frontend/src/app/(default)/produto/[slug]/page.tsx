@@ -12,7 +12,7 @@ import { ListingType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
 import api from "@/lib/api/axiosConfig";
 import { getListingBySlug } from "@/lib/services/listingService";
-import { showErrorToast } from "@/lib/toast";
+import { showErrorToast, showNotificationToast } from "@/lib/toast";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
@@ -95,10 +95,11 @@ export default function ProdutoClient() {
         });
       } catch (error) {
         console.error('Erro ao compartilhar:', error);
+        showErrorToast('Erro ao compartilhar o produto.');
       }
     } else {
       navigator.clipboard.writeText(window.location.href);
-      console.log("Link copiado para a área de transferência"); // TODO: Implementar um toast melhor
+      showNotificationToast("Link copiado para a área de transferência");
     }
   };
 
