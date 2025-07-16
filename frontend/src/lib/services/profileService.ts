@@ -13,5 +13,5 @@ export const getProfileBySlug = async (slug: string): Promise<ProfileType> => {
 // Buscar metricas de um perfil específico pelo slug
 export const getProfileMetricsBySlug = async (slug: string): Promise<any> => {
     const response = await api.get(`/profile/${slug}/metrics`);
-    return response.data;
+    return response.data.metrics;
 };
