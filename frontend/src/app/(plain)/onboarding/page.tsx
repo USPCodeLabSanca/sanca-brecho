@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase/config';
 import { RecaptchaVerifier, linkWithCredential, PhoneAuthProvider } from 'firebase/auth';
 import { IMaskInput } from 'react-imask';
+import { updateMe } from '@/lib/services/userService';
+import { showErrorToast } from '@/lib/toast';
 
 declare global {
   interface Window {
@@ -21,7 +23,7 @@ export default function Onboarding() {
   const [telegram, setTelegram] = useState('');
   const [inputPhone, setInputPhone] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
-  
+
   // Estados para o fluxo de verificação
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [isCodeSent, setIsCodeSent] = useState(false);
@@ -98,10 +100,10 @@ export default function Onboarding() {
 
       const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, { 'size': 'invisible' });
       window.recaptchaVerifier = recaptchaVerifier;
-      
+
       const phoneProvider = new PhoneAuthProvider(auth);
       const verId = await phoneProvider.verifyPhoneNumber(formattedPhone, recaptchaVerifier);
-      
+
       setVerificationId(verId);
       setIsCodeSent(true);
       setOnboardingSuccess("Código de verificação enviado! Confira seu WhatsApp ou SMS.");
@@ -115,20 +117,18 @@ export default function Onboarding() {
   // Função para finalizar o onboarding
   const finalizeOnboarding = async (isPhoneVerified: boolean) => {
     if (!user) {
-      throw new Error("Usuário não autenticado. Por favor, faça login novamente.");
+      showErrorToast("Usuário não autenticado. Por favor, faça login novamente.");
     }
-    const idToken = await user.getIdToken();
     const dbWhatsapp = inputPhone.replace(/\D/g, '');
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/me`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-      body: JSON.stringify({ whatsapp: `55${dbWhatsapp}`, telegram, verified: isPhoneVerified }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Falha ao atualizar o perfil.');
+    try {
+      await updateMe({
+        whatsapp: `55${dbWhatsapp}`,
+        telegram,
+        verified: isPhoneVerified,
+      });
+    } catch (e) {
+      showErrorToast("Erro ao registrar seus dados. Tente novamente mais tarde.");
     }
   };
 
@@ -144,7 +144,7 @@ export default function Onboarding() {
       const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
       await linkWithCredential(user, credential);
       await finalizeOnboarding(true);
-      
+
       setOnboardingSuccess("Cadastro finalizado com sucesso! Redirecionando...");
       setTimeout(() => {
         router.push("/");
@@ -184,7 +184,7 @@ export default function Onboarding() {
           {firstName && <h1 className="text-2xl mb-1 font-semibold">Olá, {firstName}!</h1>}
           <h2 className="text-xl font-medium">Finalize seu cadastro</h2>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow-sm">
           <form className="p-4 space-y-4" onSubmit={handleOnboardingSubmit}>
             {onboardingSuccess && (
