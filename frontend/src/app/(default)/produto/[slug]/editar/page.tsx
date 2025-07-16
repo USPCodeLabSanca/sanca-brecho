@@ -85,6 +85,15 @@ export default function EditarProdutoClient() {
     fetchProductAndCategories();
   }, [slug]);
 
+  // Verifica se o usuário está logado e se é o dono do produto
+  useEffect(() => {
+    if (!isLoading && !authLoading && product) {
+      if (!user || user.uid !== product.user_id) {
+        showErrorToast("Você não tem permissão para editar este produto.");
+        router.push(`/produto/${slug}`);
+      }
+    }
+  }, [isLoading, authLoading, user, product, router, slug]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
