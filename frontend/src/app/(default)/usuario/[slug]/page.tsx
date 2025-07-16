@@ -12,15 +12,18 @@ import {
   Settings,
   Edit,
   BadgeCheck,
-  ShieldCheck
+  ShieldCheck,
+  Handshake,
+  ShoppingBag
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ProfileType, ListingType } from "@/lib/types/api";
+import { ProfileType, ListingType, ProfileMetricsType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
-import { getProfileBySlug } from "@/lib/services/profileService";
+import { getProfileBySlug, getProfileMetricsBySlug } from "@/lib/services/profileService";
 import { getMe } from "@/lib/services/userService";
 import { getListingsByUser } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
+import Spinner from "@/app/components/spinner";
 
 const Usuario = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -30,6 +33,10 @@ const Usuario = () => {
   const [userProfile, setUserProfile] = useState<ProfileType | undefined>(undefined);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [errorProfile, setErrorProfile] = useState<string | null>(null);
+
+  const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
+  const [errorMetrics, setErrorMetrics] = useState<string | null>(null);
 
   const [userProducts, setUserProducts] = useState<ListingType[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -61,6 +68,27 @@ const Usuario = () => {
       }
     };
     fetchProfile();
+  }, [slug]);
+
+  // Busca as métricas do usuário atual
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      if (!slug) {
+        setLoadingMetrics(false);
+        return;
+      }
+      try {
+        const data = await getProfileMetricsBySlug(slug);
+        setMetrics(data);
+      } catch (error: any) {
+        setMetrics(undefined);
+        setErrorMetrics(error.message);
+        console.error("Falha ao buscar métricas:", error);
+      } finally {
+        setLoadingMetrics(false);
+      }
+    };
+    fetchMetrics();
   }, [slug]);
 
   // Verifica se o usuário atual é o dono do perfil
@@ -117,11 +145,7 @@ const Usuario = () => {
   }, [userProfile?.slug]);
 
   if (loadingProfile || loadingProducts || loadingAuth || loadingOwnership) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-sanca"></div>
-      </div>
-    );
+    return Spinner();
   }
 
   if (!userProfile || (userProfile && !userProfile.role)) {
@@ -179,13 +203,23 @@ const Usuario = () => {
                         </div>
                       )}
                     </h1>
-                    <div className="flex items-center mt-1 mb-4 space-x-4 text-sm text-gray-500">
-                      <div className="flex items-center"><MapPin size={16} className="mr-1" />{userProfile.university}</div>
-                      <div className="flex items-center"><Calendar size={16} className="mr-1" />Membro desde {new Date(userProfile.created_at).toLocaleDateString('pt-BR')}</div>
-                      {/* {userProducts.length > 0 &&
-                      <div className="flex items-center"><Star size={16} className="mr-1 fill-yellow-400 text-yellow-400" />{user.rating} ({userReviews.length} avaliações)</div>
-                    }
-                    </div> */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2 pb-4 text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <MapPin size={16} className="mr-1" />
+                        {userProfile.university}
+                      </div>
+                      <div className="flex items-center">
+                        <Calendar size={16} className="mr-1" />
+                        Membro desde {new Date(userProfile.created_at).toLocaleDateString('pt-BR')}
+                      </div>
+                      <div className="flex items-center">
+                        <Handshake size={16} className="mr-1" />
+                        Produtos vendidos: {metrics?.items_sold || 0}
+                      </div>
+                      <div className="flex items-center">
+                        <ShoppingBag size={16} className="mr-1" />
+                        Anúncios ativos: {metrics?.active_listings_count || 0}
+                      </div>
                     </div>
                     <div className="mt-4 md:mt-0 flex space-x-2">
                       {isOwnerProfile ? (

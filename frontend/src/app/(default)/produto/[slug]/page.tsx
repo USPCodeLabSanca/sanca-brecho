@@ -5,14 +5,15 @@ import Image from "next/image";
 import ProductImageCarousel from "@/app/components/productImageCarousel";
 import { notFound, useParams } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
-import { Edit, MapPin, Share } from "lucide-react";
+import { ArrowLeft, Calendar, Edit, Handshake, MapPin, Share, TrendingDown, Truck } from "lucide-react";
 import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
 import { useEffect, useState } from "react";
-import { ListingType } from "@/lib/types/api";
+import { ListingType, ProfileMetricsType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
-import api from "@/lib/api/axiosConfig";
 import { getListingBySlug } from "@/lib/services/listingService";
 import { showErrorToast, showNotificationToast } from "@/lib/toast";
+import { getProfileMetricsBySlug } from "@/lib/services/profileService";
+import Spinner from "@/app/components/spinner";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
@@ -21,6 +22,9 @@ export default function ProdutoClient() {
   const [loadingProduct, setLoadingProduct] = useState(true);
   const { user, loading: loadingAuth } = useAuth();
 
+  const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
+
+  // Função para formatar a condição do produto
   const getDisplayCondition = (condition: string): string => {
     switch (condition) {
       case "new":
@@ -36,6 +40,7 @@ export default function ProdutoClient() {
     }
   };
 
+  // Busca o produto pelo slug
   useEffect(() => {
     const fetchProduct = async () => {
       if (!slug) {
@@ -56,14 +61,27 @@ export default function ProdutoClient() {
     fetchProduct();
   }, [slug]);
 
+  // Busca as métricas do vendedor
+    useEffect(() => {
+      const fetchMetrics = async () => {
+        if (!product?.user.slug) {
+          return;
+        }
+        try {
+          const data = await getProfileMetricsBySlug(product.user.slug);
+          setMetrics(data);
+        } catch (error: any) {
+          setMetrics(undefined);
+          console.error("Falha ao buscar métricas:", error);
+        }
+      };
+      fetchMetrics();
+    }, [product?.user.slug]);
+
   const isOwner = user && product && user.uid === product.user_id;
 
   if (loadingProduct || loadingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-sanca"></div>
-      </div>
-    );
+    return Spinner();
   }
 
   if (!product || !product.is_active) {
@@ -110,18 +128,17 @@ export default function ProdutoClient() {
           {/* Breadcrumb */}
           <div className="py-4">
             <Link href="/" className="text-gray-500 hover:text-sanca flex items-center text-sm">
-              {/*<ArrowLeft className="h-4 w-4 mr-1" />*/}
-              ← Voltar para produtos
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Voltar para produtos
             </Link>
           </div>
-
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <ProductImageCarousel productId={product.id} />
 
             {/* Product Info */}
             <div>
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-3">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">{product.title}</h1>
                   <p className="text-gray-500">{product.category.name} • {getDisplayCondition(product.condition)}</p>
@@ -147,20 +164,36 @@ export default function ProdutoClient() {
                   </button>
                 </div>
               </div>
+              
+              <div className="flex items-center mb-4">
+                {/* Implemente badges de preço negociável e vendendor pode entregar */}
+                {product.is_negotiable && (
+                  <span className="inline-block bg-green-100/80 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-2">
+                    <TrendingDown className="inline-block h-3 w-3 mr-1" />
+                    Preço negociável
+                  </span>
+                )}
+                {product.seller_can_deliver && (
+                  <span className="inline-block bg-sanca/10 text-sanca text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-2">
+                    <Truck className="inline-block h-3 w-3 mr-1" />
+                    Entrega disponível
+                  </span>
+                )}
+              </div>
 
-              <div className="bg-sanca/5 p-4 rounded-lg mb-6">
+              <div className="bg-sanca/5 p-4 rounded-lg mb-4">
                 <p className="text-3xl font-bold text-sanca">
                   R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
 
-              <div className="mb-6">
+              <div className="mb-4">
                 <button onClick={handleWhatsAppClick} className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700">
                   <FaWhatsapp />Contatar Vendedor pelo WhatsApp
                 </button>
               </div>
 
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-4">
                 <Link href={`/usuario/${product.user.slug}`} className="flex items-center">
                   <Image
                     width={50}
@@ -182,7 +215,17 @@ export default function ProdutoClient() {
                 </Link>
               </div>
 
-              <div className="flex items-center gap-3 text-gray-500 text-sm mb-6">
+              <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm mb-6">
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  Membro desde {new Date(product.user.created_at).toLocaleDateString('pt-BR')}
+                </div>
+                { metrics &&
+                  <div className="flex items-center">
+                    <Handshake className="h-4 w-4 mr-1" />
+                    Vendas concluídas: {metrics.items_sold}
+                  </div>
+                }
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
                   {product.location}

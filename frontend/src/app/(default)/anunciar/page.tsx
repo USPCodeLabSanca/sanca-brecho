@@ -10,12 +10,13 @@ import DraggableImage from "@/app/components/draggableImage";
 import PriceInput from "@/app/components/priceInput";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import imageCompression from 'browser-image-compression'
-import { CategoryType, ListingType, PresignedUrl } from "@/lib/types/api";
+import { CategoryType, ListingType } from "@/lib/types/api";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import Image from "next/image";
 import { getCategories } from "@/lib/services/categoryService";
 import { createListing, createListingImage, createListingImagePresignedUrl } from "@/lib/services/listingService";
 import axios from "axios";
+import Spinner from "@/app/components/spinner";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -200,21 +201,15 @@ export default function Anunciar() {
     setPreviewImages((imgs) => imgs.filter((_, i) => i !== idx));
   }, []);
 
-  if (loading || loadingCategories) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f3eefe]">
-        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite] border-sanca"></div>
-      </div>
-    );
+  if (loading || loadingCategories || !user || (user && !user.phoneNumber)) {
+    return Spinner();
   }
 
   return (
     <div className="flex flex-col sm:bg-[#f3eefe]">
 
       {(isUploading || isSubmitting) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
-          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite] border-white"></div>
-        </div>
+        Spinner()
       )}
 
       <section className="max-w-3xl p-4 mb-5 mx-auto" >
@@ -235,6 +230,7 @@ export default function Anunciar() {
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                maxLength={100}
                 className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
                 placeholder="Ex: Livro de Cálculo Vol.1 Thomas"
                 required
@@ -257,6 +253,8 @@ export default function Anunciar() {
             <div className="space-y-1">
               <label htmlFor="price" className="text-sm font-medium block">Preço (R$)*</label>
               <PriceInput
+                name="price"
+                id="price"
                 value={price}
                 onValueChange={(value) => setPrice(value)}
                 className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
@@ -272,7 +270,7 @@ export default function Anunciar() {
                   name="category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca cursor-pointer"
                   required
                 >
                   <option value="" disabled>Selecione</option>
@@ -289,7 +287,7 @@ export default function Anunciar() {
                   id="condition"
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca"
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca cursor-pointer"
                   required
                 >
                   <option value="" disabled>Selecione</option>

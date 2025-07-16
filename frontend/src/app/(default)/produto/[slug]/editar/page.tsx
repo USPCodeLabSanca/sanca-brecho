@@ -15,6 +15,7 @@ import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { createListingImage, createListingImagePresignedUrl, deleteListingImage, getListingBySlug, getListingImages, updateListing, updateListingImage } from "@/lib/services/listingService";
 import { getCategories } from "@/lib/services/categoryService";
 import axios from "axios";
+import Spinner from "@/app/components/spinner";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -84,6 +85,15 @@ export default function EditarProdutoClient() {
     fetchProductAndCategories();
   }, [slug]);
 
+  // Verifica se o usuário está logado e se é o dono do produto
+  useEffect(() => {
+    if (!isLoading && !authLoading && product) {
+      if (!user || user.uid !== product.user_id) {
+        showErrorToast("Você não tem permissão para editar este produto.");
+        router.push(`/produto/${slug}`);
+      }
+    }
+  }, [isLoading, authLoading, user, product, router, slug]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -221,7 +231,7 @@ export default function EditarProdutoClient() {
   };
 
   if (isLoading || authLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-sanca"></div></div>;
+    return Spinner();
   }
 
   if (error) {
@@ -230,6 +240,10 @@ export default function EditarProdutoClient() {
 
   if (!product) {
     notFound();
+  }
+
+  if (!user || user.uid !== product.user_id) {
+    return Spinner();
   }
 
   return (
@@ -250,7 +264,7 @@ export default function EditarProdutoClient() {
               </div>
               <button
                 onClick={() => window.open(`/produto/${slug}`, '_blank')}
-                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
               >
                 <Eye className="h-4 w-4" />
                 Visualizar
@@ -301,6 +315,7 @@ export default function EditarProdutoClient() {
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
+                    maxLength={100}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent"
                   />
@@ -310,6 +325,8 @@ export default function EditarProdutoClient() {
                     Preço (R$) *
                   </label>
                   <PriceInput
+                    name="price"
+                    id="price"
                     value={formData.price}
                     onValueChange={(values) => {
                       setFormData(prev => ({ ...prev, price: values ?? 0 }));
@@ -328,7 +345,7 @@ export default function EditarProdutoClient() {
                     value={formData.category_id}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent cursor-pointer"
                   >
                     <option value="" disabled>Selecione</option>
                     {categories.map(category => (
@@ -346,7 +363,7 @@ export default function EditarProdutoClient() {
                     value={formData.condition}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent cursor-pointer"
                   >
                     <option value="" disabled>Selecione</option>
                     <option value="new">Novo</option>
@@ -386,7 +403,7 @@ export default function EditarProdutoClient() {
                   <Link href={`/produto/${slug}`} className="flex-1">
                     <button
                       type="button"
-                      className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                      className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       Cancelar
                     </button>
@@ -394,7 +411,7 @@ export default function EditarProdutoClient() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-sanca text-white rounded-md hover:bg-sanca/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-sanca disabled:bg-gray-400 text-white rounded-md hover:bg-sanca/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
