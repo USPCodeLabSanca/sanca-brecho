@@ -13,7 +13,6 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/thumbs'
 import 'swiper/css/pagination'
-import api from '@/lib/api/axiosConfig'
 import { getListingImages } from '@/lib/services/listingService'
 import { showErrorToast } from '@/lib/toast'
 
@@ -181,6 +180,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
             <TransformComponent>
               <div className="w-screen h-screen flex items-center justify-center">
                 <Image
+                  priority
                   src={images[activeIndex].src}
                   alt={`Foto ${activeIndex + 1}`}
                   width={1280}
