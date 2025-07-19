@@ -5,75 +5,101 @@ import Image from "next/image";
 import ProductImageCarousel from "@/app/components/productImageCarousel";
 import { notFound, useParams } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
-import { Edit, Eye, Heart, MapPin, Share } from "lucide-react";
+import { ArrowLeft, Calendar, Edit, Handshake, MapPin, Share, TrendingDown, Truck } from "lucide-react";
 import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
-
-type ProdutoProps = {
-  product: {
-    id: number;
-    title: string;
-    description: string;
-    price: number;
-    category: string;
-    condition: string;
-    location: string;
-    createdAt: string;
-    images: string[];
-    userId: number;
-    userName: string;
-    userAvatar: string;
-    phone: string;
-    views: number;
-  };
-};
+import { useEffect, useState } from "react";
+import { ListingType, ProfileMetricsType } from "@/lib/types/api";
+import { useAuth } from "@/lib/context/AuthContext";
+import { getListingBySlug } from "@/lib/services/listingService";
+import { showErrorToast, showNotificationToast } from "@/lib/toast";
+import { getProfileMetricsBySlug } from "@/lib/services/profileService";
+import Spinner from "@/app/components/spinner";
 
 export default function ProdutoClient() {
-  const { id } = useParams<{ id: string }>()
-  
-  // TODO: Fetch do produto da API pelo ID
-  const product = {
-    id: parseInt(id),
-    title: "Macbook Air 2020",
-    description: "Macbook Air 2020 com M1.\nUsado, mas em ótimo estado. \nAcompanha carregador e caixa original.",
-    price: 3999.99,
-    category: "Eletrônicos",
-    condition: "Usado",
-    location: "São Carlos, SP",
-    createdAt: new Date().toISOString(),
-    images: ["https://picsum.photos/id/0/1280/900", 
-              "https://picsum.photos/id/2/1280/900",
-              "https://picsum.photos/id/9/1280/900",
-              "https://picsum.photos/id/5/1280/900",
-              "https://picsum.photos/id/6/1280/900",
-              "https://picsum.photos/id/8/1280/900",
-              "https://picsum.photos/id/4/1280/900",
-            ],
-    userId: 1,
-    userName: "João Silva",
-    userAvatar: "https://placehold.co/50x50.jpg",
-    phone: "+5511999999999",
-    views: 100,
+  const { slug } = useParams<{ slug: string }>()
+  const [product, setProduct] = useState<ListingType>();
+  const [errorProduct, setErrorProduct] = useState<string | null>(null);
+  const [loadingProduct, setLoadingProduct] = useState(true);
+  const { user, loading: loadingAuth } = useAuth();
+
+  const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
+
+  // Função para formatar a condição do produto
+  const getDisplayCondition = (condition: string): string => {
+    switch (condition) {
+      case "new":
+        return "Novo";
+      case "used":
+        return "Usado";
+      case "refurbished":
+        return "Recondicionado";
+      case "broken":
+        return "Quebrado";
+      default:
+        return condition;
+    }
   };
 
-  // TODO: Retornar página de erro se não for encontrado
-  if (!product) {
-    notFound()
+  // Busca o produto pelo slug
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!slug) {
+        setLoadingProduct(false);
+        setErrorProduct("Product slug is missing.");
+        return;
+      }
+      try {
+        const data = await getListingBySlug(slug);
+        setProduct(data);
+      } catch (error: any) {
+        setErrorProduct(error.message);
+        showErrorToast('Erro ao carregar o produto.');
+      } finally {
+        setLoadingProduct(false);
+      }
+    };
+    fetchProduct();
+  }, [slug]);
+
+  // Busca as métricas do vendedor
+    useEffect(() => {
+      const fetchMetrics = async () => {
+        if (!product?.user.slug) {
+          return;
+        }
+        try {
+          const data = await getProfileMetricsBySlug(product.user.slug);
+          setMetrics(data);
+        } catch (error: any) {
+          setMetrics(undefined);
+          console.error("Falha ao buscar métricas:", error);
+        }
+      };
+      fetchMetrics();
+    }, [product?.user.slug]);
+
+  const isOwner = user && product && user.uid === product.user_id;
+
+  if (loadingProduct || loadingAuth) {
+    return Spinner();
   }
-  
-  {/*}
-  const handleWishlistClick = () => {
-    if (isAuthenticated) {
-      toggleWishlist(product.id);
-      console.log(wishlist.includes(product.id) 
-          ? "Removido dos favoritos" 
-          : "Adicionado aos favoritos");
-    } else {
-      console.log("Faça login para adicionar aos favoritos");
-    }
-  };*/}
+
+  if (!product || !product.is_active) {
+    notFound();
+  }
+
+  if (errorProduct) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        Erro ao carregar o produto: {errorProduct}
+      </div>
+    );
+  }
+
+  if (!product) return null;
 
   const handleWhatsAppClick = () => {
-    const whatsappUrl = `https://wa.me/${product.phone}?text=Olá! Vi seu anúncio do produto "${product.title}" no Sanca Brechó e gostaria de mais informações.`;
+    const whatsappUrl = `https://wa.me/${product.user.whatsapp}?text=Olá! Vi seu anúncio do produto "${product.title}" no Sanca Brechó e gostaria de mais informações.`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -87,10 +113,11 @@ export default function ProdutoClient() {
         });
       } catch (error) {
         console.error('Erro ao compartilhar:', error);
+        showErrorToast('Erro ao compartilhar o produto.');
       }
     } else {
       navigator.clipboard.writeText(window.location.href);
-      console.log("Link copiado para a área de transferência"); // TODO: Implementar um toast melhor
+      showNotificationToast("Link copiado para a área de transferência");
     }
   };
 
@@ -101,21 +128,20 @@ export default function ProdutoClient() {
           {/* Breadcrumb */}
           <div className="py-4">
             <Link href="/" className="text-gray-500 hover:text-sanca flex items-center text-sm">
-              {/*<ArrowLeft className="h-4 w-4 mr-1" />*/}
-              ← Voltar para produtos
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Voltar para produtos
             </Link>
           </div>
-          
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ProductImageCarousel images={product.images} />
-            
+            <ProductImageCarousel productId={product.id} />
+
             {/* Product Info */}
             <div>
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-3">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">{product.title}</h1>
-                  <p className="text-gray-500">{product.category} • {product.condition}</p>
+                  <p className="text-gray-500">{product.category.name} • {getDisplayCondition(product.condition)}</p>
                 </div>
                 <div className="flex gap-2">
                   {/*<button
@@ -124,8 +150,8 @@ export default function ProdutoClient() {
                   >
                     <Heart className="h-5 w-5 text-gray-500 hover:text-sanca" />
                   </button>*/}
-                  {true && ( // TODO: Implementar lógica de verificar dono do produto
-                    <Link href={`/produto/${product.id}/editar`}>
+                  {isOwner && (
+                    <Link href={`/produto/${product.slug}/editar`}>
                       <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap border border-gray-300 rounded-md text-sm text-black font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-white hover:bg-sanca/10">
                         <Edit className="h-4 w-4" />Editar
                       </button>
@@ -134,54 +160,81 @@ export default function ProdutoClient() {
                     onClick={handleShare}
                     className="border-gray-200 text-gray-500 hover:text-sanca cursor-pointer"
                   >
-                    <Share className="h-5 w-5"/>
+                    <Share className="h-5 w-5" />
                   </button>
                 </div>
               </div>
               
-              <div className="bg-sanca/5 p-4 rounded-lg mb-6">
+              <div className="flex items-center mb-4">
+                {/* Implemente badges de preço negociável e vendendor pode entregar */}
+                {product.is_negotiable && (
+                  <span className="inline-block bg-green-100/80 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-2">
+                    <TrendingDown className="inline-block h-3 w-3 mr-1" />
+                    Preço negociável
+                  </span>
+                )}
+                {product.seller_can_deliver && (
+                  <span className="inline-block bg-sanca/10 text-sanca text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-2">
+                    <Truck className="inline-block h-3 w-3 mr-1" />
+                    Entrega disponível
+                  </span>
+                )}
+              </div>
+
+              <div className="bg-sanca/5 p-4 rounded-lg mb-4">
                 <p className="text-3xl font-bold text-sanca">
                   R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              
-              <div className="mb-6">
+
+              <div className="mb-4">
                 <button onClick={handleWhatsAppClick} className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700">
-                  <FaWhatsapp/>Contatar Vendedor pelo WhatsApp
+                  <FaWhatsapp />Contatar Vendedor pelo WhatsApp
                 </button>
               </div>
-              
-              <div className="flex items-center gap-3 mb-6">
-                <Link href={`/usuario/${product.userId}`} className="flex items-center">
+
+              <div className="flex items-center gap-3 mb-4">
+                <Link href={`/usuario/${product.user.slug}`} className="flex items-center">
                   <Image
                     width={50}
                     height={50}
-                    src={product.userAvatar}
-                    alt={product.userName}
+                    src={product.user.photo_url || 'https://sancabrechobucket.s3.us-east-2.amazonaws.com/Portrait_Placeholder.png'}
+                    alt={product.user.display_name}
                     className="rounded-full"
                   ></Image>
                   <div className="ml-2">
-                    <p className="font-medium text-gray-800">{product.userName}</p>
+                    <p className="font-medium text-gray-800">{product.user.display_name}</p>
                     <p className="text-xs text-gray-500">Vendedor</p>
                   </div>
                 </Link>
-                
-                <Link href={`/usuario/${product.userId}`} className="ml-auto">
+
+                <Link href={`/usuario/${product.user.slug}`} className="ml-auto">
                   <button className="border border-gray-300 hover:bg-gray-100 h-9 rounded-md px-3 cursor-pointer">
                     Ver perfil
                   </button>
                 </Link>
               </div>
-              
-              <div className="flex items-center gap-3 text-gray-500 text-sm mb-6">
+
+              <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm mb-6">
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  Membro desde {new Date(product.user.created_at).toLocaleDateString('pt-BR')}
+                </div>
+                { metrics &&
+                  <div className="flex items-center">
+                    <Handshake className="h-4 w-4 mr-1" />
+                    Vendas concluídas: {metrics.items_sold}
+                  </div>
+                }
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
                   {product.location}
                 </div>
-                <div className="flex items-center">
+                {/* TO-DO: Implementar sistema de visualizações */}
+                {/*<div className="flex items-center">
                   <Eye className="h-4 w-4 mr-1" />
                   {product.views} visualizações
-                </div>
+                </div>*/}
               </div>
               <Tabs>
                 <TabList className="grid grid-cols-2 bg-slate-100 rounded-sm p-1 mb-4">
@@ -197,11 +250,11 @@ export default function ProdutoClient() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-2">
                       <span className="text-gray-500">Categoria</span>
-                      <span className="font-medium">{product.category}</span>
+                      <span className="font-medium">{product.category.name}</span>
                     </div>
                     <div className="grid grid-cols-2">
                       <span className="text-gray-500">Condição</span>
-                      <span className="font-medium">{product.condition}</span>
+                      <span className="font-medium">{getDisplayCondition(product.condition)}</span>
                     </div>
                     <div className="grid grid-cols-2">
                       <span className="text-gray-500">Localização</span>
@@ -210,7 +263,7 @@ export default function ProdutoClient() {
                     <div className="grid grid-cols-2">
                       <span className="text-gray-500">Publicado</span>
                       <span className="font-medium">
-                        {new Date(product.createdAt).toLocaleDateString('pt-BR')}
+                        {new Date(product.created_at).toLocaleDateString('pt-BR')}
                       </span>
                     </div>
                     <div className="grid grid-cols-2">
