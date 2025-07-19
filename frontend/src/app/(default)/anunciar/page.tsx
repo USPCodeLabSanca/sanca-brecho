@@ -11,15 +11,15 @@ import PriceInput from "@/app/components/priceInput";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import imageCompression from 'browser-image-compression'
 import { CategoryType, ListingType } from "@/lib/types/api";
+import { showErrorToast, showSuccessToast } from "@/lib/toast";
+import Image from "next/image";
+import { getCategories } from "@/lib/services/categoryService";
+import { createListing, createListingImage, createListingImagePresignedUrl } from "@/lib/services/listingService";
+import axios from "axios";
+import Spinner from "@/app/components/spinner";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
-
-type presignedUrl = {
-  key: string,
-  publicURL: string,
-  url: string
-}
 
 type previewImage = {
   key: string,
@@ -40,7 +40,7 @@ export default function Anunciar() {
   const [isNegotiable, setIsNegotiable] = useState(false);
   const [canDeliver, setCanDeliver] = useState(false);
   const [categories, setCategories] = useState<CategoryType[]>([]);
-  
+
   // Estados de UI
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -51,10 +51,21 @@ export default function Anunciar() {
   const [previewImages, setPreviewImages] = useState<previewImage[]>([]);
   const [activeImage, setActiveImage] = useState<string | null>(null);
 
-
+  // Redirecionar para a página de login se o usuário não estiver logado, ou para a de onboarding se não tiver telefone cadastrado
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) {
+      return;
+    }
+
+    if (!user) {
+      showErrorToast("Você precisa estar logado para criar um anúncio.");
       router.push("/login");
+      return;
+    }
+
+    if (!user.phoneNumber) {
+      showErrorToast("Você precisa completar seu cadastro antes de criar um anúncio.");
+      router.push("/onboarding");
     }
   }, [loading, user, router]);
 
@@ -62,11 +73,7 @@ export default function Anunciar() {
     const fetchCategories = async () => {
       try {
         setLoadingCategories(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories/`);
-        if (!response.ok) {
-          throw new Error('Falha ao buscar categorias');
-        }
-        const data = await response.json();
+        const data = await getCategories();
         setCategories(data);
       } catch (error) {
         setFormError('Não foi possível carregar as categorias. Tente recarregar a página.');
@@ -79,7 +86,7 @@ export default function Anunciar() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!user) {
+    if (!user || (user && !user.phoneNumber)) {
       setFormError("Você precisa estar logado para criar um anúncio.");
       return;
     }
@@ -87,65 +94,34 @@ export default function Anunciar() {
       setFormError("Você precisa adicionar pelo menos uma imagem.");
       return;
     }
-    
+
     setIsSubmitting(true);
     setFormError(null);
 
     try {
-      const idToken = await user.getIdToken();
-
-      const listingPayload = {
+      const newListing = await createListing({
         user_id: user.uid,
         title,
         description,
-        price,
+        price: price!,
         category_id: parseInt(category),
-        condition,
+        condition: condition as ListingType['condition'],
         is_negotiable: isNegotiable,
         seller_can_deliver: canDeliver,
         location: "São Carlos, SP", // Provisório
-      };
-
-      const listingResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`,
-        },
-        body: JSON.stringify(listingPayload),
-      });
-
-      if (!listingResponse.ok) {
-        const errorData = await listingResponse.json();
-        throw new Error(errorData.error || 'Falha ao criar o anúncio.');
-      }
-
-      const newListing: ListingType = await listingResponse.json();
+      })
 
       const imagePromises = previewImages.map((img, index) => {
-        const imagePayload = {
+        return createListingImage({
           listing_id: newListing.id,
           src: img.publicURL,
-          order: index, // <-- AQUI ESTÁ A MUDANÇA
-        };
-        return fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/`, {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`,
-            },
-            body: JSON.stringify(imagePayload),
+          order: index,
         });
       });
 
-      const imageResponses = await Promise.all(imagePromises);
-      const failedImageResponses = imageResponses.filter(res => !res.ok);
-      if (failedImageResponses.length > 0) {
-        throw new Error('Falha ao salvar uma ou mais imagens.');
-      }
-
+      await Promise.all(imagePromises);
+      showSuccessToast("Anúncio publicado com sucesso!");
       router.push(`/produto/${newListing.slug}`);
-
     } catch (error: any) {
       console.error("Erro ao publicar anúncio:", error);
       setFormError(error.message || "Ocorreu um erro desconhecido.");
@@ -171,21 +147,9 @@ export default function Anunciar() {
         throw new Error(`Arquivo muito grande (${sizeMB.toFixed(1)} MB). Máximo permitido: ${MAX_SIZE_MB} MB.`);
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listing-images/s3`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          filename: file?.name,
-          contentType: file?.type
-        })
-      });
+      const data = await createListingImagePresignedUrl(file.name, file.type);
 
-      if (!response.ok) {
-        throw new Error(`Falha ao obter URL de upload (status ${response.status})`);
-      }
-
+      // Image compression
       const options = {
         maxSizeMB: MAX_SIZE_MB,
         maxWidthOrHeight: MAX_WIDTH_OR_HEIGHT,
@@ -193,23 +157,17 @@ export default function Anunciar() {
       }
       const compressedFile = await imageCompression(file, options)
 
-      const data: presignedUrl = await response.json();
-      const upload = await fetch(data.url, {
-        method: "PUT",
-        body: compressedFile,
+      // Upload the compressed file to S3 using the presigned URL
+      await axios.put(data.url, compressedFile, {
         headers: {
           "Content-Type": compressedFile.type
         }
       });
 
-      if (!upload.ok) {
-        throw new Error(`Falha no upload ao servidor (status ${upload.status})`);
-      }
-
       setPreviewImages([...previewImages, { publicURL: data.publicURL, key: data.key }]);
     } catch (err: any) {
-      const message = err.message || 'Erro desconhecido ao enviar';
-      alert(message);
+      const message = err.message || 'Erro desconhecido ao enviar a imagem.';
+      showErrorToast(message);
     } finally {
       setIsUploading(false);
       event.target.value = '';
@@ -243,21 +201,15 @@ export default function Anunciar() {
     setPreviewImages((imgs) => imgs.filter((_, i) => i !== idx));
   }, []);
 
-  if (loading || loadingCategories) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f3eefe]">
-        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite] border-sanca"></div>
-      </div>
-    );
+  if (loading || loadingCategories || !user || (user && !user.phoneNumber)) {
+    return Spinner();
   }
 
   return (
     <div className="flex flex-col sm:bg-[#f3eefe]">
-      
+
       {(isUploading || isSubmitting) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
-          <div className="w-16 h-16 border-4 border-dashed rounded-full animate-[spin_4s_linear_infinite] border-white"></div>
-        </div>
+        Spinner()
       )}
 
       <section className="max-w-3xl p-4 mb-5 mx-auto" >
@@ -269,7 +221,7 @@ export default function Anunciar() {
                 <span>{formError}</span>
               </div>
             )}
-            
+
             <div className="space-y-1">
               <label className="text-sm font-medium block" htmlFor="title">Título do anúncio</label>
               <input
@@ -278,6 +230,7 @@ export default function Anunciar() {
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                maxLength={100}
                 className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
                 placeholder="Ex: Livro de Cálculo Vol.1 Thomas"
                 required
@@ -300,6 +253,8 @@ export default function Anunciar() {
             <div className="space-y-1">
               <label htmlFor="price" className="text-sm font-medium block">Preço (R$)*</label>
               <PriceInput
+                name="price"
+                id="price"
                 value={price}
                 onValueChange={(value) => setPrice(value)}
                 className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
@@ -315,7 +270,7 @@ export default function Anunciar() {
                   name="category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca cursor-pointer"
                   required
                 >
                   <option value="" disabled>Selecione</option>
@@ -332,7 +287,7 @@ export default function Anunciar() {
                   id="condition"
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca"
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca cursor-pointer"
                   required
                 >
                   <option value="" disabled>Selecione</option>
@@ -431,9 +386,11 @@ export default function Anunciar() {
               </button>
               <TransformComponent>
                 <div className="h-screen w-screen flex items-center justify-center">
-                  <img
+                  <Image
                     src={activeImage}
                     alt="Preview"
+                    width={1280}
+                    height={900}
                     className="object-contain max-h-screen max-w-screen !pointer-events-auto"
                     onClick={(e) => e.stopPropagation()}
                   />

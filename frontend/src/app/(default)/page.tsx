@@ -8,6 +8,8 @@ import { ArrowRight, Filter, Search } from "lucide-react";
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css';
 import Link from "next/link";
+import { getCategories } from "@/lib/services/categoryService";
+import { getListings } from "@/lib/services/listingService";
 
 export default function Home() {
   const [clicked, setClicked] = useState(1);
@@ -21,11 +23,7 @@ export default function Home() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories/`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+        const data = await getCategories();
         setCategories(data);
       } catch (error: any) {
         setErrorCategories(error.message);
@@ -40,11 +38,7 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/listings/`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+        const data = await getListings();
         setProducts(data);
       } catch (error: any) {
         setErrorProducts(error.message);
@@ -86,32 +80,32 @@ export default function Home() {
             <h1 className="text-2xl font-bold">Categorias</h1>
             <Link className="flex items-center text-sanca visited:text-sanca" href="/categorias">
               Ver Todas{" "}
-              <ArrowRight className="w-4 h-4"/>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
-        {loadingCategories ? (
-          <p>Carregando categorias...</p>
-        ) : errorCategories ? (
-          <p className="text-red-500">Erro ao carregar as categorias: {errorCategories}</p>
-        ) : (
-          <Swiper
-            spaceBetween={15}
-            slidesPerView={2}
-            breakpoints={{
-              320: { slidesPerView: 3 },
-              768: { slidesPerView: 4 },
-              1024: { slidesPerView: 6 },
-              1280: { slidesPerView: 8 },
-            }}
-          >
-            {categories.map((categoria) => (
-              <SwiperSlide key={categoria.id}>
-                <Categories name={categoria.name} icon={categoria.icon} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        )}
+          {loadingCategories ? (
+            <p>Carregando categorias...</p>
+          ) : errorCategories ? (
+            <p className="text-red-500">Erro ao carregar as categorias: {errorCategories}</p>
+          ) : (
+            <Swiper
+              spaceBetween={15}
+              slidesPerView={2}
+              breakpoints={{
+                320: { slidesPerView: 3 },
+                768: { slidesPerView: 4 },
+                1024: { slidesPerView: 6 },
+                1280: { slidesPerView: 8 },
+              }}
+            >
+              {categories.map((categoria) => (
+                <SwiperSlide key={categoria.id}>
+                  <Categories name={categoria.name} icon={categoria.icon} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          )}
         </div>
       </section>
 
@@ -147,7 +141,7 @@ export default function Home() {
               </div>
               <div>
                 <button className="h-10 w-10 flex justify-center items-center bg-white border border-slate-300 rounded-md cursor-pointer hover:bg-gray-200">
-                  <Filter className="text-slate-500 w-5 h-5"/>
+                  <Filter className="text-slate-500 w-5 h-5" />
                 </button>
               </div>
             </div>
