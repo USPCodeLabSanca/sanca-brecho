@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import ProductCard from "../components/productCard";
 import Categories from "../components/categories";
@@ -51,7 +51,10 @@ export default function Exemplo() {
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Categorias</h1>
-            <a className="flex items-center text-sanca visited:text-sanca" href="">
+            <a
+              className="flex items-center text-sanca visited:text-sanca"
+              href=""
+            >
               Ver Todas{" "}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -86,7 +89,9 @@ export default function Exemplo() {
         <div className="container mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-center">Produtos Recentes</h1>
+              <h1 className="text-2xl font-bold text-center">
+                Produtos Recentes
+              </h1>
               <div className="flex justify-between m-5 p-2 rounded-lg bg-blue-50">
                 <button
                   onClick={() => setClicked(1)}
@@ -203,8 +208,6 @@ export default function Exemplo() {
           universitários enquanto ganha um dinheiro extra.
         </p>
         <a href="" className="visited:text-inherit">
-        
-        
           <button className="inline-flex items-center justify-center gap-2 p-2 text-sm font-medium text-white bg-sanca rounded-md cursor-pointer hover:opacity-50">
             Anunciar Produto
           </button>

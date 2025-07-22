@@ -182,7 +182,7 @@ const Usuario = () => {
           <div className="mt-4 md:mt-0 flex space-x-2">
           {isOwnProfile ? (
             <>
-            <Link href="#">
+              <Link href={`/usuario/${id}/edit`}>
               <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap border border-gray-300 rounded-md text-sm text-black font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-white hover:bg-sanca/10">
                 <Edit className="mr-1 h-4 w-4" />Editar Perfil
               </button>
