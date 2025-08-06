@@ -1,5 +1,9 @@
 # Environment files
 .env
+credentials.json
 
 # Temp files
 /tmp/*
+
+# Builds
+main
