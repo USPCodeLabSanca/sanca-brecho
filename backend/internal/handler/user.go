@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"api/internal/config"
 	"api/internal/models"
 	"api/internal/repository"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 func GetUser(c *gin.Context) {
@@ -57,10 +59,57 @@ func UpdateUser(c *gin.Context) {
 
 func DeleteUser(c *gin.Context) {
 	user, _ := c.Get("currentUser")
-	CurrentUser := user.(models.User)
+	currentUser := user.(models.User)
+	userID := currentUser.ID
 
-	if err := repository.DB.Delete(&CurrentUser).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+	// Use a transaction to ensure all or nothing is deleted
+	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		var listings []models.Listing
+		if err := tx.Where("user_id = ?", userID).Find(&listings).Error; err != nil {
+			return err
+		}
+
+		if len(listings) > 0 {
+			var listingIDs []uuid.UUID
+			for _, l := range listings {
+				listingIDs = append(listingIDs, l.ID)
+			}
+			// delete all images associated with the user's listings
+			if err := tx.Where("listing_id IN ?", listingIDs).Delete(&models.ListingImage{}).Error; err != nil {
+				return err
+			}
+			// delete all favorites associated with the user's listings
+			if err := tx.Where("listing_id IN ?", listingIDs).Delete(&models.Favorite{}).Error; err != nil {
+				return err
+			}
+		}
+
+		// delete favorites associated with the user
+		if err := tx.Where("user_id = ?", userID).Delete(&models.Favorite{}).Error; err != nil {
+			return err
+		}
+		// delete the user's listings
+		if err := tx.Where("user_id = ?", userID).Delete(&models.Listing{}).Error; err != nil {
+			return err
+		}
+		// delete the user
+		if err := tx.Where("id = ?", userID).Delete(&models.User{}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user and associated data"})
+		return
+	}
+
+	// delete from firebase after the transaction is successful
+	ctx := c.Request.Context()
+	if err := config.AuthClient.DeleteUser(ctx, userID); err != nil {
+		// this is a critical error (user is deleted from the database but not from firebase) maybe we should log it to fix it later
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user from authentication service"})
 		return
 	}
 
