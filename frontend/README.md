@@ -1,15 +1,34 @@
-This is the frontend of the Sanca Brechó project
+# Frontend - Boost AEX 25.1
 
-### To run in development mode
+Este diretório contém a aplicação web do projeto **boost-aex**, desenvolvida em Next.js (React).
 
-run the following command:
+## ⬇️ Baixando o Projeto e Dependências
 
-```bash
+1. Certifique-se de ter o [Node.js](https://nodejs.org/) instalado (recomendamos usar o nvm).
+2. Acesse o diretório do *frontend* e instale as dependências:
+   ```sh
+   cd frontend
+   npm install
+   ```
+
+## 🔐 Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do frontend (`/frontend/.env`) seguindo o padrão do `.env.example`.
+
+*Os dados desse arquivo vêm do Firebase. Durante o desenvolvimento eles podem ser encontrados no ClickUp do projeto. Solicite o acesso ao ClickUp se necessário.*
+
+**Não compartilhe nem faça commit destes arquivos.**
+
+## 🏃‍♂️ Rodando o Frontend
+
+Para iniciar o frontend:
+```sh
 npm run dev
 ```
+Acesse em [localhost:3000](http://localhost:3000).
 
-### To setup firebase
+Para parar, use `ctrl + c` no terminal.
 
-- Go to the Firebase console (ou no ClickUp) and search for the project.
-- Go to the web app and copy the keys to the `.env` file.
-- OK!
+## Contribuindo
+
+Veja o README principal para mais informações sobre o projeto e como contribuir.
