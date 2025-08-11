@@ -61,6 +61,15 @@ func GetListings(c *gin.Context) {
 	c.JSON(http.StatusOK, listings)
 }
 
+func GetListingsSearch( c *gin.Context) {
+	query := c.Param("text_query") 
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message" : "missing text_query param"})
+	}
+
+	// do query here
+}
+
 func GetListing(c *gin.Context) {
 	id := c.Param("id")
 

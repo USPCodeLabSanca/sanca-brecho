@@ -38,6 +38,7 @@ func New() *gin.Engine {
 		listingRouter := api.Group("/listings")
 		{
 			listingRouter.GET("/", handler.GetListings)
+			listingRouter.GET("/search/:text_query", handler.GetListingsSearch)
 			listingRouter.POST("/", handler.CreateListing)
 			listingRouter.GET("/:id", handler.GetListing)
 			listingRouter.GET("/slug/:slug", handler.GetListingBySlug)
