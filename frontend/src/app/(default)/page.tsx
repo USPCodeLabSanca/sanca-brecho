@@ -101,7 +101,7 @@ export default function Home() {
             >
               {categories.map((categoria) => (
                 <SwiperSlide key={categoria.id}>
-                  <Categories name={categoria.name} icon={categoria.icon} />
+                  <Categories name={categoria.name} icon={categoria.icon} id={categoria.id} />
                 </SwiperSlide>
               ))}
             </Swiper>
