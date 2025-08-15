@@ -62,7 +62,7 @@ export default function Categorias() {
 
   return (
     <>
-      <section className="mx-auto px-4 py-20 max-w-[1200px]">
+      <section className="mx-auto px-4 py-8 max-w-[1200px]">
         <div className="md:flex justify-between items-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-4 md:mb-0">
             Categorias
@@ -143,21 +143,6 @@ export default function Categorias() {
             )}
           </div>
         </div>
-      </section>
-
-      <section className="mx-auto px-4 py-14 text-center bg-[#f3eefe]">
-        <h1 className="mb-4 text-3xl md:text-3xl font-bold">
-          Tem itens que você não usa mais?
-        </h1>
-        <p className="mx-auto mb-8 max-w-2xl text-md text-slate-700">
-          Anuncie seus produtos usados no Sanca Brechó e ajude outros
-          universitários enquanto ganha um dinheiro extra.
-        </p>
-        <Link href="/anunciar" className="visited:text-inherit">
-          <button className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-sm font-medium text-white bg-sanca rounded-md cursor-pointer hover:opacity-50">
-            Anunciar Produto
-          </button>
-        </Link>
       </section>
     </>
   );
