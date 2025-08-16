@@ -14,7 +14,8 @@ import {
   BadgeCheck,
   ShieldCheck,
   Handshake,
-  ShoppingBag
+  ShoppingBag,
+  Flag
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProfileType, ListingType, ProfileMetricsType } from "@/lib/types/api";
@@ -191,7 +192,7 @@ const Usuario = () => {
                   <img src={userAvatar} alt={`Foto de perfil de ${userProfile.display_name}`} className="h-24 w-24 object-cover" />
                 </div>
                 <div className="pt-14 pb-2 flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div>
+                  <div className="w-full">
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center">
                       {userProfile.display_name}
                       {userProfile.verified && (
@@ -238,13 +239,21 @@ const Usuario = () => {
                           )}
                         </>
                       ) : ( 
-                        userProfile.verified && (
-                          <Link href={`https://wa.me/${userProfile.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`}>
-                            <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-[#25D366] hover:bg-[#25D366]/90">
-                              <FaWhatsapp className="text-white" />Entrar em contato
-                            </button>
-                          </Link>
-                        )
+                        <div className="w-full flex items-center justify-between">
+                        {userProfile.verified && (
+                          
+                            <Link href={`https://wa.me/${userProfile.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`}>
+                              <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-[#25D366] hover:bg-[#25D366]/90">
+                                <FaWhatsapp className="text-white" />Entrar em contato
+                              </button>
+                            </Link>
+                        )}
+                            <span/>
+                            <Link href="#not_implemented" className="text-gray-500 hover:text-sanca flex items-center text-sm">
+                              <Flag className="h-4 w-4 mr-1" />
+                              Denunciar
+                            </Link>
+                          </div>
                       )}
                     </div>
                   </div>
