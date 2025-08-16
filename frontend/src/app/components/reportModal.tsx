@@ -13,6 +13,7 @@ import {
   DialogOverlay,
 } from "@/app/components/dialog"
 import { Flag } from "lucide-react"
+import { createReport } from "@/lib/services/reportService";
 import { showNotificationToast, showErrorToast } from "@/lib/toast"
 
 type ReportDialogProps = {
@@ -22,43 +23,39 @@ type ReportDialogProps = {
 }
 
 export function ReportDialog({ targetId, targetType, triggerClassName }: ReportDialogProps) {
+  const [open, setOpen] = useState(false)
   const [reason, setReason] = useState("")
   const [details, setDetails] = useState("")
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {
-    try {
-      setLoading(true)
-      const res = await fetch("/api/report", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          target_id: targetId,
-          target_type: targetType,
-          reason,
-          details,
-        }),
-      })
-
-      if (!res.ok) {
-        throw new Error("Erro ao enviar denúncia")
-      }
-
-      showNotificationToast("Denúncia enviada com sucesso!")
-      setReason("")
-      setDetails("")
-    } catch (err) {
-      console.error(err)
-      showErrorToast("Não foi possível enviar sua denúncia.")
-    } finally {
-      setLoading(false)
+    if (!reason) {
+      showErrorToast("Por favor, selecione um motivo.");
+      return;
     }
-  }
+    try {
+      setLoading(true);
+      await createReport({
+        target_id: targetId,
+        target_type: targetType,
+        reason,
+        details,
+      });
+
+      showNotificationToast("Denúncia enviada com sucesso!");
+      setReason("");
+      setDetails("");
+      setOpen(false);
+    } catch (err) {
+      console.error(err);
+      showErrorToast("Não foi possível enviar sua denúncia.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button
           className={`text-gray-500 hover:text-sanca flex items-center text-sm ${triggerClassName ?? ""}`}
@@ -91,9 +88,9 @@ export function ReportDialog({ targetId, targetType, triggerClassName }: ReportD
               className="w-full mt-1 border rounded-md p-2"
             >
               <option value="">Selecione...</option>
-              <option value="fraude">Fraude ou golpe</option>
+              <option value="fraude_golpe">Fraude ou golpe</option>
               <option value="proibido">Produto/usuário proibido</option>
-              <option value="informacao-falsa">Informações falsas</option>
+              <option value="info_falsa">Informações falsas</option>
               <option value="outro">Outro</option>
             </select>
           </label>
