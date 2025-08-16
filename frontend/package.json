@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.15",
     "axios": "^1.10.0",
     "browser-image-compression": "^2.0.2",
     "firebase": "^11.8.0",
@@ -24,7 +25,8 @@
     "react-number-format": "^5.4.4",
     "react-tabs": "^6.1.0",
     "react-zoom-pan-pinch": "^3.7.0",
-    "swiper": "^11.2.6"
+    "swiper": "^11.2.6",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
