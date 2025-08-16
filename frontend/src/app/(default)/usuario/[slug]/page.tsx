@@ -25,6 +25,7 @@ import { getMe } from "@/lib/services/userService";
 import { getListingsByUser } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
 import Spinner from "@/app/components/spinner";
+import { ReportDialog } from "@/app/components/reportModal";
 
 const Usuario = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -249,10 +250,7 @@ const Usuario = () => {
                             </Link>
                         )}
                             <span/>
-                            <Link href="#not_implemented" className="text-gray-500 hover:text-sanca flex items-center text-sm">
-                              <Flag className="h-4 w-4 mr-1" />
-                              Denunciar
-                            </Link>
+                            <ReportDialog targetId={userProfile.slug} targetType="user" />
                           </div>
                       )}
                     </div>

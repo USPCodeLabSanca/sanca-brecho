@@ -14,6 +14,7 @@ import { getListingBySlug } from "@/lib/services/listingService";
 import { showErrorToast, showNotificationToast } from "@/lib/toast";
 import { getProfileMetricsBySlug } from "@/lib/services/profileService";
 import Spinner from "@/app/components/spinner";
+import { ReportDialog } from "@/app/components/reportModal";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
@@ -132,10 +133,7 @@ export default function ProdutoClient() {
               Voltar para produtos
             </Link>
             { !isOwner && (
-            <Link href="#not_implemented" className="text-gray-500 hover:text-sanca flex items-center text-sm">
-              <Flag className="h-4 w-4 mr-1" />
-              Denunciar
-            </Link>
+            <ReportDialog targetId={product.id} targetType="product" />
             )}
           </div>
 
