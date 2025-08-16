@@ -5,7 +5,7 @@ import Image from "next/image";
 import ProductImageCarousel from "@/app/components/productImageCarousel";
 import { notFound, useParams } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
-import { ArrowLeft, Calendar, Edit, Handshake, MapPin, Share, TrendingDown, Truck } from "lucide-react";
+import { ArrowLeft, Calendar, Edit, Flag, Handshake, MapPin, Share, TrendingDown, Truck } from "lucide-react";
 import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
 import { useEffect, useState } from "react";
 import { ListingType, ProfileMetricsType } from "@/lib/types/api";
@@ -126,11 +126,17 @@ export default function ProdutoClient() {
       <main className="flex-grow pb-10">
         <div className="container mx-auto px-4">
           {/* Breadcrumb */}
-          <div className="py-4">
+          <div className="py-4 flex justify-between items-center">
             <Link href="/" className="text-gray-500 hover:text-sanca flex items-center text-sm">
               <ArrowLeft className="h-4 w-4 mr-1" />
               Voltar para produtos
             </Link>
+            { !isOwner && (
+            <Link href="#not_implemented" className="text-gray-500 hover:text-sanca flex items-center text-sm">
+              <Flag className="h-4 w-4 mr-1" />
+              Denunciar
+            </Link>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
