@@ -2,7 +2,6 @@ package handler
 
 import (
 	"api/internal/models"
-	"api/internal/repository"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -74,7 +73,7 @@ func GetListingsSearch( c *gin.Context) {
 	}
 
 	// do query here
-	result, err := repository.SearchListingsFTS(query)
+	result, err := database.SearchListingsFTS(query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
 		return
