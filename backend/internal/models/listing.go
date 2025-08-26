@@ -22,6 +22,7 @@ type Listing struct {
 	CategoryID       int       `json:"category_id" gorm:"not null"`
 	Category         Category  `json:"category" gorm:"foreignKey:CategoryID;references:ID"`
 	Title            string    `json:"title" gorm:"not null"`
+	Keywords         string    `json:"keywords" gorm:"not null"` // sequencia de palavra chaves separadas por espaço (string paddrao. ex: celular iphone telefone)
 	Slug             string    `json:"slug" gorm:"not null;uniqueIndex"`
 	Description      string    `json:"description" gorm:"not null"`
 	Price            float64   `json:"price" gorm:"not null"`

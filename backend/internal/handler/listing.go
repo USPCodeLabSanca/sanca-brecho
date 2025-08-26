@@ -2,6 +2,7 @@ package handler
 
 import (
 	"api/internal/models"
+	"api/internal/repository"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -62,12 +63,29 @@ func GetListings(c *gin.Context) {
 }
 
 func GetListingsSearch( c *gin.Context) {
-	query := c.Param("text_query") 
+	query, ok := c.Params.Get("query")
+	if !ok {
+		c.JSON(http.StatusBadRequest,  gin.H{"message" : "missing `query` param"})
+	}
+
 	if query == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"message" : "missing text_query param"})
+		c.JSON(http.StatusBadRequest, gin.H{"message" : "missing `query` param"})
+		return
 	}
 
 	// do query here
+	result, err := repository.SearchListingsFTS(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
+		return
+	}
+
+	if len(result) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No items match this query"})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
 }
 
 func GetListing(c *gin.Context) {

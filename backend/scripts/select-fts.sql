@@ -15,7 +15,7 @@ generated always as (
 ) stored;
 
 -- nova query
-select title, keywords, ts_rank(title_search, websearch_to_tsquery('celular')) as rank
+select id, title, description, price, keywords, ts_rank(title_search, websearch_to_tsquery('celular')) as rank
 from listings
 where title_search @@ websearch_to_tsquery('celular')
 
