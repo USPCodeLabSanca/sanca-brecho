@@ -107,3 +107,23 @@ export interface PresignedUrl {
     publicURL: string;
     url: string;
   }
+
+export type ReportReason = "fraude_golpe" | "proibido" | "info_falsa" | "outro";
+export type ReportStatus = "open" | "resolved" | "rejected";
+export type ReportTargetType = "product" | "user";
+
+export interface ReportType {
+    id: UUID;
+    reporter_id: string;
+    reporter: UserType;
+    target_type: ReportTargetType;
+    target_id: string;
+    reason: ReportReason;
+    details?: string;
+    status: ReportStatus;
+    resolved_at?: Date | null;
+    created_at: Date;
+    updated_at: Date;
+    target_name: string;
+    target_slug: string;
+}
