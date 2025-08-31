@@ -9,6 +9,13 @@ const Condition = {
   Broken: 'broken' as Condition,
 }
 
+type Status = 'available' | 'sold';
+
+const Status = {
+    Available: 'available' as Status,
+    Sold: 'sold' as Status,
+}
+
 type UserRole = "user" | "admin";
 
 const UserRole = {
@@ -30,8 +37,6 @@ export interface UserType{
     created_at: Date;
     updated_at: Date;
 }
-
-
 
 export interface CategoryType{
     id: number;
@@ -57,7 +62,7 @@ export interface ListingType{
     is_negotiable: boolean;
     seller_can_deliver: boolean;
     location: string;
-    is_active: boolean;
+    status: Status;
     created_at: Date;
     updated_at: Date;
 }
@@ -106,4 +111,25 @@ export interface PresignedUrl {
     key: string;
     publicURL: string;
     url: string;
-  }
+}
+
+export interface SaleType {
+    id: string;
+    listing_id: UUID;
+    listing: ListingType;
+    seller_id: UUID;
+    seller: UserType;
+    buyer_id: UUID | null;
+    buyer: UserType | null;
+    sold_at: Date;
+    final_price: number;
+    // review: ReviewType | null;
+}
+
+export interface ErrorType {
+    error: string;
+}
+
+/*export interface ReviewType {
+
+}*/

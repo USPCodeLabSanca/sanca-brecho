@@ -5,7 +5,7 @@ import Image from "next/image";
 import ProductImageCarousel from "@/app/components/productImageCarousel";
 import { notFound, useParams } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
-import { ArrowLeft, Calendar, Edit, Handshake, MapPin, Share, TrendingDown, Truck } from "lucide-react";
+import { ArrowLeft, Calendar, Edit, Handshake, MapPin, Share, TrendingDown, Truck, Tag } from "lucide-react";
 import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
 import { useEffect, useState } from "react";
 import { ListingType, ProfileMetricsType } from "@/lib/types/api";
@@ -14,15 +14,16 @@ import { getListingBySlug } from "@/lib/services/listingService";
 import { showErrorToast, showNotificationToast } from "@/lib/toast";
 import { getProfileMetricsBySlug } from "@/lib/services/profileService";
 import Spinner from "@/app/components/spinner";
+import MarkAsSoldModal from "@/app/components/markAsSoldModal";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
-  const [product, setProduct] = useState<ListingType>();
+  const [product, setProduct] = useState<ListingType | null>(null);
   const [errorProduct, setErrorProduct] = useState<string | null>(null);
   const [loadingProduct, setLoadingProduct] = useState(true);
   const { user, loading: loadingAuth } = useAuth();
-
   const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Função para formatar a condição do produto
   const getDisplayCondition = (condition: string): string => {
@@ -84,7 +85,7 @@ export default function ProdutoClient() {
     return Spinner();
   }
 
-  if (!product || !product.is_active) {
+  if (!product) {
     notFound();
   }
 
@@ -97,6 +98,18 @@ export default function ProdutoClient() {
   }
 
   if (!product) return null;
+
+  const isSold = product.status === 'sold';
+  const isAvailable = product.status === 'available'; 
+
+  const handleSaleSuccess = () => {
+    setProduct(currentProduct => {
+      if (!currentProduct) return null;
+      return { ...currentProduct, status: 'sold'}
+    })
+
+    setIsModalOpen(false);
+  }
 
   const handleWhatsAppClick = () => {
     const whatsappUrl = `https://wa.me/${product.user.whatsapp}?text=Olá! Vi seu anúncio do produto "${product.title}" no Sanca Brechó e gostaria de mais informações.`;
@@ -123,6 +136,13 @@ export default function ProdutoClient() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {isModalOpen && 
+        <MarkAsSoldModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          listing={product}
+          onSuccess={handleSaleSuccess}
+        />}
       <main className="flex-grow pb-10">
         <div className="container mx-auto px-4">
           {/* Breadcrumb */}
@@ -150,7 +170,15 @@ export default function ProdutoClient() {
                   >
                     <Heart className="h-5 w-5 text-gray-500 hover:text-sanca" />
                   </button>*/}
-                  {isOwner && (
+                  {isOwner && isAvailable && (
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <Tag className="h-4 w-4" />Vendido?
+                    </button>  
+                  )}
+                  {isOwner && !isSold && (
                     <Link href={`/produto/${product.slug}/editar`}>
                       <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap border border-gray-300 rounded-md text-sm text-black font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-white hover:bg-sanca/10">
                         <Edit className="h-4 w-4" />Editar
@@ -188,8 +216,13 @@ export default function ProdutoClient() {
               </div>
 
               <div className="mb-4">
-                <button onClick={handleWhatsAppClick} className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700">
-                  <FaWhatsapp />Contatar Vendedor pelo WhatsApp
+                <button
+                  onClick={handleWhatsAppClick}
+                  disabled={isSold}
+                  className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isAvailable && <FaWhatsapp />}
+                  {isSold ? 'Vendido' : 'Contatar Vendedor pelo WhatsApp'}
                 </button>
               </div>
 
@@ -214,7 +247,6 @@ export default function ProdutoClient() {
                   </button>
                 </Link>
               </div>
-
               <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm mb-6">
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
