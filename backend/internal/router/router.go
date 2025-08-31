@@ -44,6 +44,20 @@ func New() *gin.Engine {
 			listingRouter.GET("/user/:user_slug", handler.GetListingsByUser)
 			listingRouter.PUT("/:id", handler.UpdateListing)
 			listingRouter.DELETE("/:id", handler.DeleteListing)
+			listingRouter.POST("/:id/sell", handler.CreateSale)
+		}
+
+		salesRouter := api.Group("/sales")
+		{
+			salesRouter.GET("/:user_id/buyer", handler.GetSalesAsBuyer)
+			salesRouter.GET("/:user_id/seller", handler.GetSalesAsSeller)
+			salesRouter.POST("/:id/review", handler.CreateReview)
+		}
+
+		reviewRouter := api.Group("/reviews")
+		{
+			reviewRouter.GET("/:user_id/sent", handler.GetReviewsSent)
+			reviewRouter.GET("/:user_id/received", handler.GetReviewsReceived)
 		}
 
 		categorieRouter := api.Group("/categories")

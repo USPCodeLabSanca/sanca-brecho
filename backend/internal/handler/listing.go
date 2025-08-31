@@ -22,8 +22,8 @@ func CreateListing(c *gin.Context) {
 	listing.ID = uuid.New()
 	//set the slug
 	listing.Slug = slug.Make(listing.Title)
-	//setting the active status to true
-	listing.IsActive = true
+	//setting the status to available
+	listing.Status = models.Available
 
 	var category models.Category
 	if err := database.DB.First(&category, "id = ?", listing.CategoryID).Error; err != nil {

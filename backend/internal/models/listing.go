@@ -15,6 +15,13 @@ const (
 	Broken      Condition = "broken"
 )
 
+type Status string
+
+const (
+	Available	Status = "available"
+	Sold		Status = "sold"
+)
+
 type Listing struct {
 	ID               uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	UserID           string    `json:"user_id" gorm:"not null"` // string, compatível com ID do Firebase
@@ -29,7 +36,8 @@ type Listing struct {
 	IsNegotiable     bool      `json:"is_negotiable" gorm:"not null"`
 	SellerCanDeliver bool      `json:"seller_can_deliver" gorm:"not null"`
 	Location         string    `json:"location" gorm:"not null"`
-	IsActive         bool      `json:"is_active" gorm:"default:true"`
+	Status         	 Status    `json:"status" gorm:"type:status_enum;not null;default:available"`
+	Sale			 *Sale	   `json:"sale"`
 	CreatedAt        time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt        time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
