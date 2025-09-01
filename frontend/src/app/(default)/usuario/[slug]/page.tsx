@@ -15,11 +15,14 @@ import {
   ShieldCheck,
   Handshake,
   ShoppingBag,
-  Flag
+  ShoppingCart,
+  DollarSign
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProfileType, ListingType, ProfileMetricsType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
+import { PurchasedProductCard } from "@/app/components/purchasedProductCard";
+import { SoldProductCard } from "@/app/components/soldProductCard";
 import { getProfileBySlug, getProfileMetricsBySlug } from "@/lib/services/profileService";
 import { getMe } from "@/lib/services/userService";
 import { getListingsByUser } from "@/lib/services/listingService";
@@ -44,11 +47,95 @@ const Usuario = () => {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [errorProducts, setErrorProducts] = useState<string | null>(null);
 
+  // Mocks
+  const [soldProducts, setSoldProducts] = useState<
+    (ListingType & { soldTo: { id: string, display_name: string, slug: string, photo_url?: string }, buyerReview?: { rating: number, comment?: string, reviewed_at: string } })[]
+  >([
+    {
+      id: "123e4567-e89b-12d3-a456-426614174000" as any,
+      title: "Cadeira de Escritório Ergonômica",
+      description: "Cadeira semi-nova, super confortável.",
+      price: 450.00,
+      condition: "used",
+      is_negotiable: true,
+      seller_can_deliver: true,
+      location: "São Carlos, SP",
+      category_id: 1,
+      category: { id: 1, name: "Móveis", icon: "🪑", parent_id: null, parent: null, children: [] },
+      user_id: "user-seller-1",
+      created_at: new Date("2023-01-10T10:00:00Z"),
+      updated_at: new Date("2023-01-15T11:00:00Z"),
+      is_active: false,
+      slug: "cadeira-escritorio-ergonomica",
+      user: {
+        id: "user-seller-1",
+        display_name: "Ana Vendedora",
+        email: "ana@email.com",
+        photo_url: "https://i.pravatar.cc/150?u=ana",
+        whatsapp: "16999999999",
+        telegram: null,
+        university: "USP São Carlos",
+        verified: true,
+        created_at: new Date("2022-01-01T00:00:00Z"),
+        updated_at: new Date("2022-01-01T00:00:00Z"),
+        slug: "ana-vendedora",
+        role: "user"
+      },
+      soldTo: {
+        id: "user-buyer-1",
+        display_name: "Carlos Comprador",
+        slug: "carlos-comprador",
+        photo_url: "https://i.pravatar.cc/150?u=carlos"
+      },
+      buyerReview: {
+        rating: 5,
+        comment: "Excelente vendedor e produto, super recomendo!",
+        reviewed_at: "2023-01-20T14:30:00Z"
+      }
+    }
+  ]);
+
+  const [purchasedProducts, setPurchasedProducts] = useState<
+    (ListingType & { buyerReview?: { rating: number, comment?: string, reviewed_at: string } })[]
+  >([
+    {
+      id: "123e4567-e89b-12d3-a456-426614174001" as any,
+      title: "Tablet Samsung Galaxy Tab S7",
+      description: "Tablet em excelente estado, usado por 6 meses.",
+      price: 1800.00,
+      condition: "used",
+      is_negotiable: true,
+      seller_can_deliver: true,
+      location: "São Carlos, SP",
+      category_id: 2,
+      category: { id: 2, name: "Eletrônicos", icon: "💻", parent_id: null, parent: null, children: [] },
+      user_id: "user-seller-2",
+      created_at: new Date("2023-03-01T15:00:00Z"),
+      updated_at: new Date("2023-03-05T16:00:00Z"),
+      is_active: false,
+      slug: "tablet-samsung-galaxy-tab-s7",
+      user: {
+        id: "user-seller-2",
+        display_name: "Pedro Vendedor",
+        email: "pedro@email.com",
+        photo_url: "https://i.pravatar.cc/150?u=pedro",
+        whatsapp: "16988888888",
+        telegram: "pedrovendedor",
+        university: "UFSCar",
+        verified: true,
+        created_at: new Date("2022-02-01T00:00:00Z"),
+        updated_at: new Date("2022-02-01T00:00:00Z"),
+        slug: "pedro-vendedor",
+        role: "user"
+      },
+      buyerReview: undefined
+    }
+  ]);
+  // Fim dos Mocks
+
   const [isOwnerProfile, setIsOwnerProfile] = useState<boolean | undefined>(undefined);
   const [loadingOwnership, setLoadingOwnership] = useState(true);
   const [errorOwnership, setErrorOwnership] = useState<string | null>(null);
-
-  // TO-DO: Falta o "buscando por" e "avaliações", precisa ter o backend e frontend
 
   // Busca o usuário pela slug
   useEffect(() => {
@@ -145,13 +232,22 @@ const Usuario = () => {
     };
     fetchUserProducts();
   }, [userProfile?.slug]);
+  
+  useEffect(() => {
+    if (isOwnerProfile) {
+      // TODO: Implementar
+      // fetchSoldProducts();
+      // fetchPurchasedProducts();
+    }
+  }, [isOwnerProfile]);
+
 
   if (loadingProfile || loadingProducts || loadingAuth || loadingOwnership) {
-    return Spinner();
+    return <Spinner />;
   }
 
   if (!userProfile || (userProfile && !userProfile.role)) {
-    notFound();
+    return notFound();
   }
 
   if (errorProfile || errorProducts || errorOwnership) {
@@ -258,14 +354,19 @@ const Usuario = () => {
                 </div>
               </div>
             </div>
-            <Tabs defaultValue="products">
-              <TabList className="grid bg-slate-100 rounded-sm p-1">
-                <Tab selectedClassName="bg-white rounded-sm shadow-xs" value="products" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><Package className="h-4 w-4 mr-2" /><span>Produtos</span></Tab>
-                {/*<Tab selectedClassName="bg-white rounded-sm shadow-xs" value="lookingFor" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><Search className="h-4 w-4 mr-2" /><span>Buscando</span></Tab>
-              <Tab selectedClassName="bg-white rounded-sm shadow-xs" value="reviews" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><Star className="h-4 w-4 mr-2" /><span>Avaliações</span></Tab>
-              */}
+            <Tabs>
+              <TabList className="grid bg-slate-100 rounded-sm p-1" style={{gridTemplateColumns: isOwnerProfile ? 'repeat(3, 1fr)' : '1fr'}}>
+                <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><Package className="h-4 w-4 mr-2" /><span>
+                  {isOwnerProfile ? 'Meus Produtos' : 'Produtos'}
+                </span></Tab>
+                {isOwnerProfile && (
+                  <>
+                    <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><ShoppingCart className="h-4 w-4 mr-2" /><span>Minhas Compras</span></Tab>
+                    <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><DollarSign className="h-4 w-4 mr-2" /><span>Minhas Vendas</span></Tab>
+                  </>
+                )}
               </TabList>
-              <TabPanel value="products">
+              <TabPanel>
                 <div className="bg-white rounded-xl p-6">
                   <h2 className="text-lg font-semibold mb-4">Produtos Anunciados ({userProducts.length})</h2>
                   {userProducts.length > 0 ? (
@@ -289,96 +390,53 @@ const Usuario = () => {
                   )}
                 </div>
               </TabPanel>
-              {/*
-              <TabPanel value="lookingFor">
-              <div className="bg-white rounded-xl p-6">
-                <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Produtos que Busca ({userLookingFor.length})</h2>
-                {isOwnProfile && (
-                  <Link href="/buscar-produto">
-                    <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90">
-                      <Plus className="h-4 w-4" />Adicionar
-                    </button>
-                  </Link>
-                )}
-                </div>
-                {userLookingFor.length > 0 ? (
-                <div className="space-y-4">
-                  {userLookingFor.map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex justify-between">
-                    <h3 className="font-medium">{item.title}</h3>
-                    <span className="text-sm text-gray-500">{new Date(item.createdAt).toLocaleDateString('pt-BR')}</span>
+              {isOwnerProfile && (
+                <>
+                  <TabPanel>
+                    <div className="bg-white rounded-xl p-6">
+                      <h2 className="text-lg font-semibold mb-4">Minhas Compras ({purchasedProducts.length})</h2>
+                      {purchasedProducts.length > 0 ? (
+                        <div className="flex flex-col gap-4">
+                          {purchasedProducts.map((product) => (
+                            <PurchasedProductCard
+                              product={product}
+                              buyerReview={product.buyerReview}
+                              key={product.id}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-16 bg-gray-50 rounded-lg">
+                          <ShoppingCart className="h-12 w-12 mx-auto text-gray-300" />
+                          <p className="mt-2 text-gray-500">Você ainda não comprou nada.</p>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-gray-600 text-sm mt-2">{item.description}</p>
-                    <div className="mt-3 flex justify-between items-center">
-                    <span className="text-sm text-gray-500">Categoria: {item.category}</span>
-                    {!isOwnProfile ? (
-                      <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-48 bg-[#25D366] hover:bg-[#25D366]/90">
-                        <FaWhatsapp className="text-white" />Entrar em contato
-                      </button>
-                    ) : (
-                      <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-24 bg-sanca hover:bg-sanca/90">
-                        <Trash2 className="h-4 w-4" />Excluir
-                      </button>
-                    )}
+                  </TabPanel>
+                  <TabPanel>
+                    <div className="bg-white rounded-xl p-6">
+                      <h2 className="text-lg font-semibold mb-4">Minhas Vendas ({soldProducts.length})</h2>
+                      {soldProducts.length > 0 ? (
+                        <div className="flex flex-col gap-4">
+                          {soldProducts.map((product) => (
+                            <SoldProductCard
+                              product={product}
+                              soldTo={product.soldTo}
+                              buyerReview={product.buyerReview}
+                              key={product.id}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-16 bg-gray-50 rounded-lg">
+                          <DollarSign className="h-12 w-12 mx-auto text-gray-300" />
+                          <p className="mt-2 text-gray-500">Você ainda não vendeu nada.</p>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  ))}
-                </div>
-                ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <Search className="h-12 w-12 mx-auto text-gray-300" />
-                  <p className="mt-2 text-gray-500">Nenhum produto na lista de buscas</p>
-                  {isOwnProfile && (
-                  <Link href="/buscar-produto">
-                    <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90">
-                      Adicionar produto buscado
-                    </button>
-                  </Link>
-                  )}
-                </div>
-                )}
-              </div>
-              </TabPanel>
-              <TabPanel value="reviews">
-              <div className="bg-white rounded-xl p-6">
-                <h2 className="text-lg font-semibold mb-4">Avaliações Recebidas</h2>
-                {userReviews.length > 0 ? (
-                <div className="space-y-4">
-                  {userReviews.map((review) => (
-                  <div key={review.id} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
-                    <div className="flex items-start">
-                    <img src={review.userAvatar} alt={`Foto de ${review.userName}`} className="h-10 w-10 rounded-full object-cover" />
-                    <div className="ml-3 flex-1">
-                      <div className="flex items-center justify-between">
-                      <Link href={`/usuario/${review.reviewerId}`} className="font-medium text-gray-800">{review.userName}</Link>
-                      <span className="text-sm text-gray-500">{new Date(review.date).toLocaleDateString('pt-BR')}</span>
-                      </div>
-                      <div className="flex items-center mt-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                        key={i}
-                        size={16}
-                        className={i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
-                        />
-                      ))}
-                      </div>
-                      <p className="mt-2 text-gray-700">{review.comment}</p>
-                    </div>
-                    </div>
-                  </div>
-                  ))}
-                </div>
-                ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <Star className="h-12 w-12 mx-auto text-gray-300" />
-                  <p className="mt-2 text-gray-500">Nenhuma avaliação recebida</p>
-                </div>
-                )}
-              </div>
-              </TabPanel>
-              */}
+                  </TabPanel>
+                </>
+              )}
             </Tabs>
           </div>
         </div>
