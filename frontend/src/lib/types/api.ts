@@ -123,7 +123,15 @@ export interface SaleType {
     buyer: UserType | null;
     sold_at: Date;
     final_price: number;
-    // review: ReviewType | null;
+    review: ReviewType | null;
+}
+
+export interface ReviewType {
+    id: string;
+    sale_id: string;
+    rating: number;
+    comment: string;
+    created_at: Date;
 }
 
 export interface ErrorType {

@@ -16,7 +16,8 @@ func CreateSale(c *gin.Context) {
 	listingID := c.Param("id")
 
 	var requestBody struct {
-		BuyerIdentifier string `json:"buyer_identifier"`
+		BuyerIdentifier string  `json:"buyer_identifier"`
+		FinalPrice      float64 `json:"final_price"`
 	}
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
@@ -57,7 +58,7 @@ func CreateSale(c *gin.Context) {
 			ListingID:  listing.ID,
 			SellerID:   listing.UserID,
 			BuyerID:    buyerID,
-			FinalPrice: listing.Price,
+			FinalPrice: requestBody.FinalPrice,
 		}
 		if err := tx.Create(&newSale).Error; err != nil {
 			return err
@@ -79,12 +80,25 @@ func CreateSale(c *gin.Context) {
 	}
 }
 
+func GetSale(c *gin.Context) {
+	saleID := c.Param("id")
+
+	var sale models.Sale
+
+	if err := database.DB.Preload("Seller").Preload("Buyer").Preload("Listing").Preload("Review").Find(&sale, "id = ?", saleID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve sale"})
+	}
+
+	c.JSON(http.StatusOK, sale)
+}
+
 func GetSalesAsBuyer(c *gin.Context) {
-	user_id := c.Param("user_id")
+	user, _ := c.Get("currentUser")
+	currentUser := user.(models.User)
 
 	var sales []models.Sale
 
-	if err := database.DB.Preload("Seller").Preload("Listing").Find(&sales, "buyer_id = ?", user_id).Error; err != nil {
+	if err := database.DB.Preload("Seller").Preload("Listing").Preload("Review").Find(&sales, "buyer_id = ?", currentUser.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve bought items"})
 	}
 
@@ -92,11 +106,12 @@ func GetSalesAsBuyer(c *gin.Context) {
 }
 
 func GetSalesAsSeller(c *gin.Context) {
-	user_id := c.Param("user_id")
+	user, _ := c.Get("currentUser")
+	currentUser := user.(models.User)
 
-	var sales []models.Review
+	var sales []models.Sale
 
-	if err := database.DB.Preload("Buyer").Preload("Listing").Find(&sales, "seller_id = ?", user_id).Error; err != nil {
+	if err := database.DB.Preload("Buyer").Preload("Listing").Preload("Review").Find(&sales, "seller_id = ?", currentUser.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve sold items"})
 	}
 

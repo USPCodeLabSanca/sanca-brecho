@@ -48,9 +48,11 @@ func New() *gin.Engine {
 		}
 
 		salesRouter := api.Group("/sales")
+		salesRouter.Use(middleware.Auth)
 		{
-			salesRouter.GET("/:user_id/buyer", handler.GetSalesAsBuyer)
-			salesRouter.GET("/:user_id/seller", handler.GetSalesAsSeller)
+			salesRouter.GET("/:id", handler.GetSale)
+			salesRouter.GET("/buyer", handler.GetSalesAsBuyer)
+			salesRouter.GET("/seller", handler.GetSalesAsSeller)
 			salesRouter.POST("/:id/review", handler.CreateReview)
 		}
 

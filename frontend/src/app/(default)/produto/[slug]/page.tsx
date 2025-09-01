@@ -14,7 +14,7 @@ import { getListingBySlug } from "@/lib/services/listingService";
 import { showErrorToast, showNotificationToast } from "@/lib/toast";
 import { getProfileMetricsBySlug } from "@/lib/services/profileService";
 import Spinner from "@/app/components/spinner";
-import MarkAsSoldModal from "@/app/components/markAsSoldModal";
+import CreateSaleModal from "@/app/components/createSaleModal";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
@@ -137,7 +137,7 @@ export default function ProdutoClient() {
   return (
     <div className="min-h-screen flex flex-col">
       {isModalOpen && 
-        <MarkAsSoldModal 
+        <CreateSaleModal 
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           listing={product}

@@ -91,9 +91,9 @@ export const getListingsByUser = async (slug: string): Promise<ListingType[]> =>
     return response.data;
 }
 
-export const markListingAsSold = async (id: string, buyer_identifier: string): Promise<SaleType | ErrorType> => {
+export const createSale = async (id: string, buyer_identifier: string, final_price: number): Promise<SaleType | ErrorType> => {
     try {
-        const response = await api.post(`/listings/${id}/sell`, { buyer_identifier });
+        const response = await api.post(`/listings/${id}/sell`, { buyer_identifier, final_price });
         return response.data;
     } catch (err: any) {
         return err.response?.data;
