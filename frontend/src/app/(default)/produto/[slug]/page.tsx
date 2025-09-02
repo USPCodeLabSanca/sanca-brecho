@@ -63,21 +63,21 @@ export default function ProdutoClient() {
   }, [slug]);
 
   // Busca as métricas do vendedor
-    useEffect(() => {
-      const fetchMetrics = async () => {
-        if (!product?.user.slug) {
-          return;
-        }
-        try {
-          const data = await getProfileMetricsBySlug(product.user.slug);
-          setMetrics(data);
-        } catch (error: any) {
-          setMetrics(undefined);
-          console.error("Falha ao buscar métricas:", error);
-        }
-      };
-      fetchMetrics();
-    }, [product?.user.slug]);
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      if (!product?.user.slug) {
+        return;
+      }
+      try {
+        const data = await getProfileMetricsBySlug(product.user.slug);
+        setMetrics(data);
+      } catch (error: any) {
+        setMetrics(undefined);
+        console.error("Falha ao buscar métricas:", error);
+      }
+    };
+    fetchMetrics();
+  }, [product?.user.slug]);
 
   const isOwner = user && product && user.uid === product.user_id;
 
@@ -132,8 +132,8 @@ export default function ProdutoClient() {
               <ArrowLeft className="h-4 w-4 mr-1" />
               Voltar para produtos
             </Link>
-            { !isOwner && (
-            <ReportDialog targetId={product.id} targetType="product" />
+            {!isOwner && (
+              <ReportDialog targetId={product.id} targetType="product" />
             )}
           </div>
 
@@ -142,9 +142,9 @@ export default function ProdutoClient() {
 
             {/* Product Info */}
             <div>
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{product.title}</h1>
+              <div className="flex flex-col md:flex-row justify-between items-start mb-3">
+                <div className="max-w-full md:max-w-4/5">
+                  <h1 className="text-2xl font-bold text-gray-900 break-words text-ellipsis">{product.title}</h1>
                   <p className="text-gray-500">{product.category.name} • {getDisplayCondition(product.condition)}</p>
                 </div>
                 <div className="flex gap-2">
@@ -168,7 +168,7 @@ export default function ProdutoClient() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="flex items-center mb-4">
                 {/* Implemente badges de preço negociável e vendendor pode entregar */}
                 {product.is_negotiable && (
@@ -224,7 +224,7 @@ export default function ProdutoClient() {
                   <Calendar className="h-4 w-4 mr-1" />
                   Membro desde {new Date(product.user.created_at).toLocaleDateString('pt-BR')}
                 </div>
-                { metrics &&
+                {metrics &&
                   <div className="flex items-center">
                     <Handshake className="h-4 w-4 mr-1" />
                     Vendas concluídas: {metrics.items_sold}
@@ -247,7 +247,7 @@ export default function ProdutoClient() {
                 </TabList>
 
                 <TabPanel>
-                  <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
+                  <p className="text-gray-700 whitespace-pre-line break-words">{product.description}</p>
                 </TabPanel>
 
                 <TabPanel>

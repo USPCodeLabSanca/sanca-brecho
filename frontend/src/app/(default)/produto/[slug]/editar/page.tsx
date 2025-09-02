@@ -76,7 +76,7 @@ export default function EditarProdutoClient() {
         const categoriesData = await getCategories();
         setCategories(categoriesData);
       } catch (err: any) {
-        setError(err.message);
+        showErrorToast(`Erro ao carregar produto: ${err.response.data.error}`);
       } finally {
         setIsLoading(false);
       }
@@ -223,8 +223,7 @@ export default function EditarProdutoClient() {
       showSuccessToast("Produto atualizado com sucesso!");
       router.push(`/produto/${newSlug}`);
     } catch (err: any) {
-      setError(err.message);
-      showErrorToast(`Erro ao atualizar produto: ${err.message}`);
+      showErrorToast(`Erro ao atualizar produto: ${err.response.data.error}`);
     } finally {
       setIsSubmitting(false);
     }
