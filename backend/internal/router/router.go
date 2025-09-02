@@ -30,57 +30,68 @@ func New() *gin.Engine {
 		userRouter := api.Group("/users")
 		userRouter.Use(middleware.Auth)
 		{
-			userRouter.GET("/me", handler.GetUser)
-			userRouter.PUT("/me", handler.UpdateUser)
-			userRouter.DELETE("/me", handler.DeleteUser)
+			userRouter.GET("/me", handler.GetUser)       // usuário logado
+			userRouter.PUT("/me", handler.UpdateUser)    // usuário logado
+			userRouter.DELETE("/me", handler.DeleteUser) // usuário logado
 		}
 
 		listingRouter := api.Group("/listings")
 		{
-			listingRouter.GET("/", handler.GetListings)
-			listingRouter.POST("/", handler.CreateListing)
-			listingRouter.GET("/:id", handler.GetListing)
-			listingRouter.GET("/slug/:slug", handler.GetListingBySlug)
-			listingRouter.GET("/user/:user_slug", handler.GetListingsByUser)
-			listingRouter.PUT("/:id", handler.UpdateListing)
-			listingRouter.DELETE("/:id", handler.DeleteListing)
+			listingRouter.GET("/", handler.GetListings)                      // qualquer usuário
+			listingRouter.GET("/:id", handler.GetListing)                    // qualquer usuário
+			listingRouter.GET("/slug/:slug", handler.GetListingBySlug)       // qualquer usuário
+			listingRouter.GET("/user/:user_slug", handler.GetListingsByUser) // qualquer usuário
+
+			listingRouter.Use(middleware.Auth)
+			listingRouter.POST("/", handler.CreateListing)      // usuário logado
+			listingRouter.PUT("/:id", handler.UpdateListing)    // usuário logado
+			listingRouter.DELETE("/:id", handler.DeleteListing) // usuário logado
 		}
 
 		categorieRouter := api.Group("/categories")
 		{
-			categorieRouter.GET("/", handler.GetCategories)
-			categorieRouter.POST("/", handler.CreateCategory)
-			categorieRouter.GET("/:id", handler.GetCategory)
-			categorieRouter.PUT("/:id", handler.UpdateCategory)
-			categorieRouter.DELETE("/:id", handler.DeleteCategory)
+			categorieRouter.GET("/", handler.GetCategories)  // qualquer usuário
+			categorieRouter.GET("/:id", handler.GetCategory) // qualquer usuário
+
+			categorieRouter.Use(middleware.AdminAuth)
+			categorieRouter.POST("/", handler.CreateCategory)      // usuário admin
+			categorieRouter.PUT("/:id", handler.UpdateCategory)    // usuário admin
+			categorieRouter.DELETE("/:id", handler.DeleteCategory) // usuário admin
 		}
 
 		listingImageRouter := api.Group("/listing-images")
 		{
-			listingImageRouter.POST("/s3", handler.GeneratePresignedURL)
-			listingImageRouter.POST("/", handler.CreateListingImage)
-			listingImageRouter.GET("/", handler.GetListingImages)
-			listingImageRouter.GET("/:id", handler.GetListingImage)
-			listingImageRouter.GET("/listing/:listingID", handler.GetListingImagesByListing)
-			listingImageRouter.PUT("/:id", handler.UpdateListingImage)
-			listingImageRouter.DELETE("/:id", handler.DeleteListingImage)
+			listingImageRouter.GET("/", handler.GetListingImages)                            // qualquer usuário
+			listingImageRouter.GET("/:id", handler.GetListingImage)                          // qualquer usuário
+			listingImageRouter.GET("/listing/:listingID", handler.GetListingImagesByListing) // qualquer usuário
+
+			listingImageRouter.Use(middleware.Auth)
+			listingImageRouter.POST("/s3", handler.GeneratePresignedURL) // usuário logado
+
+			listingImageRouter.Use(middleware.AdminAuth)
+			listingImageRouter.POST("/", handler.CreateListingImage)      // usuário admin
+			listingImageRouter.PUT("/:id", handler.UpdateListingImage)    // usuário admin
+			listingImageRouter.DELETE("/:id", handler.DeleteListingImage) // usuário admin
 		}
 
 		favoriteRouter := api.Group("/favorites")
+		favoriteRouter.Use(middleware.Auth)
 		{
-			favoriteRouter.POST("/", handler.AddFavorite)
-			favoriteRouter.GET("/", handler.ListFavorites)
-			favoriteRouter.DELETE("/", handler.RemoveFavorite)
-			favoriteRouter.GET("/:user_id", handler.ListFavoritesByUser)
+			favoriteRouter.POST("/", handler.AddFavorite)                // usuário logado
+			favoriteRouter.GET("/", handler.ListFavorites)               // usuário logado
+			favoriteRouter.DELETE("/", handler.RemoveFavorite)           // usuário logado
+			favoriteRouter.GET("/:user_id", handler.ListFavoritesByUser) // usuário logado
 		}
 
 		reportRouter := api.Group("/reports")
-		reportRouter.Use(middleware.Auth)
 		{
-			reportRouter.POST("/", handler.CreateReport)
-			reportRouter.GET("/", middleware.AdminAuth, handler.GetReports)
-			reportRouter.GET("/:id", middleware.AdminAuth, handler.GetReport)
-			reportRouter.PUT("/:id/status", middleware.AdminAuth, handler.UpdateReportStatus)
+			reportRouter.Use(middleware.Auth)
+			reportRouter.POST("/", handler.CreateReport) // usuário logado
+
+			reportRouter.Use(middleware.AdminAuth)
+			reportRouter.GET("/", handler.GetReports)                   // usuário admin
+			reportRouter.GET("/:id", handler.GetReport)                 // usuário admin
+			reportRouter.PUT("/:id/status", handler.UpdateReportStatus) // usuário admin
 		}
 	}
 

@@ -12,12 +12,46 @@ import (
 )
 
 func CreateListing(c *gin.Context) {
-	var listing models.Listing
+	user, _ := c.Get("currentUser")
+	CurrentUser := user.(models.User)
 
+	if !CurrentUser.Verified {
+		c.JSON(http.StatusForbidden, gin.H{"error": "User not verified"})
+		return
+	}
+
+	var listing models.Listing
 	if err := c.ShouldBindJSON(&listing); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	if len(listing.Title) > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Title too long"})
+		return
+	}
+
+	if len(listing.Description) > 1000 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Description too long"})
+		return
+	}
+
+	var userActiveListings []models.Listing
+	if err := database.DB.
+		Preload("User").
+		Preload("Category").
+		Where("user_id = ? AND is_active = ?", CurrentUser.ID, true).
+		Find(&userActiveListings).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
+		return
+	}
+
+	if len(userActiveListings) > 5 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "You cannot create more than 5 active listings"})
+		return
+	}
+
 	//generate UUID for the listing ID
 	listing.ID = uuid.New()
 	//set the slug
@@ -68,6 +102,7 @@ func GetListing(c *gin.Context) {
 
 	if err := database.DB.Preload("User").Preload("Category").First(&listing, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+		return
 	}
 
 	c.JSON(http.StatusOK, listing)
@@ -80,6 +115,7 @@ func GetListingBySlug(c *gin.Context) {
 
 	if err := database.DB.Preload("User").Preload("Category").First(&listing, "slug = ?", slug).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+		return
 	}
 
 	c.JSON(http.StatusOK, listing)
@@ -108,6 +144,9 @@ func GetListingsByUser(c *gin.Context) {
 }
 
 func UpdateListing(c *gin.Context) {
+	user, _ := c.Get("currentUser")
+	CurrentUser := user.(models.User)
+
 	id := c.Param("id")
 
 	// Search for the existing listing by ID
@@ -121,6 +160,12 @@ func UpdateListing(c *gin.Context) {
 		return
 	}
 
+	// Check if the listing is the logged user's listing
+	if existing.UserID != CurrentUser.ID {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Cannot update another user's listing"})
+		return
+	}
+
 	// Bind JSON to a map[string]interface{} to handle zero values correctly
 	var updatesMap map[string]interface{}
 	if err := c.ShouldBindJSON(&updatesMap); err != nil {
@@ -130,7 +175,19 @@ func UpdateListing(c *gin.Context) {
 
 	// Updates the slug if the title is provided
 	if title, ok := updatesMap["title"].(string); ok && title != "" {
+		if len(title) > 100 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Title too long"})
+			return
+		}
 		updatesMap["slug"] = slug.Make(title)
+	}
+
+	// Check if the description is below the maximum
+	if description, ok := updatesMap["description"].(string); ok && description != "" {
+		if len(description) > 1000 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Description too long"})
+			return
+		}
 	}
 
 	if categoryIDFloat, ok := updatesMap["category_id"].(float64); ok {
@@ -165,12 +222,31 @@ func UpdateListing(c *gin.Context) {
 }
 
 func DeleteListing(c *gin.Context) {
+	user, _ := c.Get("currentUser")
+	CurrentUser := user.(models.User)
+
 	id := c.Param("id")
 
-	if err := database.DB.Delete(&models.Listing{}, "id=?", id).Error; err != nil {
+	// Check if the listing is the user's listing
+	var listing models.Listing
+	if err := database.DB.First(&listing, "id = ?", id).Error; err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listing"})
+		}
+		return
+	}
+
+	if listing.UserID != CurrentUser.ID {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Cannot delete another user's listing"})
+		return
+	}
+
+	if err := database.DB.Delete(&listing).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete listing"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"messa": "Listing deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Listing deleted successfully"})
 }
