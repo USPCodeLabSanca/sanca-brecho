@@ -3,10 +3,17 @@ import { UUID } from "crypto";
 type Condition = 'new' | 'used' | 'refurbished' | 'broken';
 
 const Condition = {
-  New: 'new' as Condition,
-  Used: 'used' as Condition,
-  Refurbished: 'refurbished' as Condition,
-  Broken: 'broken' as Condition,
+    New: 'new' as Condition,
+    Used: 'used' as Condition,
+    Refurbished: 'refurbished' as Condition,
+    Broken: 'broken' as Condition,
+}
+
+type Status = 'available' | 'sold';
+
+const Status = {
+    Available: 'available' as Status,
+    Sold: 'sold' as Status,
 }
 
 type UserRole = "user" | "admin";
@@ -16,7 +23,7 @@ const UserRole = {
     Admin: "admin" as UserRole,
 }
 
-export interface UserType{
+export interface UserType {
     id: string;
     display_name: string;
     slug: string;
@@ -31,9 +38,7 @@ export interface UserType{
     updated_at: Date;
 }
 
-
-
-export interface CategoryType{
+export interface CategoryType {
     id: number;
     name: string;
     icon: string;
@@ -43,7 +48,7 @@ export interface CategoryType{
 }
 
 
-export interface ListingType{
+export interface ListingType {
     id: UUID;
     user_id: string;
     user: UserType;
@@ -57,12 +62,12 @@ export interface ListingType{
     is_negotiable: boolean;
     seller_can_deliver: boolean;
     location: string;
-    is_active: boolean;
+    status: Status;
     created_at: Date;
     updated_at: Date;
 }
 
-export interface ListingImageType{
+export interface ListingImageType {
     id: UUID;
     listing_id: UUID;
     listing: ListingType;
@@ -70,7 +75,7 @@ export interface ListingImageType{
     order: number;
 }
 
-export interface ProfileType{
+export interface ProfileType {
     display_name: string;
     slug: string;
     email: string;
@@ -84,7 +89,7 @@ export interface ProfileType{
 }
 
 
-export interface FavoriteType{
+export interface FavoriteType {
     user_id: string;
     user: UserType;
     listing_id: UUID;
@@ -92,7 +97,7 @@ export interface FavoriteType{
     created_at: Date;
 }
 
-export interface ProfileMetricsType{
+export interface ProfileMetricsType {
     is_verified: boolean;
     active_listings_count: number;
     items_sold: number;
@@ -106,7 +111,33 @@ export interface PresignedUrl {
     key: string;
     publicURL: string;
     url: string;
-  }
+}
+
+export interface SaleType {
+    id: string;
+    listing_id: UUID;
+    listing: ListingType;
+    seller_id: UUID;
+    seller: UserType;
+    buyer_id: UUID | null;
+    buyer: UserType | null;
+    sold_at: Date;
+    final_price: number;
+    review: ReviewType | null;
+}
+
+export interface ReviewType {
+    id: string;
+    sale_id: string;
+    sale: SaleType;
+    rating: number;
+    comment: string;
+    created_at: Date;
+}
+
+export interface ErrorType {
+    error: string;
+}
 
 export type ReportReason = "fraude_golpe" | "proibido" | "info_falsa" | "outro";
 export type ReportStatus = "open" | "resolved" | "rejected";

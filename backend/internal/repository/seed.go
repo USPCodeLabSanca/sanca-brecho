@@ -109,7 +109,7 @@ func Seed() error {
 				IsNegotiable:     false,
 				SellerCanDeliver: false,
 				Location:         "São Carlos - SP",
-				IsActive:         true,
+				Status:           models.Available,
 			},
 			{
 				UserID:           users[1].ID,
@@ -122,7 +122,7 @@ func Seed() error {
 				IsNegotiable:     true,
 				SellerCanDeliver: false,
 				Location:         "São Carlos - SP",
-				IsActive:         true,
+				Status:           models.Available,
 			},
 			{
 				UserID:           users[2].ID,
@@ -135,7 +135,7 @@ func Seed() error {
 				IsNegotiable:     true,
 				SellerCanDeliver: true,
 				Location:         "São Carlos - SP",
-				IsActive:         true,
+				Status:           models.Available,
 			},
 			{
 				UserID:           users[0].ID,
@@ -148,7 +148,7 @@ func Seed() error {
 				IsNegotiable:     false,
 				SellerCanDeliver: true,
 				Location:         "São Carlos - SP",
-				IsActive:         true,
+				Status:           models.Available,
 			},
 			{
 				UserID:           users[1].ID,
@@ -161,7 +161,7 @@ func Seed() error {
 				IsNegotiable:     false,
 				SellerCanDeliver: false,
 				Location:         "São Carlos - SP",
-				IsActive:         true,
+				Status:           models.Available,
 			},
 			{
 				UserID:           users[2].ID,
@@ -174,7 +174,7 @@ func Seed() error {
 				IsNegotiable:     false,
 				SellerCanDeliver: false,
 				Location:         "São Carlos - SP",
-				IsActive:         true,
+				Status:           models.Available,
 			},
 			{
 				UserID:           users[0].ID,
@@ -187,7 +187,7 @@ func Seed() error {
 				IsNegotiable:     true,
 				SellerCanDeliver: false,
 				Location:         "São Carlos - SP",
-				IsActive:         true,
+				Status:           models.Available,
 			},
 			{
 				UserID:           users[1].ID,
@@ -200,7 +200,7 @@ func Seed() error {
 				IsNegotiable:     true,
 				SellerCanDeliver: true,
 				Location:         "São Carlos - SP",
-				IsActive:         false,
+				Status:           models.Sold,
 			},
 		}
 		for _, l := range listings {

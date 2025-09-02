@@ -22,8 +22,8 @@ func CreateListing(c *gin.Context) {
 	listing.ID = uuid.New()
 	//set the slug
 	listing.Slug = slug.Make(listing.Title)
-	//setting the active status to true
-	listing.IsActive = true
+	//setting the status to available
+	listing.Status = models.Available
 
 	var category models.Category
 	if err := database.DB.First(&category, "id = ?", listing.CategoryID).Error; err != nil {
@@ -53,7 +53,7 @@ func CreateListing(c *gin.Context) {
 func GetListings(c *gin.Context) {
 	var listings []models.Listing
 
-	if err := database.DB.Preload("User").Preload("Category").Find(&listings).Error; err != nil {
+	if err := database.DB.Preload("User").Preload("Category").Where("status = ?", models.Available).Find(&listings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
 		return
 	}
@@ -94,6 +94,7 @@ func GetListing(c *gin.Context) {
 
 	if err := database.DB.Preload("User").Preload("Category").First(&listing, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+		return
 	}
 
 	c.JSON(http.StatusOK, listing)
@@ -106,6 +107,7 @@ func GetListingBySlug(c *gin.Context) {
 
 	if err := database.DB.Preload("User").Preload("Category").First(&listing, "slug = ?", slug).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+		return
 	}
 
 	c.JSON(http.StatusOK, listing)
@@ -125,7 +127,7 @@ func GetListingsByUser(c *gin.Context) {
 	}
 
 	var listings []models.Listing
-	if err := database.DB.Preload("User").Preload("Category").Where("user_id = ?", user.ID).Find(&listings).Error; err != nil {
+	if err := database.DB.Preload("User").Preload("Category").Where("user_id = ? AND status = ?", user.ID, models.Available).Find(&listings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings for user"})
 		return
 	}
@@ -198,5 +200,5 @@ func DeleteListing(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"messa": "Listing deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Listing deleted successfully"})
 }

@@ -197,8 +197,8 @@ func GetProfileMetrics(c *gin.Context) {
 	}
 
 	// Counting active listings
-	repository.DB.Model(&models.Listing{}).Where("user_id = ? AND is_active = ?", user.ID, true).Count(&metrics.ActiveListingsCount)
-	repository.DB.Model(&models.Listing{}).Where("user_id = ? AND is_active = ?", user.ID, false).Count(&metrics.ItemsSold)
+	repository.DB.Model(&models.Listing{}).Where("user_id = ? AND status = ?", user.ID, models.Available).Count(&metrics.ActiveListingsCount)
+	repository.DB.Model(&models.Listing{}).Where("user_id = ? AND status = ?", user.ID, models.Sold).Count(&metrics.ItemsSold)
 
 	// Counting total listings
 	repository.DB.Model(&models.Listing{}).Where("user_id = ?", user.ID).Count(&metrics.TotalListingsCount)
