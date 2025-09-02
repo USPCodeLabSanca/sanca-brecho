@@ -46,6 +46,22 @@ func New() *gin.Engine {
 			listingRouter.POST("/", handler.CreateListing)      // usuário logado
 			listingRouter.PUT("/:id", handler.UpdateListing)    // usuário logado
 			listingRouter.DELETE("/:id", handler.DeleteListing) // usuário logado
+			listingRouter.POST("/:id/sell", handler.CreateSale) // usuário logado
+		}
+
+		salesRouter := api.Group("/sales")
+		salesRouter.Use(middleware.Auth)
+		{
+			salesRouter.GET("/:id", handler.GetSale)              // usuário logado
+			salesRouter.GET("/buyer", handler.GetSalesAsBuyer)    // usuário logado
+			salesRouter.GET("/seller", handler.GetSalesAsSeller)  // usuário logado
+			salesRouter.POST("/:id/review", handler.CreateReview) // usuário logado
+		}
+
+		reviewRouter := api.Group("/reviews")
+		{
+			reviewRouter.GET("/:user_slug/sent", handler.GetReviewsSent)         // qualquer usuário
+			reviewRouter.GET("/:user_slug/received", handler.GetReviewsReceived) // qualquer usuário
 		}
 
 		categorieRouter := api.Group("/categories")

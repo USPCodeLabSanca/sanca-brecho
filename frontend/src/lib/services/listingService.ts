@@ -1,6 +1,5 @@
-
 import api from '../api/axiosConfig';
-import { ListingImageType, ListingType, PresignedUrl } from '../types/api';
+import { ListingImageType, ListingType, PresignedUrl, SaleType, ErrorType } from '../types/api';
 
 
 // Buscar todos os listings
@@ -29,7 +28,7 @@ export const createListing = async (
         'slug' |
         'user' |
         'category' |
-        'is_active' |
+        'status' |
         'created_at' |
         'updated_at'>): Promise<ListingType> => {
     const response = await api.post('/listings/', listing);
@@ -90,4 +89,13 @@ export const deleteListingImage = async (id: string): Promise<void> => {
 export const getListingsByUser = async (slug: string): Promise<ListingType[]> => {
     const response = await api.get(`/listings/user/${slug}`);
     return response.data;
+}
+
+export const createSale = async (id: string, buyer_identifier: string, final_price: number): Promise<SaleType | ErrorType> => {
+    try {
+        const response = await api.post(`/listings/${id}/sell`, { buyer_identifier, final_price });
+        return response.data;
+    } catch (err: any) {
+        return err.response?.data;
+    }
 }
