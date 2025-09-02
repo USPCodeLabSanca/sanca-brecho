@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/context/AuthContext";
-import { Bell, Search, Menu, User as UserIcon, LogOut, Plus, LogIn } from "lucide-react";
+import { Bell, Search, Menu, User as UserIcon, LogOut, Plus, LogIn, ShoppingBagIcon, Tag } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { signOutUser } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
@@ -142,6 +142,14 @@ export default function Navbar() {
                         <UserIcon className="w-4 h-4 mr-2" />
                         Ver Perfil
                       </Link>
+                      <Link href="/vendas" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-sanca">
+                        <Tag className="w-4 h-4 mr-2" />
+                        Minhas vendas
+                      </Link>
+                      <Link href="/compras" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-sanca">
+                        <ShoppingBagIcon className="w-4 h-4 mr-2" />
+                        Minhas compras
+                      </Link>
                       <button
                         onClick={handleLogout}
                         className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-sanca"
@@ -210,6 +218,20 @@ export default function Navbar() {
                 >
                   <Bell className="w-4 h-4 mr-2" />
                   Notificações
+                </Link>
+                <Link
+                  href={`/vendas`}
+                  className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
+                >
+                  <Tag className="w-4 h-4 mr-2" />
+                  Minhas vendas
+                </Link>
+                <Link
+                  href={`/compras`}
+                  className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
+                >
+                  <ShoppingBagIcon className="w-4 h-4 mr-2" />
+                  Minhas compras
                 </Link>
                 <Link
                   href={`/usuario/${userProfileSlug}`}
