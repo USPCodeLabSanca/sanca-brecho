@@ -7,7 +7,18 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	swaggerfiles "github.com/swaggo/files"
+	ginswagger "github.com/swaggo/gin-swagger"
+	_ "api/internal/handler/docs"
+
 )
+
+// @title Sanca Brecho Backend service
+// @version 1.0
+// @description Serviços disponibilizados pela API do Sanca Brecho
+// @contact.name API Support zap zap
+// @BasePath /
 
 func New() *gin.Engine {
 	router := gin.Default()
@@ -22,6 +33,8 @@ func New() *gin.Engine {
 
 	api := router.Group("/api")
 	{
+		api.GET("/swagger/*any", ginswagger.WrapHandler(swaggerfiles.Handler))
+
 		api.POST("/login", handler.Login)
 		api.GET("/profile/:slug", handler.FindProfile)
 		api.GET("/profile/:slug/is-owner", middleware.Auth, handler.CheckProfileOwnership)

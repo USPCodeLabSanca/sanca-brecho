@@ -1,0 +1,89 @@
+basePath: /
+definitions:
+  handler.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handler.LoginResponse:
+    properties:
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      display_name:
+        type: string
+      email:
+        type: string
+      id:
+        description: UUID firebase
+        type: string
+      photo_url:
+        type: string
+      role:
+        $ref: '#/definitions/models.UserRole'
+      slug:
+        type: string
+      telegram:
+        type: string
+      university:
+        type: string
+      updated_at:
+        type: string
+      verified:
+        type: boolean
+      whatsapp:
+        type: string
+    type: object
+  models.UserRole:
+    enum:
+    - user
+    - admin
+    type: string
+    x-enum-varnames:
+    - RoleUser
+    - RoleAdmin
+info:
+  contact:
+    name: API Support zap zap
+  description: Serviços disponibilizados pela API do Sanca Brecho
+  title: Sanca Brecho Backend service
+  version: "1.0"
+paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Rota para realização de login
+      parameters:
+      - description: Autorizaçao por Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário logado com sucesso
+          schema:
+            $ref: '#/definitions/handler.LoginResponse'
+        "401":
+          description: Não autorizado
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "403":
+          description: Acesso proibido. Apenas emails universitários permitidos
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Erro interno
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Login
+      tags:
+      - Login
+swagger: "2.0"

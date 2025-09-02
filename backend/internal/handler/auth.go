@@ -8,9 +8,21 @@ import (
 	"net/http"
 	"strings"
 
+	
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Login
+// @Description Rota para realização de login
+// @Tags Login
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Autorizaçao por Bearer token"
+// @Success 200 {object} LoginResponse "Usuário logado com sucesso"
+// @Failure 401 {object} ErrorResponse "Não autorizado"
+// @Failure 403 {object} ErrorResponse "Acesso proibido. Apenas emails universitários permitidos"
+// @Failure 500 {object} ErrorResponse "Erro interno"
+// @Router /api/login [post]
 func Login(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
@@ -21,7 +33,7 @@ func Login(c *gin.Context) {
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Invalid token format"})
 		c.Abort()
 		return
 	}
@@ -32,7 +44,7 @@ func Login(c *gin.Context) {
 	ctx := c.Request.Context()
 	token, err := config.AuthClient.VerifyIDToken(ctx, idToken)
 	if err != nil {
-		c.JSON(401, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Unauthorized"})
 		return
 	}
 
@@ -40,7 +52,7 @@ func Login(c *gin.Context) {
 	userRecord, err := config.AuthClient.GetUser(ctx, token.UID)
 	if err != nil {
 		fmt.Println(err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to load user record"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to load user record"})
 		return
 	}
 
@@ -51,11 +63,11 @@ func Login(c *gin.Context) {
 		deleteErr := config.AuthClient.DeleteUser(ctx, token.UID)
 		if deleteErr != nil {
 			fmt.Printf("Error deleting non-institutional user %s from Firebase: %v\n", token.UID, deleteErr)
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Falha ao processar login devido a e-mail não institucional. Por favor, tente novamente."})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: "Falha ao processar login devido a e-mail não institucional. Por favor, tente novamente."})
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Para acessar o Sanca Brechó é necessário utilizar um e-mail de uma instituição de ensino superior."})
+		c.AbortWithStatusJSON(http.StatusForbidden, ErrorResponse{Error: "Para acessar o Sanca Brechó é necessário utilizar um e-mail de uma instituição de ensino superior."})
 		return
 	}
 
@@ -73,7 +85,7 @@ func Login(c *gin.Context) {
 		FirstOrCreate(&user)
 
 	if result.Error != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: result.Error.Error()})
 		return
 	}
 
@@ -98,14 +110,16 @@ func Login(c *gin.Context) {
 
 		if changed {
 			if err := repository.DB.WithContext(ctx).Save(&user).Error; err != nil {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 				return
 			}
 		}
 	}
 
+	response := LoginResponse{User: user}
+
 	// Return the user information
-	c.JSON(http.StatusOK, gin.H{"user": user})
+	c.JSON(http.StatusOK, response)
 }
 
 func parseUniversity(email string) (*string, bool) {

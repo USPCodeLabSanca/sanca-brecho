@@ -3,11 +3,20 @@ FROM golang:1.24-alpine
 
 WORKDIR /app
 
+# install air
 RUN go install github.com/air-verse/air@latest
+
+# insatll swagger
+RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 # Copy go mod files
 COPY go.mod go.sum ./
 RUN go mod download
+
+COPY . .
+
+# generate swagger doc at internal/handler/docs
+RUN swag init -g internal/router/router.go -o internal/handler/docs
 
 # Expose the application port
 EXPOSE 8080
