@@ -63,6 +63,7 @@ const Usuario = () => {
       id: "123e4567-e89b-12d3-a456-426614174000" as any,
       title: "Cadeira de Escritório Ergonômica",
       description: "Cadeira semi-nova, super confortável.",
+      keywords: "cadeira escritório",
       price: 450.00,
       condition: "used",
       is_negotiable: true,
@@ -110,6 +111,7 @@ const Usuario = () => {
       id: "123e4567-e89b-12d3-a456-426614174001" as any,
       title: "Tablet Samsung Galaxy Tab S7",
       description: "Tablet em excelente estado, usado por 6 meses.",
+      keywords: "tablet samsung",
       price: 1800.00,
       condition: "used",
       is_negotiable: true,
@@ -400,17 +402,29 @@ const Usuario = () => {
               </div>
             </div>
             <Tabs>
-              <TabList className={`grid bg-slate-100 rounded-sm p-1 ${isOwnerProfile ? "grid-cols-4" : "grid-cols-2"}`}>
-                <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><Package className="h-4 w-4 mr-2" /><span>
-                  {isOwnerProfile ? 'Meus Produtos' : 'Produtos'}
-                </span></Tab>
+              <TabList className={`flex overflow-x-auto no-scrollbar bg-slate-100 rounded-sm p-1 ${isOwnerProfile ? "sm:grid sm:grid-cols-4" : "sm:grid sm:grid-cols-2"}`}>
+                <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
+                  <Package className="h-4 w-4 mr-2" />
+                  <span className="text-xs sm:text-base">
+                    {isOwnerProfile ? 'Meus Produtos' : 'Produtos'}
+                  </span>
+                </Tab>
                 {isOwnerProfile && (
                   <>
-                    <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><ShoppingCart className="h-4 w-4 mr-2" /><span>Minhas Compras</span></Tab>
-                    <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><DollarSign className="h-4 w-4 mr-2" /><span>Minhas Vendas</span></Tab>
+                    <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      <span className="text-xs sm:text-base">Minhas Compras</span>
+                    </Tab>
+                    <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      <span className="text-xs sm:text-base">Minhas Vendas</span>
+                    </Tab>
                   </>
                 )}
-                <Tab selectedClassName="bg-white rounded-sm shadow-xs" value="reviews" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><Star className="h-4 w-4 mr-2" /><span>Avaliações</span></Tab>
+                <Tab selectedClassName="bg-white rounded-sm shadow-xs" value="reviews" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
+                  <Star className="h-4 w-4 mr-2" />
+                  <span className="text-xs sm:text-base">Avaliações</span>
+                </Tab>
               </TabList>
               <TabPanel>
                 <div className="bg-white rounded-xl p-6">

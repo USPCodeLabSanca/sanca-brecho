@@ -38,7 +38,7 @@ func New() *gin.Engine {
 		listingRouter := api.Group("/listings")
 		{
 			listingRouter.GET("/", handler.GetListings)                      // qualquer usuário
-			listingRouter.GET("/search", handler.GetListingsSearch)
+			listingRouter.GET("/search", handler.GetListingsSearch)          // qualquer usuário
 			listingRouter.GET("/:id", handler.GetListing)                    // qualquer usuário
 			listingRouter.GET("/slug/:slug", handler.GetListingBySlug)       // qualquer usuário
 			listingRouter.GET("/user/:user_slug", handler.GetListingsByUser) // qualquer usuário
@@ -83,12 +83,10 @@ func New() *gin.Engine {
 			listingImageRouter.GET("/listing/:listingID", handler.GetListingImagesByListing) // qualquer usuário
 
 			listingImageRouter.Use(middleware.Auth)
-			listingImageRouter.POST("/s3", handler.GeneratePresignedURL) // usuário logado
-
-			listingImageRouter.Use(middleware.AdminAuth)
-			listingImageRouter.POST("/", handler.CreateListingImage)      // usuário admin
-			listingImageRouter.PUT("/:id", handler.UpdateListingImage)    // usuário admin
-			listingImageRouter.DELETE("/:id", handler.DeleteListingImage) // usuário admin
+			listingImageRouter.POST("/s3", handler.GeneratePresignedURL)  // usuário logado
+			listingImageRouter.POST("/", handler.CreateListingImage)      // usuário logado
+			listingImageRouter.DELETE("/:id", handler.DeleteListingImage) // usuário logado
+			listingImageRouter.PUT("/:id", handler.UpdateListingImage)    // usuário logado
 		}
 
 		favoriteRouter := api.Group("/favorites")

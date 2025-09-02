@@ -40,7 +40,7 @@ func CreateListing(c *gin.Context) {
 	if err := database.DB.
 		Preload("User").
 		Preload("Category").
-		Where("user_id = ? AND is_active = ?", CurrentUser.ID, true).
+		Where("user_id = ? AND status = ?", CurrentUser.ID, models.Available).
 		Find(&userActiveListings).Error; err != nil {
 
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
@@ -95,14 +95,14 @@ func GetListings(c *gin.Context) {
 	c.JSON(http.StatusOK, listings)
 }
 
-func GetListingsSearch( c *gin.Context) {
+func GetListingsSearch(c *gin.Context) {
 	query, ok := c.Params.Get("query")
 	if !ok {
-		c.JSON(http.StatusBadRequest,  gin.H{"message" : "missing `query` param"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "missing `query` param"})
 	}
 
 	if query == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"message" : "missing `query` param"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "missing `query` param"})
 		return
 	}
 

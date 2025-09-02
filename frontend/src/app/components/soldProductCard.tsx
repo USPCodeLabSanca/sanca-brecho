@@ -58,14 +58,14 @@ export function SoldProductCard({ product, soldTo, buyerReview }: SoldProductCar
       {/* Coluna da Imagem */}
       <Link href={`/produto/${product.slug}`} className="block relative h-48 sm:h-auto sm:w-1/3 md:w-1/4 flex-shrink-0 bg-gray-100">
         {loadingImage ? (
-           <div className="flex items-center justify-center h-full"><Spinner /></div>
+          <div className="flex items-center justify-center h-full"><Spinner /></div>
         ) : (
           <Image
             src={imageSrc}
             alt={product.title}
-            layout="fill"
-            objectFit="cover"
-            className="transition-transform duration-300 hover:scale-105"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 hover:scale-105"
           />
         )}
       </Link>
