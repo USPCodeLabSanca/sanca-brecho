@@ -129,6 +129,7 @@ export interface SaleType {
 export interface ReviewType {
     id: string;
     sale_id: string;
+    sale: SaleType;
     rating: number;
     comment: string;
     created_at: Date;

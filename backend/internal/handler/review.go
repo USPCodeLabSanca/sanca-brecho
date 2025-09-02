@@ -51,11 +51,16 @@ func CreateReview(c *gin.Context) {
 }
 
 func GetReviewsReceived(c *gin.Context) {
-	user_id := c.Param("user_id")
+	user_slug := c.Param("user_slug")
+
+	var user models.User
+	if err := database.DB.Where("slug = ?", user_slug).Find(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve User"})
+	}
 
 	var reviews []models.Review
 
-	if err := database.DB.Preload("Sale.Seller").Preload("Sale.Buyer").Preload("Sale.Listing").Joins("JOIN sales ON sales.id = reviews.sale_id").Where("sales.seller_id = ?", user_id).Order("reviews.created_at DESC").Find(&reviews).Error; err != nil {
+	if err := database.DB.Preload("Sale.Seller").Preload("Sale.Buyer").Preload("Sale.Listing").Joins("JOIN sales ON sales.id = reviews.sale_id").Where("sales.seller_id = ?", user.ID).Order("reviews.created_at DESC").Find(&reviews).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve Reviews"})
 		return
 	}
@@ -64,11 +69,16 @@ func GetReviewsReceived(c *gin.Context) {
 }
 
 func GetReviewsSent(c *gin.Context) {
-	user_id := c.Param("user_id")
+	user_slug := c.Param("user_slug")
+
+	var user models.User
+	if err := database.DB.Where("slug = ?", user_slug).Find(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve User"})
+	}
 
 	var reviews []models.Review
 
-	if err := database.DB.Preload("Sale.Seller").Preload("Sale.Buyer").Preload("Sale.Listing").Joins("JOIN sales ON sales.id = reviews.sale_id").Where("sales.buyer_id = ?", user_id).Order("reviews.created_at DESC").Find(&reviews).Error; err != nil {
+	if err := database.DB.Preload("Sale.Seller").Preload("Sale.Buyer").Preload("Sale.Listing").Joins("JOIN sales ON sales.id = reviews.sale_id").Where("sales.buyer_id = ?", user.ID).Order("reviews.created_at DESC").Find(&reviews).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve Reviews"})
 		return
 	}

@@ -58,8 +58,8 @@ func New() *gin.Engine {
 
 		reviewRouter := api.Group("/reviews")
 		{
-			reviewRouter.GET("/:user_id/sent", handler.GetReviewsSent)
-			reviewRouter.GET("/:user_id/received", handler.GetReviewsReceived)
+			reviewRouter.GET("/:user_slug/sent", handler.GetReviewsSent)
+			reviewRouter.GET("/:user_slug/received", handler.GetReviewsReceived)
 		}
 
 		categorieRouter := api.Group("/categories")
