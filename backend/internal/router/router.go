@@ -38,6 +38,7 @@ func New() *gin.Engine {
 		listingRouter := api.Group("/listings")
 		{
 			listingRouter.GET("/", handler.GetListings)                      // qualquer usuário
+			listingRouter.GET("/search", handler.GetListingsSearch)
 			listingRouter.GET("/:id", handler.GetListing)                    // qualquer usuário
 			listingRouter.GET("/slug/:slug", handler.GetListingBySlug)       // qualquer usuário
 			listingRouter.GET("/user/:user_slug", handler.GetListingsByUser) // qualquer usuário
