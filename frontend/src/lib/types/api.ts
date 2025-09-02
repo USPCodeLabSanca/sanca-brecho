@@ -57,6 +57,7 @@ export interface ListingType {
     title: string;
     slug: string;
     description: string;
+    keywords: string;
     price: number;
     condition: Condition;
     is_negotiable: boolean;

@@ -31,7 +31,7 @@ func Migrate() {
 	}
 
 	enableTSVectorSearchColumn() // shoud be called after all table alters (probably)
-	crateTSIndex() // deixando tudo mai rapidop
+	crateTSIndex()               // deixando tudo mai rapidop
 
 	log.Println("✅ Database migrated successfully")
 }
@@ -101,7 +101,7 @@ func createListingsIndexes() {
 func enableTSVectorSearchColumn() {
 	err := DB.Exec(`
 		ALTER TABLE listings
-		ADD title_search tsvector
+		ADD COLUMN IF NOT EXISTS title_search tsvector
 		GENERATED ALWAYS AS (
 			setweight(to_tsvector('simple', coalesce(title, '')), 'A') || ' ' ||
 			setweight(to_tsvector('simple', coalesce(keywords, '')), 'B') :: tsvector
@@ -115,7 +115,7 @@ func enableTSVectorSearchColumn() {
 
 func crateTSIndex() {
 	err := DB.Exec(`
-		CREATE INDEX idx_search ON listings USING GIN(title_search);
+		CREATE INDEX IF NOT EXISTS idx_search ON listings USING GIN(title_search);
  	`).Error
 
 	if err != nil {

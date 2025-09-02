@@ -168,9 +168,9 @@ export default function ProdutoClient() {
 
             {/* Product Info */}
             <div>
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{product.title}</h1>
+              <div className="flex flex-col md:flex-row justify-between items-start mb-3">
+                <div className="max-w-full md:max-w-4/5">
+                  <h1 className="text-2xl font-bold text-gray-900 break-words text-ellipsis">{product.title}</h1>
                   <p className="text-gray-500">{product.category.name} • {getDisplayCondition(product.condition)}</p>
                 </div>
                 <div className="flex gap-2">
@@ -288,7 +288,7 @@ export default function ProdutoClient() {
                 </TabList>
 
                 <TabPanel>
-                  <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
+                  <p className="text-gray-700 whitespace-pre-line break-words">{product.description}</p>
                 </TabPanel>
 
                 <TabPanel>
