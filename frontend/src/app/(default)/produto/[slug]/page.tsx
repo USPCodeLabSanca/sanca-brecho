@@ -15,6 +15,7 @@ import { showErrorToast, showNotificationToast } from "@/lib/toast";
 import { getProfileMetricsBySlug } from "@/lib/services/profileService";
 import Spinner from "@/app/components/spinner";
 import { ReportDialog } from "@/app/components/reportModal";
+import { SellModal } from "@/app/components/sellModal";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
@@ -121,6 +122,11 @@ export default function ProdutoClient() {
       showNotificationToast("Link copiado para a área de transferência");
     }
   };
+  
+  const handleProductSold = (buyerId: string) => {
+    console.log(`Produto ${product.id} vendido para ${buyerId}`);
+    // TODO: chamada para atualizar o status do produto no backend
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -148,12 +154,6 @@ export default function ProdutoClient() {
                   <p className="text-gray-500">{product.category.name} • {getDisplayCondition(product.condition)}</p>
                 </div>
                 <div className="flex gap-2">
-                  {/*<button
-                    onClick={() => {console.log("implementar wishlist");}}
-                    className="border-gray-200"
-                  >
-                    <Heart className="h-5 w-5 text-gray-500 hover:text-sanca" />
-                  </button>*/}
                   {isOwner && (
                     <Link href={`/produto/${product.slug}/editar`}>
                       <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap border border-gray-300 rounded-md text-sm text-black font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-white hover:bg-sanca/10">
@@ -170,7 +170,6 @@ export default function ProdutoClient() {
               </div>
               
               <div className="flex items-center mb-4">
-                {/* Implemente badges de preço negociável e vendendor pode entregar */}
                 {product.is_negotiable && (
                   <span className="inline-block bg-green-100/80 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-2">
                     <TrendingDown className="inline-block h-3 w-3 mr-1" />
@@ -192,9 +191,22 @@ export default function ProdutoClient() {
               </div>
 
               <div className="mb-4">
-                <button onClick={handleWhatsAppClick} className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700">
-                  <FaWhatsapp />Contatar Vendedor pelo WhatsApp
-                </button>
+                {isOwner ? (
+                  <div>
+                    <SellModal
+                      productId={product.id}
+                      onProductSold={handleProductSold}
+                    />
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleWhatsAppClick}
+                    className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700"
+                  >
+                    <FaWhatsapp />
+                    Contatar Vendedor pelo WhatsApp
+                  </button>
+                )}
               </div>
 
               <div className="flex items-center gap-3 mb-4">
@@ -234,11 +246,6 @@ export default function ProdutoClient() {
                   <MapPin className="h-4 w-4 mr-1" />
                   {product.location}
                 </div>
-                {/* TO-DO: Implementar sistema de visualizações */}
-                {/*<div className="flex items-center">
-                  <Eye className="h-4 w-4 mr-1" />
-                  {product.views} visualizações
-                </div>*/}
               </div>
               <Tabs>
                 <TabList className="grid grid-cols-2 bg-slate-100 rounded-sm p-1 mb-4">
