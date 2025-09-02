@@ -8,6 +8,8 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"api/internal/models"
 )
 
 var DB *gorm.DB
@@ -44,4 +46,25 @@ func Connect() {
 	DB = db
 
 	log.Println("✅ Database connected successfully")
+}
+
+
+func SearchListingsFTS(query string) ([]models.Listing, error) {
+	var results []models.Listing
+
+	sql := `
+	SELECT *
+	FROM listings
+	WHERE title_search @@ websearch_to_tsquery(?)
+	`
+
+	err := DB.Raw(sql, query).Scan(&results).Error
+    if err != nil {
+		log.Fatal("❌ Failed to scan listings using fts: ", err)
+        return nil, err
+    }
+    
+	log.Println("✅ Fts Scan complete")
+
+    return results, nil
 }
