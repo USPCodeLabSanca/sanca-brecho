@@ -10,6 +10,7 @@ func Migrate() {
 
 	ennableUUIDExtension()
 	createConditionEnum()
+	createReportEnums()
 
 	err = DB.AutoMigrate(
 		&models.User{},
@@ -17,6 +18,7 @@ func Migrate() {
 		&models.Listing{},
 		&models.ListingImage{},
 		&models.Favorite{},
+		&models.Report{},
 	)
 
 	if err != nil {
@@ -49,6 +51,26 @@ func createConditionEnum() {
 	`).Error
 	if err != nil {
 		log.Fatal("❌ Failed to create enum condition_enum:", err)
+	}
+}
+
+// Create the enum types for the Report model
+func createReportEnums() {
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'report_reason_enum') THEN
+				CREATE TYPE report_reason_enum AS ENUM ('fraude_golpe', 'proibido', 'info_falsa', 'outro');
+			END IF;
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'report_status_enum') THEN
+				CREATE TYPE report_status_enum AS ENUM ('open', 'resolved', 'rejected');
+			END IF;
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'report_target_type_enum') THEN
+				CREATE TYPE report_target_type_enum AS ENUM ('product', 'user');
+			END IF;
+		END$$;
+	`).Error; err != nil {
+		log.Fatal("❌ Failed to create report enum types:", err)
 	}
 }
 

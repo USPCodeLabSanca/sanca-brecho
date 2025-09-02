@@ -14,7 +14,8 @@ import {
   BadgeCheck,
   ShieldCheck,
   Handshake,
-  ShoppingBag
+  ShoppingBag,
+  Flag
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProfileType, ListingType, ProfileMetricsType } from "@/lib/types/api";
@@ -24,6 +25,7 @@ import { getMe } from "@/lib/services/userService";
 import { getListingsByUser } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
 import Spinner from "@/app/components/spinner";
+import { ReportDialog } from "@/app/components/reportModal";
 
 const Usuario = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -191,7 +193,7 @@ const Usuario = () => {
                   <img src={userAvatar} alt={`Foto de perfil de ${userProfile.display_name}`} className="h-24 w-24 object-cover" />
                 </div>
                 <div className="pt-14 pb-2 flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div>
+                  <div className="w-full">
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center">
                       {userProfile.display_name}
                       {userProfile.verified && (
@@ -224,7 +226,7 @@ const Usuario = () => {
                     <div className="mt-4 md:mt-0 flex space-x-2">
                       {isOwnerProfile ? (
                         <>
-                          <Link href="#">
+                          <Link href={`/usuario/${slug}/editar`}>
                             <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap border border-gray-300 rounded-md text-sm text-black font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-white hover:bg-sanca/10">
                               <Edit className="mr-1 h-4 w-4" />Editar Perfil
                             </button>
@@ -238,13 +240,18 @@ const Usuario = () => {
                           )}
                         </>
                       ) : ( 
-                        userProfile.verified && (
-                          <Link href={`https://wa.me/${userProfile.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`}>
-                            <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-[#25D366] hover:bg-[#25D366]/90">
-                              <FaWhatsapp className="text-white" />Entrar em contato
-                            </button>
-                          </Link>
-                        )
+                        <div className="w-full flex items-center justify-between">
+                        {userProfile.verified && (
+                          
+                            <Link href={`https://wa.me/${userProfile.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`}>
+                              <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-[#25D366] hover:bg-[#25D366]/90">
+                                <FaWhatsapp className="text-white" />Entrar em contato
+                              </button>
+                            </Link>
+                        )}
+                            <span/>
+                            <ReportDialog targetId={userProfile.slug} targetType="user" />
+                          </div>
                       )}
                     </div>
                   </div>

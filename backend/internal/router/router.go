@@ -75,6 +75,14 @@ func New() *gin.Engine {
 			favoriteRouter.GET("/:user_id", handler.ListFavoritesByUser)
 		}
 
+		reportRouter := api.Group("/reports")
+		reportRouter.Use(middleware.Auth)
+		{
+			reportRouter.POST("/", handler.CreateReport)
+			reportRouter.GET("/", middleware.AdminAuth, handler.GetReports)
+			reportRouter.GET("/:id", middleware.AdminAuth, handler.GetReport)
+			reportRouter.PUT("/:id/status", middleware.AdminAuth, handler.UpdateReportStatus)
+		}
 	}
 
 	return router
