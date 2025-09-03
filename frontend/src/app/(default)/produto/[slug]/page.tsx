@@ -5,7 +5,7 @@ import Image from "next/image";
 import ProductImageCarousel from "@/app/components/productImageCarousel";
 import { notFound, useParams } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
-import { ArrowLeft, Calendar, Edit, Flag, Handshake, MapPin, Share, TrendingDown, Truck } from "lucide-react";
+import { ArrowLeft, Calendar, Edit, Handshake, MapPin, Share, Tag, TrendingDown, Truck } from "lucide-react";
 import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
 import { useEffect, useState } from "react";
 import { ListingType, ProfileMetricsType } from "@/lib/types/api";
@@ -15,15 +15,17 @@ import { showErrorToast, showNotificationToast } from "@/lib/toast";
 import { getProfileMetricsBySlug } from "@/lib/services/profileService";
 import Spinner from "@/app/components/spinner";
 import { ReportDialog } from "@/app/components/reportModal";
+import { SellModal } from "@/app/components/sellModal";
+import CreateSaleModal from "@/app/components/createSaleModal";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
-  const [product, setProduct] = useState<ListingType>();
+  const [product, setProduct] = useState<ListingType | null>(null);
   const [errorProduct, setErrorProduct] = useState<string | null>(null);
   const [loadingProduct, setLoadingProduct] = useState(true);
   const { user, loading: loadingAuth } = useAuth();
-
   const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Função para formatar a condição do produto
   const getDisplayCondition = (condition: string): string => {
@@ -63,21 +65,21 @@ export default function ProdutoClient() {
   }, [slug]);
 
   // Busca as métricas do vendedor
-    useEffect(() => {
-      const fetchMetrics = async () => {
-        if (!product?.user.slug) {
-          return;
-        }
-        try {
-          const data = await getProfileMetricsBySlug(product.user.slug);
-          setMetrics(data);
-        } catch (error: any) {
-          setMetrics(undefined);
-          console.error("Falha ao buscar métricas:", error);
-        }
-      };
-      fetchMetrics();
-    }, [product?.user.slug]);
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      if (!product?.user.slug) {
+        return;
+      }
+      try {
+        const data = await getProfileMetricsBySlug(product.user.slug);
+        setMetrics(data);
+      } catch (error: any) {
+        setMetrics(undefined);
+        console.error("Falha ao buscar métricas:", error);
+      }
+    };
+    fetchMetrics();
+  }, [product?.user.slug]);
 
   const isOwner = user && product && user.uid === product.user_id;
 
@@ -85,7 +87,7 @@ export default function ProdutoClient() {
     return Spinner();
   }
 
-  if (!product || !product.is_active) {
+  if (!product) {
     notFound();
   }
 
@@ -98,6 +100,18 @@ export default function ProdutoClient() {
   }
 
   if (!product) return null;
+
+  const isSold = product.status === 'sold';
+  const isAvailable = product.status === 'available';
+
+  const handleSaleSuccess = () => {
+    setProduct(currentProduct => {
+      if (!currentProduct) return null;
+      return { ...currentProduct, status: 'sold' }
+    })
+
+    setIsModalOpen(false);
+  }
 
   const handleWhatsAppClick = () => {
     const whatsappUrl = `https://wa.me/${product.user.whatsapp}?text=Olá! Vi seu anúncio do produto "${product.title}" no Sanca Brechó e gostaria de mais informações.`;
@@ -122,8 +136,20 @@ export default function ProdutoClient() {
     }
   };
 
+  const handleProductSold = (buyerId: string) => {
+    console.log(`Produto ${product.id} vendido para ${buyerId}`);
+    // TODO: chamada para atualizar o status do produto no backend
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
+      {isModalOpen &&
+        <CreateSaleModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          listing={product}
+          onSuccess={handleSaleSuccess}
+        />}
       <main className="flex-grow pb-10">
         <div className="container mx-auto px-4">
           {/* Breadcrumb */}
@@ -132,8 +158,8 @@ export default function ProdutoClient() {
               <ArrowLeft className="h-4 w-4 mr-1" />
               Voltar para produtos
             </Link>
-            { !isOwner && (
-            <ReportDialog targetId={product.id} targetType="product" />
+            {!isOwner && (
+              <ReportDialog targetId={product.id} targetType="product" />
             )}
           </div>
 
@@ -142,9 +168,9 @@ export default function ProdutoClient() {
 
             {/* Product Info */}
             <div>
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{product.title}</h1>
+              <div className="flex flex-col md:flex-row justify-between items-start mb-3">
+                <div className="max-w-full md:max-w-4/5">
+                  <h1 className="text-2xl font-bold text-gray-900 break-words text-ellipsis">{product.title}</h1>
                   <p className="text-gray-500">{product.category.name} • {getDisplayCondition(product.condition)}</p>
                 </div>
                 <div className="flex gap-2">
@@ -154,7 +180,15 @@ export default function ProdutoClient() {
                   >
                     <Heart className="h-5 w-5 text-gray-500 hover:text-sanca" />
                   </button>*/}
-                  {isOwner && (
+                  {isOwner && isAvailable && (
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <Tag className="h-4 w-4" />Vendido?
+                    </button>
+                  )}
+                  {isOwner && !isSold && (
                     <Link href={`/produto/${product.slug}/editar`}>
                       <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap border border-gray-300 rounded-md text-sm text-black font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-white hover:bg-sanca/10">
                         <Edit className="h-4 w-4" />Editar
@@ -168,9 +202,8 @@ export default function ProdutoClient() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="flex items-center mb-4">
-                {/* Implemente badges de preço negociável e vendendor pode entregar */}
                 {product.is_negotiable && (
                   <span className="inline-block bg-green-100/80 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2 mb-2">
                     <TrendingDown className="inline-block h-3 w-3 mr-1" />
@@ -192,9 +225,23 @@ export default function ProdutoClient() {
               </div>
 
               <div className="mb-4">
-                <button onClick={handleWhatsAppClick} className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700">
-                  <FaWhatsapp />Contatar Vendedor pelo WhatsApp
-                </button>
+                {isOwner ? (
+                  <div>
+                    <SellModal
+                      productId={product.id}
+                      onProductSold={handleProductSold}
+                    />
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleWhatsAppClick}
+                    disabled={isSold}
+                    className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {isAvailable && <FaWhatsapp />}
+                    {isSold ? 'Vendido' : 'Contatar Vendedor pelo WhatsApp'}
+                  </button>
+                )}
               </div>
 
               <div className="flex items-center gap-3 mb-4">
@@ -218,13 +265,12 @@ export default function ProdutoClient() {
                   </button>
                 </Link>
               </div>
-
               <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm mb-6">
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
                   Membro desde {new Date(product.user.created_at).toLocaleDateString('pt-BR')}
                 </div>
-                { metrics &&
+                {metrics &&
                   <div className="flex items-center">
                     <Handshake className="h-4 w-4 mr-1" />
                     Vendas concluídas: {metrics.items_sold}
@@ -234,11 +280,6 @@ export default function ProdutoClient() {
                   <MapPin className="h-4 w-4 mr-1" />
                   {product.location}
                 </div>
-                {/* TO-DO: Implementar sistema de visualizações */}
-                {/*<div className="flex items-center">
-                  <Eye className="h-4 w-4 mr-1" />
-                  {product.views} visualizações
-                </div>*/}
               </div>
               <Tabs>
                 <TabList className="grid grid-cols-2 bg-slate-100 rounded-sm p-1 mb-4">
@@ -247,7 +288,7 @@ export default function ProdutoClient() {
                 </TabList>
 
                 <TabPanel>
-                  <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
+                  <p className="text-gray-700 whitespace-pre-line break-words">{product.description}</p>
                 </TabPanel>
 
                 <TabPanel>

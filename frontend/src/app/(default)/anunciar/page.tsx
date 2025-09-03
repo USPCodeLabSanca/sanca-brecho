@@ -40,6 +40,7 @@ export default function Anunciar() {
   const [isNegotiable, setIsNegotiable] = useState(false);
   const [canDeliver, setCanDeliver] = useState(false);
   const [categories, setCategories] = useState<CategoryType[]>([]);
+  const [keywords, setKeywords] = useState<string[]>([]);
 
   // Estados de UI
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,6 +104,7 @@ export default function Anunciar() {
         user_id: user.uid,
         title,
         description,
+        keywords: keywords.join(' '),
         price: price!,
         category_id: parseInt(category),
         condition: condition as ListingType['condition'],
@@ -201,205 +203,214 @@ export default function Anunciar() {
     setPreviewImages((imgs) => imgs.filter((_, i) => i !== idx));
   }, []);
 
-  if (loading || loadingCategories || !user || (user && !user.phoneNumber)) {
-    return Spinner();
-  }
-
   return (
-    <div className="flex flex-col sm:bg-[#f3eefe]">
+    <>
+      {(loading || loadingCategories || !user || (user && !user.phoneNumber)) && <Spinner />}
+      {(isUploading || isSubmitting) && <Spinner />}
 
-      {(isUploading || isSubmitting) && (
-        Spinner()
-      )}
+      <div className="flex flex-col sm:bg-[#f3eefe]">
+        <section className="max-w-3xl p-4 mb-5 mx-auto" >
+          <h3 className="sm:text-2xl text-xl font-bold text-center sm:mt-5 mb-3">Anunciar um Produto</h3>
+          <div className="bg-white sm:rounded-xl sm:shadow-sm sm:p-6">
+            <form className="space-y-3" onSubmit={handleSubmit}>
+              {formError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md text-sm" role="alert">
+                  <span>{formError}</span>
+                </div>
+              )}
 
-      <section className="max-w-3xl p-4 mb-5 mx-auto" >
-        <h3 className="sm:text-2xl text-xl font-bold text-center sm:mt-5 mb-3">Anunciar um Produto</h3>
-        <div className="bg-white sm:rounded-xl sm:shadow-sm sm:p-6">
-          <form className="space-y-3" onSubmit={handleSubmit}>
-            {formError && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md text-sm" role="alert">
-                <span>{formError}</span>
-              </div>
-            )}
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium block" htmlFor="title">Título do anúncio</label>
-              <input
-                type="text"
-                name="title"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={100}
-                className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
-                placeholder="Ex: Livro de Cálculo Vol.1 Thomas"
-                required
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium block" htmlFor="description">Descrição detalhada</label>
-              <textarea
-                name="description"
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full border border-gray-300 rounded-md p-2 text-sm h-24 focus:outline-none focus:ring-2 focus:ring-sanca"
-                placeholder="Descreva detalhes importantes sobre o produto, como estado, marca, modelo, etc."
-                required
-              ></textarea>
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="price" className="text-sm font-medium block">Preço (R$)*</label>
-              <PriceInput
-                name="price"
-                id="price"
-                value={price}
-                onValueChange={(value) => setPrice(value)}
-                className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label htmlFor="category" className="text-sm font-medium block">Categoria*</label>
-                <select
-                  id="category"
-                  name="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca cursor-pointer"
+                <label className="text-sm font-medium block" htmlFor="title">Título do anúncio</label>
+                <input
+                  type="text"
+                  name="title"
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={100}
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
+                  placeholder="Ex: Livro de Cálculo Vol.1 Thomas"
                   required
-                >
-                  <option value="" disabled>Selecione</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="condition" className="text-sm font-medium block">Condição*</label>
-                <select
-                  name="condition"
-                  id="condition"
-                  value={condition}
-                  onChange={(e) => setCondition(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca cursor-pointer"
+                <label className="text-sm font-medium block" htmlFor="description">Descrição detalhada</label>
+                <textarea
+                  name="description"
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm h-24 focus:outline-none focus:ring-2 focus:ring-sanca"
+                  placeholder="Descreva detalhes importantes sobre o produto, como estado, marca, modelo, etc."
                   required
-                >
-                  <option value="" disabled>Selecione</option>
-                  <option value="new">Novo</option>
-                  <option value="used">Usado</option>
-                  <option value="refurbished">Recondicionado</option>
-                  <option value="broken">Com defeito</option>
-                </select>
+                ></textarea>
               </div>
 
-              <div>
-                <label className="inline-flex items-center cursor-pointer mt-2">
-                  <input type="checkbox" checked={isNegotiable} onChange={(e) => setIsNegotiable(e.target.checked)} className="sr-only peer" />
-                  <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
-                  <span className="ml-3 text-sm font-medium">Preço negociável</span>
-                </label>
+              <div className="space-y-1">
+                <label className="text-sm font-medium block" htmlFor="keywords">Palavras-chave (separadas por espaço)</label>
+                <input
+                  type="text"
+                  name="keywords"
+                  id="keywords"
+                  value={keywords.join(' ')}
+                  onChange={(e) => setKeywords(e.target.value.split(' ').map(kw => kw.trim()))}
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
+                  placeholder="Ex: livro cálculo thomas"
+                />
               </div>
 
-              <div>
-                <label className="inline-flex items-center cursor-pointer sm:mt-2">
-                  <input type="checkbox" checked={canDeliver} onChange={(e) => setCanDeliver(e.target.checked)} className="sr-only peer" />
-                  <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
-                  <span className="ml-3 text-sm font-medium">Posso entregar o produto</span>
-                </label>
+              <div className="space-y-1">
+                <label htmlFor="price" className="text-sm font-medium block">Preço (R$)*</label>
+                <PriceInput
+                  name="price"
+                  id="price"
+                  value={price}
+                  onValueChange={(value) => setPrice(value)}
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
+                  required
+                />
               </div>
-            </div>
 
-            {/* Grid de imagens com DnD */}
-            <DndProvider backend={HTML5Backend}>
-              <div className="mb-6">
-                <label className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-sm font-medium">Imagens do produto* (máximo 5)</label>
-                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
-                  {previewImages.map((img, idx) => (
-                    <DraggableImage
-                      key={img.key}
-                      image={img}
-                      index={idx}
-                      moveImage={moveImage}
-                      openViewer={openViewer}
-                      removeImage={removeImage}
-                    />
-                  ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label htmlFor="category" className="text-sm font-medium block">Categoria*</label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca cursor-pointer"
+                    required
+                  >
+                    <option value="" disabled>Selecione</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
+                    ))}
+                  </select>
+                </div>
 
-                  {previewImages.length < 5 && (
-                    <div className="aspect-square border-2 border-dashed border-gray-200 rounded-md flex flex-col items-center justify-center p-2">
-                      <Camera className="text-slate-500" />
-                      <label htmlFor="image-upload" className="text-center">
-                        <span className="cursor-pointer text-sanca text-sm">Adicionar fotos</span>
-                        <input
-                          id="image-upload"
-                          className="hidden"
-                          accept="image/png, image/jpeg, image/jpg"
-                          type="file"
-                          onChange={handleImageUpload}
-                        />
-                      </label>
-                    </div>
-                  )}
+                <div className="space-y-1">
+                  <label htmlFor="condition" className="text-sm font-medium block">Condição*</label>
+                  <select
+                    name="condition"
+                    id="condition"
+                    value={condition}
+                    onChange={(e) => setCondition(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-sanca focus:border-sanca cursor-pointer"
+                    required
+                  >
+                    <option value="" disabled>Selecione</option>
+                    <option value="new">Novo</option>
+                    <option value="used">Usado</option>
+                    <option value="refurbished">Recondicionado</option>
+                    <option value="broken">Com defeito</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="inline-flex items-center cursor-pointer mt-2">
+                    <input type="checkbox" checked={isNegotiable} onChange={(e) => setIsNegotiable(e.target.checked)} className="sr-only peer" />
+                    <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
+                    <span className="ml-3 text-sm font-medium">Preço negociável</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="inline-flex items-center cursor-pointer sm:mt-2">
+                    <input type="checkbox" checked={canDeliver} onChange={(e) => setCanDeliver(e.target.checked)} className="sr-only peer" />
+                    <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sanca" />
+                    <span className="ml-3 text-sm font-medium">Posso entregar o produto</span>
+                  </label>
                 </div>
               </div>
-            </DndProvider>
 
-            <div className="flex items-center space-x-2">
-              <Upload className="text-slate-500 w-4 h-4 sm:w-5 sm:h-5" />
-              <p className="text-sm text-gray-500">A primeira imagem será a capa do seu anúncio</p>
-            </div>
+              {/* Grid de imagens com DnD */}
+              <DndProvider backend={HTML5Backend}>
+                <div className="mb-6">
+                  <label className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-sm font-medium">Imagens do produto* (máximo 5)</label>
+                  <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
+                    {previewImages.map((img, idx) => (
+                      <DraggableImage
+                        key={img.key}
+                        image={img}
+                        index={idx}
+                        moveImage={moveImage}
+                        openViewer={openViewer}
+                        removeImage={removeImage}
+                      />
+                    ))}
 
-            <div className="flex flex-col space-y-4">
-              <button type="submit" disabled={isSubmitting} className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90 disabled:bg-sanca/50">
-                {isSubmitting ? 'Publicando...' : 'Publicar Anúncio'}
-              </button>
-              <div className="flex items-center space-x-2">
-                <CheckCircle2 className="text-green-600 w-7 h-7 sm:w-5 sm:h-5" />
-                <p className="text-sm text-gray-500">Seu anúncio estará visível para todos imediatamente após a publicação</p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="text-yellow-500 w-8 h-8 sm:w-5 sm:h-5" />
-                <p className="text-sm text-gray-500">Lembre-se de que você é responsável pelo contato, negociação e entrega do produto.</p>
-              </div>
-            </div>
-
-          </form>
-        </div>
-
-        {activeImage && (
-          <div
-            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-            onClick={closeViewer}
-          >
-            <TransformWrapper>
-              <button
-                className="absolute top-2.5 left-2.5 z-50 text-white bg-black/80 px-3 py-3 rounded-full"
-                onClick={closeViewer}
-              >
-                <ArrowLeft />
-              </button>
-              <TransformComponent>
-                <div className="h-screen w-screen flex items-center justify-center">
-                  <Image
-                    src={activeImage}
-                    alt="Preview"
-                    width={1280}
-                    height={900}
-                    className="object-contain max-h-screen max-w-screen !pointer-events-auto"
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                    {previewImages.length < 5 && (
+                      <div className="aspect-square border-2 border-dashed border-gray-200 rounded-md flex flex-col items-center justify-center p-2">
+                        <Camera className="text-slate-500" />
+                        <label htmlFor="image-upload" className="text-center">
+                          <span className="cursor-pointer text-sanca text-sm">Adicionar fotos</span>
+                          <input
+                            id="image-upload"
+                            className="hidden"
+                            accept="image/png, image/jpeg, image/jpg"
+                            type="file"
+                            onChange={handleImageUpload}
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </TransformComponent>
-            </TransformWrapper>
+              </DndProvider>
+
+              <div className="flex items-center space-x-2">
+                <Upload className="text-slate-500 w-4 h-4 sm:w-5 sm:h-5" />
+                <p className="text-sm text-gray-500">A primeira imagem será a capa do seu anúncio</p>
+              </div>
+
+              <div className="flex flex-col space-y-4">
+                <button type="submit" disabled={isSubmitting} className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90 disabled:bg-sanca/50">
+                  {isSubmitting ? 'Publicando...' : 'Publicar Anúncio'}
+                </button>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="text-green-600 w-7 h-7 sm:w-5 sm:h-5" />
+                  <p className="text-sm text-gray-500">Seu anúncio estará visível para todos imediatamente após a publicação</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="text-yellow-500 w-8 h-8 sm:w-5 sm:h-5" />
+                  <p className="text-sm text-gray-500">Lembre-se de que você é responsável pelo contato, negociação e entrega do produto.</p>
+                </div>
+              </div>
+
+            </form>
           </div>
-        )}
-      </section>
-    </div>
+
+          {activeImage && (
+            <div
+              className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+              onClick={closeViewer}
+            >
+              <TransformWrapper>
+                <button
+                  className="absolute top-2.5 left-2.5 z-50 text-white bg-black/80 px-3 py-3 rounded-full"
+                  onClick={closeViewer}
+                >
+                  <ArrowLeft />
+                </button>
+                <TransformComponent>
+                  <div className="h-screen w-screen flex items-center justify-center">
+                    <Image
+                      src={activeImage}
+                      alt="Preview"
+                      width={1280}
+                      height={900}
+                      className="object-contain max-h-screen max-w-screen !pointer-events-auto"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </TransformComponent>
+              </TransformWrapper>
+            </div>
+          )}
+        </section>
+      </div>
+    </>
   );
 }

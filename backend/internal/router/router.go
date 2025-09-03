@@ -41,51 +41,76 @@ func New() *gin.Engine {
 
 		listingRouter := api.Group("/listings")
 		{
-			listingRouter.GET("/", handler.GetListings) // qualquer usuário
-			listingRouter.GET("/:id", handler.GetListing) // qualquer usuário
-			listingRouter.GET("/slug/:slug", handler.GetListingBySlug) // qualquer usuário
+			listingRouter.GET("/", handler.GetListings)                      // qualquer usuário
+			listingRouter.GET("/search", handler.GetListingsSearch)          // qualquer usuário
+			listingRouter.GET("/:id", handler.GetListing)                    // qualquer usuário
+			listingRouter.GET("/slug/:slug", handler.GetListingBySlug)       // qualquer usuário
 			listingRouter.GET("/user/:user_slug", handler.GetListingsByUser) // qualquer usuário
-			listingRouter.POST("/", middleware.Auth, handler.CreateListing) // usuário logado
-			listingRouter.PUT("/:id", middleware.Auth, handler.UpdateListing) // usuário logado
-			listingRouter.DELETE("/:id", middleware.Auth, handler.DeleteListing) // usuário logado
+
+			listingRouter.Use(middleware.Auth)
+			listingRouter.POST("/", handler.CreateListing)      // usuário logado
+			listingRouter.PUT("/:id", handler.UpdateListing)    // usuário logado
+			listingRouter.DELETE("/:id", handler.DeleteListing) // usuário logado
+			listingRouter.POST("/:id/sell", handler.CreateSale) // usuário logado
+		}
+
+		salesRouter := api.Group("/sales")
+		salesRouter.Use(middleware.Auth)
+		{
+			salesRouter.GET("/:id", handler.GetSale)              // usuário logado
+			salesRouter.GET("/buyer", handler.GetSalesAsBuyer)    // usuário logado
+			salesRouter.GET("/seller", handler.GetSalesAsSeller)  // usuário logado
+			salesRouter.POST("/:id/review", handler.CreateReview) // usuário logado
+		}
+
+		reviewRouter := api.Group("/reviews")
+		{
+			reviewRouter.GET("/:user_slug/sent", handler.GetReviewsSent)         // qualquer usuário
+			reviewRouter.GET("/:user_slug/received", handler.GetReviewsReceived) // qualquer usuário
 		}
 
 		categorieRouter := api.Group("/categories")
 		{
-			categorieRouter.GET("/", handler.GetCategories) // qualquer usuário
+			categorieRouter.GET("/", handler.GetCategories)  // qualquer usuário
 			categorieRouter.GET("/:id", handler.GetCategory) // qualquer usuário
-			categorieRouter.POST("/", middleware.AdminAuth, handler.CreateCategory) // usuário admin
-			categorieRouter.PUT("/:id", middleware.AdminAuth, handler.UpdateCategory) // usuário admin
-			categorieRouter.DELETE("/:id", middleware.AdminAuth, handler.DeleteCategory) // usuário admin
+
+			categorieRouter.Use(middleware.AdminAuth)
+			categorieRouter.POST("/", handler.CreateCategory)      // usuário admin
+			categorieRouter.PUT("/:id", handler.UpdateCategory)    // usuário admin
+			categorieRouter.DELETE("/:id", handler.DeleteCategory) // usuário admin
 		}
 
 		listingImageRouter := api.Group("/listing-images")
 		{
-			listingImageRouter.GET("/", handler.GetListingImages) // qualquer usuário
-			listingImageRouter.GET("/:id", handler.GetListingImage) // qualquer usuário
+			listingImageRouter.GET("/", handler.GetListingImages)                            // qualquer usuário
+			listingImageRouter.GET("/:id", handler.GetListingImage)                          // qualquer usuário
 			listingImageRouter.GET("/listing/:listingID", handler.GetListingImagesByListing) // qualquer usuário
-			listingImageRouter.POST("/s3", middleware.Auth, handler.GeneratePresignedURL) // usuário logado
-			listingImageRouter.POST("/", middleware.Auth, handler.CreateListingImage) // usuário logado
-			listingImageRouter.PUT("/:id", middleware.Auth, handler.UpdateListingImage) // usuário logado
-			listingImageRouter.DELETE("/:id", middleware.Auth, handler.DeleteListingImage) // usuário logado
+
+			listingImageRouter.Use(middleware.Auth)
+			listingImageRouter.POST("/s3", handler.GeneratePresignedURL)  // usuário logado
+			listingImageRouter.POST("/", handler.CreateListingImage)      // usuário logado
+			listingImageRouter.DELETE("/:id", handler.DeleteListingImage) // usuário logado
+			listingImageRouter.PUT("/:id", handler.UpdateListingImage)    // usuário logado
 		}
 
 		favoriteRouter := api.Group("/favorites")
 		favoriteRouter.Use(middleware.Auth)
 		{
-			favoriteRouter.POST("/", handler.AddFavorite) // usuário logado
-			favoriteRouter.GET("/", handler.ListFavorites) // usuário logado
-			favoriteRouter.DELETE("/", handler.RemoveFavorite) // usuário logado
+			favoriteRouter.POST("/", handler.AddFavorite)                // usuário logado
+			favoriteRouter.GET("/", handler.ListFavorites)               // usuário logado
+			favoriteRouter.DELETE("/", handler.RemoveFavorite)           // usuário logado
 			favoriteRouter.GET("/:user_id", handler.ListFavoritesByUser) // usuário logado
 		}
 
 		reportRouter := api.Group("/reports")
-		reportRouter.Use(middleware.Auth)
 		{
+			reportRouter.Use(middleware.Auth)
 			reportRouter.POST("/", handler.CreateReport) // usuário logado
-			reportRouter.GET("/", middleware.AdminAuth, handler.GetReports) // usuário admin
-			reportRouter.GET("/:id", middleware.AdminAuth, handler.GetReport) // usuário admin
-			reportRouter.PUT("/:id/status", middleware.AdminAuth, handler.UpdateReportStatus) // usuário admin
+
+			reportRouter.Use(middleware.AdminAuth)
+			reportRouter.GET("/", handler.GetReports)                   // usuário admin
+			reportRouter.GET("/:id", handler.GetReport)                 // usuário admin
+			reportRouter.PUT("/:id/status", handler.UpdateReportStatus) // usuário admin
 		}
 	}
 

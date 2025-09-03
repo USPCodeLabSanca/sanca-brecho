@@ -151,12 +151,31 @@ func GetListingImages(c *gin.Context) {
 }
 
 func UpdateListingImage(c *gin.Context) {
+	user, _ := c.Get("currentUser")
+	CurrentUser := user.(models.User)
+
 	id := c.Param("id")
 	var existing models.ListingImage
 
 	// Buscar a imagem existente
 	if err := repository.DB.First(&existing, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
+		return
+	}
+
+	// Check if the listing is the user's listing
+	var listing models.Listing
+	if err := repository.DB.First(&listing, "id = ?", existing.ListingID).Error; err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listing from listing image"})
+		}
+		return
+	}
+
+	if listing.UserID != CurrentUser.ID {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Cannot update another user's listing"})
 		return
 	}
 
@@ -175,8 +194,39 @@ func UpdateListingImage(c *gin.Context) {
 }
 
 func DeleteListingImage(c *gin.Context) {
+	user, _ := c.Get("currentUser")
+	CurrentUser := user.(models.User)
+
 	id := c.Param("id")
-	if err := repository.DB.Delete(&models.ListingImage{}, "id = ?", id).Error; err != nil {
+
+	// Get the listing ID from the listing image id
+	var listingImage models.ListingImage
+	if err := repository.DB.First(&listingImage, "id = ?", id).Error; err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listing image"})
+		}
+		return
+	}
+
+	// Check if the listing is the user's listing
+	var listing models.Listing
+	if err := repository.DB.First(&listing, "id = ?", listingImage.ListingID).Error; err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listing from image"})
+		}
+		return
+	}
+
+	if listing.UserID != CurrentUser.ID {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Cannot delete another user's listing"})
+		return
+	}
+
+	if err := repository.DB.Delete(&listingImage).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete image"})
 		return
 	}

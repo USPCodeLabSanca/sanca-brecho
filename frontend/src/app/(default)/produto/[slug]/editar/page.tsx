@@ -33,9 +33,19 @@ export default function EditarProdutoClient() {
   const { user, loading: authLoading } = useAuth();
 
   const [product, setProduct] = useState<ListingType | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    description: string;
+    keywords: string[];
+    price: number;
+    category_id: string;
+    condition: string;
+    is_negotiable: boolean;
+    seller_can_deliver: boolean;
+  }>({
     title: '',
     description: '',
+    keywords: [],
     price: 0,
     category_id: '',
     condition: '',
@@ -62,6 +72,7 @@ export default function EditarProdutoClient() {
         setFormData({
           title: productData.title,
           description: productData.description,
+          keywords: productData.keywords.split(' '),
           price: productData.price,
           category_id: productData.category_id.toString(),
           condition: productData.condition,
@@ -76,7 +87,7 @@ export default function EditarProdutoClient() {
         const categoriesData = await getCategories();
         setCategories(categoriesData);
       } catch (err: any) {
-        setError(err.message);
+        showErrorToast(`Erro ao carregar produto: ${err.response.data.error}`);
       } finally {
         setIsLoading(false);
       }
@@ -104,6 +115,12 @@ export default function EditarProdutoClient() {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleKeywordsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    const keywordsArray = value.split(' ').filter(kw => kw.trim() !== '');
+    setFormData(prev => ({ ...prev, keywords: keywordsArray }));
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,6 +198,7 @@ export default function EditarProdutoClient() {
 
       const updatedListing = await updateListing(product.id, {
         ...formData,
+        keywords: formData.keywords.join(' '),
         condition: formData.condition as ListingType['condition'],
         category_id: parseInt(formData.category_id),
         price: Number(formData.price),
@@ -223,8 +241,7 @@ export default function EditarProdutoClient() {
       showSuccessToast("Produto atualizado com sucesso!");
       router.push(`/produto/${newSlug}`);
     } catch (err: any) {
-      setError(err.message);
-      showErrorToast(`Erro ao atualizar produto: ${err.message}`);
+      showErrorToast(`Erro ao atualizar produto: ${err.response.data.error}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -247,6 +264,7 @@ export default function EditarProdutoClient() {
   }
 
   return (
+
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow pb-10">
         <div className="container mx-auto px-4">
@@ -396,6 +414,18 @@ export default function EditarProdutoClient() {
                     required
                     rows={6}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sanca focus:border-transparent resize-vertical"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium block" htmlFor="keywords">Palavras-chave (separadas por espaço)</label>
+                  <input
+                    type="text"
+                    name="keywords"
+                    id="keywords"
+                    value={formData.keywords.join(' ')}
+                    onChange={handleKeywordsChange}
+                    className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
+                    placeholder="Ex: livro cálculo thomas"
                   />
                 </div>
 

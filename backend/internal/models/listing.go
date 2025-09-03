@@ -15,6 +15,13 @@ const (
 	Broken      Condition = "broken"
 )
 
+type Status string
+
+const (
+	Available Status = "available"
+	Sold      Status = "sold"
+)
+
 type Listing struct {
 	ID               uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	UserID           string    `json:"user_id" gorm:"not null"` // string, compatível com ID do Firebase
@@ -22,6 +29,7 @@ type Listing struct {
 	CategoryID       int       `json:"category_id" gorm:"not null"`
 	Category         Category  `json:"category" gorm:"foreignKey:CategoryID;references:ID"`
 	Title            string    `json:"title" gorm:"not null"`
+	Keywords         string    `json:"keywords" gorm:"not null"` // sequencia de palavra chaves separadas por espaço (string paddrao. ex: celular iphone telefone)
 	Slug             string    `json:"slug" gorm:"not null;uniqueIndex"`
 	Description      string    `json:"description" gorm:"not null"`
 	Price            float64   `json:"price" gorm:"not null"`
@@ -29,7 +37,8 @@ type Listing struct {
 	IsNegotiable     bool      `json:"is_negotiable" gorm:"not null"`
 	SellerCanDeliver bool      `json:"seller_can_deliver" gorm:"not null"`
 	Location         string    `json:"location" gorm:"not null"`
-	IsActive         bool      `json:"is_active" gorm:"default:true"`
+	Status           Status    `json:"status" gorm:"type:status_enum;not null;default:available"`
+	Sale             *Sale     `json:"sale"`
 	CreatedAt        time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt        time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
