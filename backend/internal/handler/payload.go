@@ -14,3 +14,11 @@ type ErrorResponse struct {
 type LoginResponse struct {
 	User models.User `json:"user"`
 }
+
+type FindProfileOwnerResponse struct {
+	IsOwner bool `json:"is_owner"`
+}
+
+type GetProfileMetricsResponse struct {
+	Metrics models.SellerMetrics `json:"metrics"`
+}

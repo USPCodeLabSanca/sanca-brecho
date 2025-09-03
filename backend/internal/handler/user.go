@@ -116,6 +116,17 @@ func DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
+// @Summary Find Profile
+// @Description Pesquisa de perfil para saber se é dono
+// @Tags Profile
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Autorizaçao por Bearer token"
+// @Param slug query string true "slug usuario"
+// @Success 200 {object} FindProfileOwnerResponse "É ou não dono"
+// @Success 404 {object} ErrorResponse "Usuário não encontrado"
+// @Failure 500 {object} ErrorResponse "Erro interno"
+// @Router /api/profile/:slug [get]
 func CheckProfileOwnership(c *gin.Context) {
 	profileSlug := c.Param("slug")
 
@@ -129,20 +140,30 @@ func CheckProfileOwnership(c *gin.Context) {
 	var profileOwner models.User
 	if err := repository.DB.Where("slug = ?", profileSlug).First(&profileOwner).Error; err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusNotFound, gin.H{"is_owner": false, "message": "Profile not found"})
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "usuario não encontrado"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profile owner"})
+			c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "erro interno"})
 		}
 		return
 	}
 
 	if loggedInUser.ID == profileOwner.ID {
-		c.JSON(http.StatusOK, gin.H{"is_owner": true})
+		c.JSON(http.StatusOK, FindProfileOwnerResponse{IsOwner: true})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"is_owner": false})
+		c.JSON(http.StatusOK, FindProfileOwnerResponse{IsOwner: false})
 	}
 }
 
+// @Summary Find Profile
+// @Description Pesquisa de perfil
+// @Tags Profile
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Autorizaçao por Bearer token"
+// @Param slug query string true "slug usuario"
+// @Success 200 {object} models.User "Usuário encontrado"
+// @Failure 500 {object} ErrorResponse "Erro interno"
+// @Router /api/profile/:slug [get]
 func FindProfile(c *gin.Context) {
 	slug := c.Param("slug")
 
@@ -171,6 +192,27 @@ func FindProfile(c *gin.Context) {
 
 }
 
+// @Summary Get Profile Metrics
+// @Description Pega as métricas de um perfil
+// @Tags Profile
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Autorizaçao por Bearer token"
+// @Param slug query string true "slug usuario"
+// @Success 200 {object} GetProfileMetricsResponse "Métricas do perfil"
+// @Success 404 {object} ErrorResponse "Usuário não encontrado"
+// @Failure 500 {object} ErrorResponse "Erro interno"
+// @Router /api/profile/:slug/metrics [get]// @Summary Find Profile
+// @Description Pesquisa de perfil para saber se é dono
+// @Tags Profile
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Autorizaçao por Bearer token"
+// @Param slug query string true "slug usuario"
+// @Success 200 {object} FindProfileOwnerResponse "É ou não dono"
+// @Success 404 {object} ErrorResponse "Usuário não encontrado"
+// @Failure 500 {object} ErrorResponse "Erro interno"
+// @Router /api/profile/:slug [get]
 func GetProfileMetrics(c *gin.Context) {
 	userSlug := c.Param("slug")
 
@@ -178,11 +220,12 @@ func GetProfileMetrics(c *gin.Context) {
 	var user models.User
 	if err := repository.DB.Where("slug=?", userSlug).First(&user).Error; err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "Usuário não encontrado"})
+			return
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+			c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Erro interno"})
+			return
 		}
-		return
 	}
 
 	// starting the metrics struct
@@ -217,5 +260,5 @@ func GetProfileMetrics(c *gin.Context) {
 		metrics.MemberSince = nil
 	}
 
-	c.JSON(http.StatusOK, gin.H{"metrics": metrics})
+	c.JSON(http.StatusOK, GetProfileMetricsResponse{Metrics: metrics})
 }
