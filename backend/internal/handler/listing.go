@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
-
+	"gorm.io/gorm"
 	database "api/internal/repository"
 )
 
@@ -167,10 +167,35 @@ func UpdateListing(c *gin.Context) {
 func DeleteListing(c *gin.Context) {
 	id := c.Param("id")
 
-	if err := database.DB.Delete(&models.Listing{}, "id=?", id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete listing"})
+	err := database.DB.Transaction(func(tx *gorm.DB) error {
+		var listing models.Listing
+		if err := tx.First(&listing, "id = ?", id).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("listing_id = ?", id).Delete(&models.ListingImage{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("listing_id = ?", id).Delete(&models.Favorite{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Delete(&models.Listing{}, "id = ?", id).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete listing and its dependencies"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"messa": "Listing deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Listing deleted successfully"})
 }

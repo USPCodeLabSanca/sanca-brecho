@@ -9,13 +9,12 @@ const Condition = {
   Broken: 'broken' as Condition,
 }
 
-type UserRole = "user" | "admin";
+export type UserRole = typeof UserRole[keyof typeof UserRole]; 
 
-const UserRole = {
-    User: "user" as UserRole,
-    Admin: "admin" as UserRole,
-}
-
+export const UserRole = {
+  User: "user",
+  Admin: "admin",
+} as const;
 export interface UserType{
     id: string;
     display_name: string;
