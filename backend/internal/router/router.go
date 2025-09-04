@@ -52,6 +52,7 @@ func New() *gin.Engine {
 			listingRouter.PUT("/:id", handler.UpdateListing)    // usuário logado
 			listingRouter.DELETE("/:id", handler.DeleteListing) // usuário logado
 			listingRouter.POST("/:id/sell", handler.CreateSale) // usuário logado
+			listingRouter.DELETE("/admin/:id", handler.DeleteListingByAdmin) // usuário admin
 		}
 
 		salesRouter := api.Group("/sales")

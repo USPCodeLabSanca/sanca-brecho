@@ -4,7 +4,7 @@ import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Trash2 } from "lucide-react";
 import { ListingType } from "@/lib/types/api";
-import { deleteListing } from "@/lib/services/listingService";
+import { deleteListingByAdmin } from "@/lib/services/listingService";
 
 export type ListingModalState = {
   listing: ListingType;
@@ -26,7 +26,7 @@ export function ListingDeleteModal({ modalState, setModalState, refetchListings 
     
     setIsSubmitting(true);
     try {
-      await deleteListing(String(modalState.listing.id));
+      await deleteListingByAdmin(String(modalState.listing.id));
       refetchListings();
       handleClose();
     } catch (error) {

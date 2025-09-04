@@ -46,6 +46,10 @@ export const deleteListing = async (id: string): Promise<void> => {
     await api.delete(`/listings/${id}`);
 }
 
+export const deleteListingByAdmin = async (id: string): Promise<void> => {
+    await api.delete(`/listings/admin/${id}`);
+}
+
 // Criar uma imagem de listing
 export const createListingImage = async (image: Omit<ListingImageType, 'id' | 'listing'>): Promise<ListingImageType> => {
     const response = await api.post('/listing-images/', image);

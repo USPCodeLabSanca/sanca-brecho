@@ -253,34 +253,7 @@ func DeleteListing(c *gin.Context) {
 
 	id := c.Param("id")
 
-	err := database.DB.Transaction(func(tx *gorm.DB) error {
-		var listing models.Listing
-		if err := tx.First(&listing, "id = ?", id).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Where("listing_id = ?", id).Delete(&models.ListingImage{}).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Where("listing_id = ?", id).Delete(&models.Favorite{}).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Delete(&models.Listing{}, "id = ?", id).Error; err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete listing and its dependencies"})
-    
+	// Check if the listing is the user's listing
 	var listing models.Listing
 	if err := database.DB.First(&listing, "id = ?", id).Error; err != nil {
 		if err.Error() == "record not found" {
@@ -302,4 +275,39 @@ func DeleteListing(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Listing deleted successfully"})
+}
+
+func DeleteListingByAdmin(c *gin.Context) {
+	id := c.Param("id")
+
+	err := database.DB.Transaction(func(tx *gorm.DB) error {
+		var listing models.Listing
+		if err := tx.First(&listing, "id = ?", id).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("listing_id = ?", id).Delete(&models.ListingImage{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("listing_id = ?", id).Delete(&models.Favorite{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Delete(&models.Listing{}, "id = ?", id).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete listing by admin", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Listing deleted successfully by admin"})
 }
