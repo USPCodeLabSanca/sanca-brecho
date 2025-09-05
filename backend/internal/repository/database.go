@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -48,23 +49,27 @@ func Connect() {
 	log.Println("✅ Database connected successfully")
 }
 
-
-func SearchListingsFTS(query string) ([]models.Listing, error) {
-	var results []models.Listing
-
+func SearchListingsFTS(query string, page, pageSize int) ([]models.Listing, error) {
+	var ids []uuid.UUID
 	sql := `
-	SELECT *
-	FROM listings
-	WHERE title_search @@ websearch_to_tsquery(?)
-	`
+		SELECT id
+		FROM listings
+		WHERE status = 'available'
+			AND title_search @@ websearch_to_tsquery(?)
+		ORDER BY ts_rank(title_search, websearch_to_tsquery(?)) DESC
+		LIMIT ? OFFSET ?
+		`
 
-	err := DB.Raw(sql, query).Scan(&results).Error
-    if err != nil {
+	err := DB.Raw(sql, query, query, pageSize, (page-1)*pageSize).Scan(&ids).Error
+	if err != nil {
 		log.Fatal("❌ Failed to scan listings using fts: ", err)
-        return nil, err
-    }
-    
-	log.Println("✅ Fts Scan complete")
+		return nil, err
+	}
 
-    return results, nil
+	var listings []models.Listing
+	if len(ids) > 0 {
+		DB.Preload("User").Preload("Category").Find(&listings, "id IN ?", ids)
+	}
+
+	return listings, nil
 }

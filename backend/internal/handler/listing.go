@@ -3,12 +3,13 @@ package handler
 import (
 	"api/internal/models"
 	"net/http"
+	"strconv"
+
+	database "api/internal/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/gosimple/slug"
 	"gorm.io/gorm"
-	database "api/internal/repository"
 )
 
 func CreateListing(c *gin.Context) {
@@ -47,15 +48,13 @@ func CreateListing(c *gin.Context) {
 		return
 	}
 
-	if len(userActiveListings) > 5 {
+	if len(userActiveListings) > 20 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "You cannot create more than 5 active listings"})
 		return
 	}
 
 	//generate UUID for the listing ID
 	listing.ID = uuid.New()
-	//set the slug
-	listing.Slug = slug.Make(listing.Title)
 	//setting the status to available
 	listing.Status = models.Available
 
@@ -95,6 +94,8 @@ func GetListings(c *gin.Context) {
 	c.JSON(http.StatusOK, listings)
 }
 
+// query param is mandatory. page and pageSize are optional. page starts at 1.
+// if page and pageSize are not provided, the default is 1 and 10 respectively.
 func GetListingsSearch(c *gin.Context) {
 	query := c.Query("q")
 	if query == "" {
@@ -102,8 +103,30 @@ func GetListingsSearch(c *gin.Context) {
 		return
 	}
 
+	page, ok := c.GetQuery("page")
+	if !ok {
+		page = "1"
+	}
+
+	pageSize, ok := c.GetQuery("pageSize")
+	if !ok {
+		pageSize = "10"
+	}
+
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid `page` param"})
+		return
+	}
+
+	pageSizeInt, err := strconv.Atoi(pageSize)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid `pageSize` param"})
+		return
+	}
+
 	// do query here
-	result, err := database.SearchListingsFTS(query)
+	result, err := database.SearchListingsFTS(query, pageInt, pageSizeInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
 		return
@@ -201,7 +224,6 @@ func UpdateListing(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Title too long"})
 			return
 		}
-		updatesMap["slug"] = slug.Make(title)
 	}
 
 	// Check if the description is below the maximum

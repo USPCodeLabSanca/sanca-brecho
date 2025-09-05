@@ -15,7 +15,6 @@ import { showErrorToast, showNotificationToast } from "@/lib/toast";
 import { getProfileMetricsBySlug } from "@/lib/services/profileService";
 import Spinner from "@/app/components/spinner";
 import { ReportDialog } from "@/app/components/reportModal";
-import { SellModal } from "@/app/components/sellModal";
 import CreateSaleModal from "@/app/components/createSaleModal";
 
 export default function ProdutoClient() {
@@ -180,14 +179,6 @@ export default function ProdutoClient() {
                   >
                     <Heart className="h-5 w-5 text-gray-500 hover:text-sanca" />
                   </button>*/}
-                  {isOwner && isAvailable && (
-                    <button
-                      onClick={() => setIsModalOpen(true)}
-                      className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    >
-                      <Tag className="h-4 w-4" />Vendido?
-                    </button>
-                  )}
                   {isOwner && !isSold && (
                     <Link href={`/produto/${product.slug}/editar`}>
                       <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap border border-gray-300 rounded-md text-sm text-black font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-white hover:bg-sanca/10">
@@ -225,13 +216,13 @@ export default function ProdutoClient() {
               </div>
 
               <div className="mb-4">
-                {isOwner ? (
-                  <div>
-                    <SellModal
-                      productId={product.id}
-                      onProductSold={handleProductSold}
-                    />
-                  </div>
+                {isOwner && isAvailable ? (
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-sanca hover:bg-sanca-dark disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    <Tag className="h-4 w-4" />Marcar como vendido
+                  </button>
                 ) : (
                   <button
                     onClick={handleWhatsAppClick}

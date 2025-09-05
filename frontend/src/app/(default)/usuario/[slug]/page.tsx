@@ -14,17 +14,11 @@ import {
   Edit,
   BadgeCheck,
   ShieldCheck,
-  Handshake,
-  ShoppingBag,
   Star,
-  ShoppingCart,
-  DollarSign
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProfileType, ListingType, ProfileMetricsType, ReviewType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
-import { PurchasedProductCard } from "@/app/components/purchasedProductCard";
-import { SoldProductCard } from "@/app/components/soldProductCard";
 import { getProfileBySlug, getProfileMetricsBySlug } from "@/lib/services/profileService";
 import { getMe } from "@/lib/services/userService";
 import { getListingsByUser } from "@/lib/services/listingService";
@@ -402,25 +396,13 @@ const Usuario = () => {
               </div>
             </div>
             <Tabs>
-              <TabList className={`flex overflow-x-auto no-scrollbar bg-slate-100 rounded-sm p-1 ${isOwnerProfile ? "sm:grid sm:grid-cols-4" : "sm:grid sm:grid-cols-2"}`}>
+              <TabList className={`overflow-x-auto no-scrollbar bg-slate-100 rounded-sm p-1 grid grid-cols-2`}>
                 <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
                   <Package className="h-4 w-4 mr-2" />
                   <span className="text-xs sm:text-base">
                     {isOwnerProfile ? 'Meus Produtos' : 'Produtos'}
                   </span>
                 </Tab>
-                {isOwnerProfile && (
-                  <>
-                    <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      <span className="text-xs sm:text-base">Minhas Compras</span>
-                    </Tab>
-                    <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      <span className="text-xs sm:text-base">Minhas Vendas</span>
-                    </Tab>
-                  </>
-                )}
                 <Tab selectedClassName="bg-white rounded-sm shadow-xs" value="reviews" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
                   <Star className="h-4 w-4 mr-2" />
                   <span className="text-xs sm:text-base">Avaliações</span>
@@ -450,53 +432,6 @@ const Usuario = () => {
                   )}
                 </div>
               </TabPanel>
-              {isOwnerProfile && (
-                <>
-                  <TabPanel>
-                    <div className="bg-white rounded-xl p-6">
-                      <h2 className="text-lg font-semibold mb-4">Minhas Compras ({purchasedProducts.length})</h2>
-                      {purchasedProducts.length > 0 ? (
-                        <div className="flex flex-col gap-4">
-                          {purchasedProducts.map((product) => (
-                            <PurchasedProductCard
-                              product={product}
-                              buyerReview={product.buyerReview}
-                              key={product.id}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-16 bg-gray-50 rounded-lg">
-                          <ShoppingCart className="h-12 w-12 mx-auto text-gray-300" />
-                          <p className="mt-2 text-gray-500">Você ainda não comprou nada.</p>
-                        </div>
-                      )}
-                    </div>
-                  </TabPanel>
-                  <TabPanel>
-                    <div className="bg-white rounded-xl p-6">
-                      <h2 className="text-lg font-semibold mb-4">Minhas Vendas ({soldProducts.length})</h2>
-                      {soldProducts.length > 0 ? (
-                        <div className="flex flex-col gap-4">
-                          {soldProducts.map((product) => (
-                            <SoldProductCard
-                              product={product}
-                              soldTo={product.soldTo}
-                              buyerReview={product.buyerReview}
-                              key={product.id}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-16 bg-gray-50 rounded-lg">
-                          <DollarSign className="h-12 w-12 mx-auto text-gray-300" />
-                          <p className="mt-2 text-gray-500">Você ainda não vendeu nada.</p>
-                        </div>
-                      )}
-                    </div>
-                  </TabPanel>
-                </>
-              )}
               <TabPanel value="reviews">
                 <div className="bg-white rounded-xl p-6">
                   <h2 className="text-lg font-semibold mb-4">Avaliações Recebidas</h2>
