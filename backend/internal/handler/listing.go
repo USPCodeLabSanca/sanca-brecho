@@ -3,6 +3,7 @@ package handler
 import (
 	"api/internal/models"
 	"net/http"
+	"strconv"
 
 	database "api/internal/repository"
 
@@ -93,10 +94,13 @@ func GetListings(c *gin.Context) {
 	c.JSON(http.StatusOK, listings)
 }
 
+// query param is mandatory. page and pageSize are optional. page starts at 1.
+// if page and pageSize are not provided, the default is 1 and 10 respectively.
 func GetListingsSearch(c *gin.Context) {
 	query, ok := c.Params.Get("query")
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "missing `query` param"})
+		return
 	}
 
 	if query == "" {
@@ -104,8 +108,30 @@ func GetListingsSearch(c *gin.Context) {
 		return
 	}
 
+	page, ok := c.GetQuery("page")
+	if !ok {
+		page = "1"
+	}
+
+	pageSize, ok := c.GetQuery("pageSize")
+	if !ok {
+		pageSize = "10"
+	}
+
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid `page` param"})
+		return
+	}
+
+	pageSizeInt, err := strconv.Atoi(pageSize)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid `pageSize` param"})
+		return
+	}
+
 	// do query here
-	result, err := database.SearchListingsFTS(query)
+	result, err := database.SearchListingsFTS(query, pageInt, pageSizeInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
 		return
