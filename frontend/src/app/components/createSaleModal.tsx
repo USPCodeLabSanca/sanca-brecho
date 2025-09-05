@@ -1,8 +1,10 @@
-import React, { useState } from "react";
-import { ListingType } from '@/lib/types/api';
+import React, { useState, useEffect } from "react";
+import { ListingType, UserType } from '@/lib/types/api';
 import { createSale } from "@/lib/services/listingService";
+import { getMe } from "@/lib/services/userService";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
+import { useAuth } from "@/lib/context/AuthContext";
 
 interface ModalProps {
   isOpen: boolean;
@@ -19,10 +21,26 @@ const formatPrice = (value: number) => {
 }
 
 const CreateSaleModal: React.FC<ModalProps> = ({ isOpen, onClose, listing, onSuccess }) => {
+  const { user } = useAuth();
   const [buyerIdentifier, setBuyerIdentifier] = useState('');
   const [finalPrice, setFinalPrice] = useState(listing.price);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+
+  useEffect(() => {
+    // Busca os dados do usuário logado quando o modal é aberto
+    if (isOpen && user) {
+      const fetchCurrentUser = async () => {
+        try {
+          const userData = await getMe();
+          setCurrentUser(userData);
+        } catch (err) {
+          console.error("Falha ao buscar dados do usuário logado:", err);
+        }
+      };
+      fetchCurrentUser();
+    }
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
@@ -40,15 +58,29 @@ const CreateSaleModal: React.FC<ModalProps> = ({ isOpen, onClose, listing, onSuc
   }
 
   const handleConfirm = async () => {
+    // Impedir que o usuário marque um item como vendido para si mesmo
+    if (currentUser && buyerIdentifier.trim()) {
+      const identifier = buyerIdentifier.trim().toLowerCase();
+      if (identifier === currentUser.slug.toLowerCase() || identifier === currentUser.email.toLowerCase()) {
+        const selfSaleError = "Você não pode marcar um item como vendido para si mesmo.";
+        toast.error(selfSaleError);
+        return;
+      }
+    }
+
     setIsLoading(true);
-    setError('');
 
     const result = await createSale(listing.id, buyerIdentifier, finalPrice);
     setIsLoading(false);
 
     if ('error' in result) {
-      setError(result.error);
-      toast.error(error);
+      // Mensagem de erro quando o comprador não é encontrado
+      if (result.error.includes("Failed to retrieve Buyer")) {
+        const buyerNotFoundError = "Usuário comprador não encontrado. Verifique o email ou slug.";
+        toast.error(buyerNotFoundError);
+      } else { // Fallback para outras mensagens de erro
+        toast.error(result.error);
+      }
     } else {
       toast.success('Anúncio marcado como vendido!');
       onSuccess();
