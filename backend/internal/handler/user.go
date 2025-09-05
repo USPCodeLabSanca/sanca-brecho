@@ -11,13 +11,35 @@ import (
 	"gorm.io/gorm"
 )
 
+// @Summary Get User
+// @Description Pega o usuário logado
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Autorizaçao por Bearer token"
+// @Success 200 {object} LoginResponse "Usuário logado"
+// @Failure 401 {object} ErrorResponse "Usuário não autenticado"
+// @Failure 404 {object} ErrorResponse "Usuário não encontrado"
+// @Failure 500 {object} ErrorResponse "Erro interno"
+// @Router /api/users/me [get]
 func GetUser(c *gin.Context) {
 	user, _ := c.Get("currentUser")
 	CurrentUser := user.(models.User)
 
-	c.JSON(http.StatusOK, gin.H{"user": CurrentUser})
+	c.JSON(http.StatusOK, UserResponse{User: CurrentUser})
 }
 
+// @Summary Update User
+// @Description Atualiza o usuário logado
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Autorizaçao por Bearer token"
+// @Success 200 {object} LoginResponse "Usuário logado"
+// @Failure 401 {object} ErrorResponse "Usuário não autenticado"
+// @Failure 404 {object} ErrorResponse "Usuário não encontrado"
+// @Failure 500 {object} ErrorResponse "Erro interno"
+// @Router /api/users/me [put]// toodododoaodoooooooooooooooooooooooooooooooooo
 func UpdateUser(c *gin.Context) {
 	user, _ := c.Get("currentUser")
 	CurrentUser := user.(models.User)
@@ -54,7 +76,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": CurrentUser})
+	c.JSON(http.StatusOK, UserResponse{User: CurrentUser})
 }
 
 func DeleteUser(c *gin.Context) {
@@ -124,7 +146,8 @@ func DeleteUser(c *gin.Context) {
 // @Param Authorization header string true "Autorizaçao por Bearer token"
 // @Param slug query string true "slug usuario"
 // @Success 200 {object} FindProfileOwnerResponse "É ou não dono"
-// @Success 404 {object} ErrorResponse "Usuário não encontrado"
+// @Failure 401 {object} ErrorResponse "Usuário não autenticado"
+// @Failure 404 {object} ErrorResponse "Usuário não encontrado"
 // @Failure 500 {object} ErrorResponse "Erro interno"
 // @Router /api/profile/:slug [get]
 func CheckProfileOwnership(c *gin.Context) {
@@ -162,6 +185,8 @@ func CheckProfileOwnership(c *gin.Context) {
 // @Param Authorization header string true "Autorizaçao por Bearer token"
 // @Param slug query string true "slug usuario"
 // @Success 200 {object} models.User "Usuário encontrado"
+// @Failure 401 {object} ErrorResponse "Usuário não autenticado"
+// @Failure 404 {object} ErrorResponse "Usuário não encontrado"
 // @Failure 500 {object} ErrorResponse "Erro interno"
 // @Router /api/profile/:slug [get]
 func FindProfile(c *gin.Context) {
@@ -200,19 +225,10 @@ func FindProfile(c *gin.Context) {
 // @Param Authorization header string true "Autorizaçao por Bearer token"
 // @Param slug query string true "slug usuario"
 // @Success 200 {object} GetProfileMetricsResponse "Métricas do perfil"
-// @Success 404 {object} ErrorResponse "Usuário não encontrado"
+// @Failure 401 {object} ErrorResponse "Usuário não autenticado"
+// @Failure 404 {object} ErrorResponse "Usuário não encontrado"
 // @Failure 500 {object} ErrorResponse "Erro interno"
-// @Router /api/profile/:slug/metrics [get]// @Summary Find Profile
-// @Description Pesquisa de perfil para saber se é dono
-// @Tags Profile
-// @Accept json
-// @Produce json
-// @Param Authorization header string true "Autorizaçao por Bearer token"
-// @Param slug query string true "slug usuario"
-// @Success 200 {object} FindProfileOwnerResponse "É ou não dono"
-// @Success 404 {object} ErrorResponse "Usuário não encontrado"
-// @Failure 500 {object} ErrorResponse "Erro interno"
-// @Router /api/profile/:slug [get]
+// @Router /api/profile/:slug/metrics [get]
 func GetProfileMetrics(c *gin.Context) {
 	userSlug := c.Param("slug")
 

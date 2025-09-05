@@ -26,7 +26,7 @@ import (
 func Login(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Missing token"})
 		c.Abort()
 		return
 	}
@@ -116,7 +116,7 @@ func Login(c *gin.Context) {
 		}
 	}
 
-	response := LoginResponse{User: user}
+	response := UserResponse{User: user}
 
 	// Return the user information
 	c.JSON(http.StatusOK, response)

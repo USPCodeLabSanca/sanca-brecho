@@ -11,7 +11,7 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-type LoginResponse struct {
+type UserResponse struct {
 	User models.User `json:"user"`
 }
 
