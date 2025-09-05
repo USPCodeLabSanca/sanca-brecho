@@ -1,9 +1,12 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gosimple/slug"
+	"gorm.io/gorm"
 )
 
 type Condition string
@@ -41,4 +44,27 @@ type Listing struct {
 	Sale             *Sale     `json:"sale"`
 	CreatedAt        time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt        time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+}
+
+func (l *Listing) BeforeCreate(tx *gorm.DB) (err error) {
+	// Build the “base” slug from the title
+	base := slug.Make(l.Title)
+	candidate := base
+
+	var count int64
+	for i := 1; ; i++ {
+		tx.Model(&Listing{}).
+			Where("slug = ?", candidate).
+			Count(&count)
+
+		if count == 0 {
+			// no collision
+			l.Slug = candidate
+			break
+		}
+		// collision: try with suffix
+		candidate = fmt.Sprintf("%s-%d", base, i+1)
+	}
+
+	return nil
 }
