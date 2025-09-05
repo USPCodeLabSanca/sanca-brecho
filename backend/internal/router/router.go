@@ -20,22 +20,22 @@ func New() *gin.Engine {
 		AllowCredentials: true,
 	}))
 
-	api := router.Group("/api")
+	api := router.Group("/brechoapi")
 	{
 		// Rotas Públicas
-		api.POST("/login", handler.Login) // usuário não autenticado
-		api.GET("/profile/:slug", handler.FindProfile) // qualquer usuário
-		api.GET("/profile/:slug/metrics", handler.GetProfileMetrics) // qualquer usuário
+		api.POST("/login", handler.Login)                                                  // usuário não autenticado
+		api.GET("/profile/:slug", handler.FindProfile)                                     // qualquer usuário
+		api.GET("/profile/:slug/metrics", handler.GetProfileMetrics)                       // qualquer usuário
 		api.GET("/profile/:slug/is-owner", middleware.Auth, handler.CheckProfileOwnership) // usuário logado
 
 		userRouter := api.Group("/users")
 		userRouter.Use(middleware.Auth)
 		{
-			userRouter.GET("/me", handler.GetUser) // usuário logado
-			userRouter.PUT("/me", handler.UpdateUser) // usuário logado
-			userRouter.DELETE("/me", handler.DeleteUser) // usuário logado
-			userRouter.GET("/", middleware.AdminAuth, handler.GetAllUsers)  // usuário admin
-			userRouter.DELETE("/:slug", middleware.AdminAuth, handler.DeleteUserByAdmin)  // usuário admin
+			userRouter.GET("/me", handler.GetUser)                                       // usuário logado
+			userRouter.PUT("/me", handler.UpdateUser)                                    // usuário logado
+			userRouter.DELETE("/me", handler.DeleteUser)                                 // usuário logado
+			userRouter.GET("/", middleware.AdminAuth, handler.GetAllUsers)               // usuário admin
+			userRouter.DELETE("/:slug", middleware.AdminAuth, handler.DeleteUserByAdmin) // usuário admin
 			userRouter.PUT("/:slug/role", middleware.AdminAuth, handler.UpdateUserRole)  // usuário admin
 		}
 
@@ -48,10 +48,10 @@ func New() *gin.Engine {
 			listingRouter.GET("/user/:user_slug", handler.GetListingsByUser) // qualquer usuário
 
 			listingRouter.Use(middleware.Auth)
-			listingRouter.POST("/", handler.CreateListing)      // usuário logado
-			listingRouter.PUT("/:id", handler.UpdateListing)    // usuário logado
-			listingRouter.DELETE("/:id", handler.DeleteListing) // usuário logado
-			listingRouter.POST("/:id/sell", handler.CreateSale) // usuário logado
+			listingRouter.POST("/", handler.CreateListing)                   // usuário logado
+			listingRouter.PUT("/:id", handler.UpdateListing)                 // usuário logado
+			listingRouter.DELETE("/:id", handler.DeleteListing)              // usuário logado
+			listingRouter.POST("/:id/sell", handler.CreateSale)              // usuário logado
 			listingRouter.DELETE("/admin/:id", handler.DeleteListingByAdmin) // usuário admin
 		}
 
