@@ -58,7 +58,7 @@ export function ReportDialog({ targetId, targetType, triggerClassName }: ReportD
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button
-          className={`text-gray-500 hover:text-sanca flex items-center text-sm ${triggerClassName ?? ""}`}
+          className={`cursor-pointer text-gray-500 hover:text-sanca flex items-center text-sm ${triggerClassName ?? ""}`}
         >
           <Flag className="h-4 w-4 mr-1" />
           Denunciar

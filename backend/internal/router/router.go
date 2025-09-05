@@ -22,17 +22,21 @@ func New() *gin.Engine {
 
 	api := router.Group("/api")
 	{
-		api.POST("/login", handler.Login)
-		api.GET("/profile/:slug", handler.FindProfile)
-		api.GET("/profile/:slug/is-owner", middleware.Auth, handler.CheckProfileOwnership)
-		api.GET("/profile/:slug/metrics", handler.GetProfileMetrics)
+		// Rotas Públicas
+		api.POST("/login", handler.Login) // usuário não autenticado
+		api.GET("/profile/:slug", handler.FindProfile) // qualquer usuário
+		api.GET("/profile/:slug/metrics", handler.GetProfileMetrics) // qualquer usuário
+		api.GET("/profile/:slug/is-owner", middleware.Auth, handler.CheckProfileOwnership) // usuário logado
 
 		userRouter := api.Group("/users")
 		userRouter.Use(middleware.Auth)
 		{
-			userRouter.GET("/me", handler.GetUser)       // usuário logado
-			userRouter.PUT("/me", handler.UpdateUser)    // usuário logado
+			userRouter.GET("/me", handler.GetUser) // usuário logado
+			userRouter.PUT("/me", handler.UpdateUser) // usuário logado
 			userRouter.DELETE("/me", handler.DeleteUser) // usuário logado
+			userRouter.GET("/", middleware.AdminAuth, handler.GetAllUsers)  // usuário admin
+			userRouter.DELETE("/:slug", middleware.AdminAuth, handler.DeleteUserByAdmin)  // usuário admin
+			userRouter.PUT("/:slug/role", middleware.AdminAuth, handler.UpdateUserRole)  // usuário admin
 		}
 
 		listingRouter := api.Group("/listings")
@@ -48,6 +52,7 @@ func New() *gin.Engine {
 			listingRouter.PUT("/:id", handler.UpdateListing)    // usuário logado
 			listingRouter.DELETE("/:id", handler.DeleteListing) // usuário logado
 			listingRouter.POST("/:id/sell", handler.CreateSale) // usuário logado
+			listingRouter.DELETE("/admin/:id", handler.DeleteListingByAdmin) // usuário admin
 		}
 
 		salesRouter := api.Group("/sales")
