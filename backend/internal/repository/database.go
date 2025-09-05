@@ -49,16 +49,18 @@ func Connect() {
 }
 
 
-func SearchListingsFTS(query string) ([]models.Listing, error) {
+func SearchListingsFTS(query string, page, pageSize int) ([]models.Listing, error) {
 	var results []models.Listing
 
 	sql := `
 	SELECT *
 	FROM listings
 	WHERE title_search @@ websearch_to_tsquery(?)
+	ORDER BY ts_rank(title_search, websearch_to_tsquery(?)) DESC
+	LIMIT ? OFFSET ?
 	`
 
-	err := DB.Raw(sql, query).Scan(&results).Error
+	err := DB.Raw(sql, query, query, pageSize, (page-1)*pageSize).Scan(&results).Error
     if err != nil {
 		log.Fatal("❌ Failed to scan listings using fts: ", err)
         return nil, err
