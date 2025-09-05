@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/gosimple/slug"
 
 	database "api/internal/repository"
 )
@@ -47,15 +46,13 @@ func CreateListing(c *gin.Context) {
 		return
 	}
 
-	if len(userActiveListings) > 5 {
+	if len(userActiveListings) > 20 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "You cannot create more than 5 active listings"})
 		return
 	}
 
 	//generate UUID for the listing ID
 	listing.ID = uuid.New()
-	//set the slug
-	listing.Slug = slug.Make(listing.Title)
 	//setting the status to available
 	listing.Status = models.Available
 
@@ -205,7 +202,6 @@ func UpdateListing(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Title too long"})
 			return
 		}
-		updatesMap["slug"] = slug.Make(title)
 	}
 
 	// Check if the description is below the maximum
