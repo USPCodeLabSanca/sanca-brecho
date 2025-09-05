@@ -44,7 +44,7 @@ export default function DraggableImage({ image, index, moveImage, openViewer, re
     }
   });
 
-  const [{ isDragging }, drag, preview] = useDrag({
+  const [{ isDragging }, drag] = useDrag({
     type: ItemType.IMAGE,
     item: { index },
     collect: (monitor) => ({

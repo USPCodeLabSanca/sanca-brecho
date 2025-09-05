@@ -30,8 +30,8 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
   const [activeIndex, setActiveIndex] = useState(0)
   const [isZoomActive, setIsZoomActive] = useState(false)
   const [images, setImages] = useState<ListingImageType[]>([]);
-  const [loadingImages, setLoadingImages] = useState(true);
-  const [errorImages, setErrorImages] = useState<string | null>(null);
+  const [, setLoadingImages] = useState(true);
+  const [, setErrorImages] = useState<string | null>(null);
 
   /* Guarda a largura da tela para uso em layouts responsivos */
   useEffect(() => {

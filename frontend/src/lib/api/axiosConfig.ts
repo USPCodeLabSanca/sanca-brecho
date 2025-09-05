@@ -34,7 +34,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        const { status, __ } = error.response || {};
+        const { status } = error.response || {};
 
         console.error("API Error: ", error.response?.data || error.message, " STATUS: ", status);
         return Promise.reject(error);

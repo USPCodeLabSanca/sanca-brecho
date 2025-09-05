@@ -16,7 +16,7 @@ export default function ReportsPage() {
   const { user: firebaseUser, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [, setCurrentUser] = useState<UserType | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -48,7 +48,7 @@ export default function ReportsPage() {
         } else {
           setIsAdmin(true);
         }
-      } catch (error) {
+      } catch {
         showErrorToast("Erro ao verificar permissões.");
         router.push("/");
       }
@@ -68,7 +68,7 @@ export default function ReportsPage() {
         
         setReports(response.reports);
         setTotalReports(response.total);
-      } catch (error) {
+      } catch {
         showErrorToast("Falha ao carregar as denúncias.");
         setReports([]);
         setTotalReports(0);
@@ -90,7 +90,7 @@ export default function ReportsPage() {
         prevReports.filter(report => report.id !== updatedReport.id)
       );
       showSuccessToast(`Denúncia marcada como "${status === 'resolved' ? 'Resolvida' : 'Rejeitada'}".`);
-    } catch (error) {
+    } catch {
       showErrorToast("Erro ao atualizar o status da denúncia.");
     }
   };

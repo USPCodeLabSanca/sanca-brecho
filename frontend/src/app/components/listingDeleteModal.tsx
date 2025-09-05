@@ -48,7 +48,7 @@ export function ListingDeleteModal({ modalState, setModalState, refetchListings 
             Confirmar Exclusão
           </Dialog.Title>
           <Dialog.Description className="mt-2 text-sm text-gray-600">
-            Tem certeza que deseja excluir o anúncio "{modalState.listing.title}"? Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir o anúncio &quot;{modalState.listing.title}&quot;? Esta ação não pode ser desfeita.
           </Dialog.Description>
           <div className="mt-6 flex justify-end gap-3">
             <button type="button" onClick={handleClose} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">

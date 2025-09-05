@@ -1,10 +1,10 @@
 "use client";
 
 import { getAllUsers, deleteUser, getMe } from "@/lib/services/userService";
-import { getListings, deleteListing } from "@/lib/services/listingService";
-import { getCategories, createCategory, deleteCategory } from "@/lib/services/categoryService";
+import { getListings } from "@/lib/services/listingService";
+import { getCategories } from "@/lib/services/categoryService";
 import { getReports } from "@/lib/services/reportService";
-import { UserType, UserRole, ListingType, CategoryType, ReportType } from "@/lib/types/api";
+import { UserType, ListingType, CategoryType, ReportType } from "@/lib/types/api";
 import { Users, LayoutGrid, Tag, ShieldAlert, Trash2, Edit, UserCog, PlusCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -72,7 +72,7 @@ export default function AdminDashboardPage() {
           router.push("/");
         }
         fetchAllData();
-      } catch (error) {
+      } catch {
         showErrorToast("Erro ao verificar permissões.");
         router.push("/");
       }

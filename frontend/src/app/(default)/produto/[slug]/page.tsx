@@ -135,10 +135,10 @@ export default function ProdutoClient() {
     }
   };
 
-  const handleProductSold = (buyerId: string) => {
+  /*const handleProductSold = (buyerId: string) => {
     console.log(`Produto ${product.id} vendido para ${buyerId}`);
     // TODO: chamada para atualizar o status do produto no backend
-  };
+  };*/
 
   return (
     <div className="min-h-screen flex flex-col">

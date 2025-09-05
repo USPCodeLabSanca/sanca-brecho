@@ -56,7 +56,7 @@ export function ReportActionModal({ modalState, setModalState, refetchReports }:
             Resolver Denúncia
           </Dialog.Title>
           <Dialog.Description className="mt-2 text-sm text-gray-600">
-            Selecione uma ação para a denúncia "{modalState.report.reason}" sobre "{modalState.report.target_name}".
+            Selecione uma ação para a denúncia &quot;{modalState.report.reason}&quot; sobre &quot;{modalState.report.target_name}&quot;.
           </Dialog.Description>
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div>

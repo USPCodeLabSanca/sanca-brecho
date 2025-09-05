@@ -17,9 +17,9 @@ import {
   Star,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ProfileType, ListingType, ProfileMetricsType, ReviewType } from "@/lib/types/api";
+import { ProfileType, ListingType, ReviewType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
-import { getProfileBySlug, getProfileMetricsBySlug } from "@/lib/services/profileService";
+import { getProfileBySlug } from "@/lib/services/profileService";
 import { getMe } from "@/lib/services/userService";
 import { getListingsByUser } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
@@ -37,9 +37,9 @@ const Usuario = () => {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [errorProfile, setErrorProfile] = useState<string | null>(null);
 
-  const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
-  const [loadingMetrics, setLoadingMetrics] = useState(true);
-  const [errorMetrics, setErrorMetrics] = useState<string | null>(null);
+  //const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
+  //const [loadingMetrics, setLoadingMetrics] = useState(true);
+  //const [errorMetrics, setErrorMetrics] = useState<string | null>(null);
 
   const [userProducts, setUserProducts] = useState<ListingType[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -48,94 +48,6 @@ const Usuario = () => {
   const [userReviews, setUserReviews] = useState<ReviewType[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [errorReviews, setErrorReviews] = useState<string | null>(null);
-
-  // Mocks
-  const [soldProducts, setSoldProducts] = useState<
-    (ListingType & { soldTo: { id: string, display_name: string, slug: string, photo_url?: string }, buyerReview?: { rating: number, comment?: string, reviewed_at: string } })[]
-  >([
-    {
-      id: "123e4567-e89b-12d3-a456-426614174000" as any,
-      title: "Cadeira de Escritório Ergonômica",
-      description: "Cadeira semi-nova, super confortável.",
-      keywords: "cadeira escritório",
-      price: 450.00,
-      condition: "used",
-      is_negotiable: true,
-      seller_can_deliver: true,
-      location: "São Carlos, SP",
-      category_id: 1,
-      category: { id: 1, name: "Móveis", icon: "🪑", parent_id: null, parent: null, children: [] },
-      user_id: "user-seller-1",
-      created_at: new Date("2023-01-10T10:00:00Z"),
-      updated_at: new Date("2023-01-15T11:00:00Z"),
-      status: "sold",
-      slug: "cadeira-escritorio-ergonomica",
-      user: {
-        id: "user-seller-1",
-        display_name: "Ana Vendedora",
-        email: "ana@email.com",
-        photo_url: "https://i.pravatar.cc/150?u=ana",
-        whatsapp: "16999999999",
-        telegram: null,
-        university: "USP São Carlos",
-        verified: true,
-        created_at: new Date("2022-01-01T00:00:00Z"),
-        updated_at: new Date("2022-01-01T00:00:00Z"),
-        slug: "ana-vendedora",
-        role: "user"
-      },
-      soldTo: {
-        id: "user-buyer-1",
-        display_name: "Carlos Comprador",
-        slug: "carlos-comprador",
-        photo_url: "https://i.pravatar.cc/150?u=carlos"
-      },
-      buyerReview: {
-        rating: 5,
-        comment: "Excelente vendedor e produto, super recomendo!",
-        reviewed_at: "2023-01-20T14:30:00Z"
-      }
-    }
-  ]);
-
-  const [purchasedProducts, setPurchasedProducts] = useState<
-    (ListingType & { buyerReview?: { rating: number, comment?: string, reviewed_at: string } })[]
-  >([
-    {
-      id: "123e4567-e89b-12d3-a456-426614174001" as any,
-      title: "Tablet Samsung Galaxy Tab S7",
-      description: "Tablet em excelente estado, usado por 6 meses.",
-      keywords: "tablet samsung",
-      price: 1800.00,
-      condition: "used",
-      is_negotiable: true,
-      seller_can_deliver: true,
-      location: "São Carlos, SP",
-      category_id: 2,
-      category: { id: 2, name: "Eletrônicos", icon: "💻", parent_id: null, parent: null, children: [] },
-      user_id: "user-seller-2",
-      created_at: new Date("2023-03-01T15:00:00Z"),
-      updated_at: new Date("2023-03-05T16:00:00Z"),
-      status: "sold",
-      slug: "tablet-samsung-galaxy-tab-s7",
-      user: {
-        id: "user-seller-2",
-        display_name: "Pedro Vendedor",
-        email: "pedro@email.com",
-        photo_url: "https://i.pravatar.cc/150?u=pedro",
-        whatsapp: "16988888888",
-        telegram: "pedrovendedor",
-        university: "UFSCar",
-        verified: true,
-        created_at: new Date("2022-02-01T00:00:00Z"),
-        updated_at: new Date("2022-02-01T00:00:00Z"),
-        slug: "pedro-vendedor",
-        role: "user"
-      },
-      buyerReview: undefined
-    }
-  ]);
-  // Fim dos Mocks
 
   const [isOwnerProfile, setIsOwnerProfile] = useState<boolean | undefined>(undefined);
   const [loadingOwnership, setLoadingOwnership] = useState(true);
@@ -165,7 +77,7 @@ const Usuario = () => {
     fetchProfile();
   }, [slug]);
 
-  // Busca as métricas do usuário atual
+  /*
   useEffect(() => {
     const fetchMetrics = async () => {
       if (!slug) {
@@ -184,7 +96,7 @@ const Usuario = () => {
       }
     };
     fetchMetrics();
-  }, [slug]);
+  }, [slug]);*/
 
   // Verifica se o usuário atual é o dono do perfil
   useEffect(() => {

@@ -129,7 +129,7 @@ export default function Onboarding() {
         telegram,
         verified: isPhoneVerified,
       });
-    } catch (e) {
+    } catch {
       showErrorToast("Erro ao registrar seus dados. Tente novamente mais tarde.");
     }
   };

@@ -32,7 +32,7 @@ export default function Navbar() {
       try {
         const data = await getMe();
         setLoggedInUserProfile(data);
-      } catch (error) {
+      } catch {
         setLoggedInUserProfile(null);
         showErrorToast("Erro ao carregar seu perfil. Tente novamente mais tarde.");
       } finally {

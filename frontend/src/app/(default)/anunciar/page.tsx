@@ -76,7 +76,7 @@ export default function Anunciar() {
         setLoadingCategories(true);
         const data = await getCategories();
         setCategories(data);
-      } catch (error) {
+      } catch {
         setFormError('Não foi possível carregar as categorias. Tente recarregar a página.');
       } finally {
         setLoadingCategories(false);
