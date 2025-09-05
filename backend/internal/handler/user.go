@@ -219,3 +219,113 @@ func GetProfileMetrics(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"metrics": metrics})
 }
+
+
+func GetAllUsers(c *gin.Context) {
+    var users []models.User
+    if err := repository.DB.Find(&users).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"users": users})
+}
+
+func DeleteUserByAdmin(c *gin.Context) {
+	userSlug := c.Param("slug")
+	var user models.User
+	if err := repository.DB.Where("slug = ?", userSlug).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user from database"})
+		return
+	}
+
+	userID := user.ID
+
+	err := repository.DB.Transaction(func(tx *gorm.DB) error {
+		var listings []models.Listing
+		if err := tx.Where("user_id = ?", userID).Find(&listings).Error; err != nil {
+			return err
+		}
+
+		if len(listings) > 0 {
+			var listingIDs []uuid.UUID
+			for _, l := range listings {
+				listingIDs = append(listingIDs, l.ID)
+			}
+			if err := tx.Where("listing_id IN ?", listingIDs).Delete(&models.ListingImage{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("listing_id IN ?", listingIDs).Delete(&models.Favorite{}).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Where("user_id = ?", userID).Delete(&models.Favorite{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("user_id = ?", userID).Delete(&models.Listing{}).Error; err != nil {
+			return err
+		}
+		result := tx.Where("id = ?", userID).Delete(&models.User{})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found during transaction"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user and associated data"})
+		return
+	}
+
+	ctx := c.Request.Context()
+	if err := config.AuthClient.DeleteUser(ctx, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User deleted from database, but failed to delete from authentication service"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully by admin"})
+}
+
+func UpdateUserRole(c *gin.Context) {
+	userSlug := c.Param("slug")
+	var user models.User
+	if err := repository.DB.First(&user, "slug = ?", userSlug).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	var request struct {
+		Role models.UserRole `json:"role"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	if request.Role != models.RoleUser && request.Role != models.RoleAdmin {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role specified"})
+		return
+	}
+
+	user.Role = request.Role
+	if err := repository.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user role"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}

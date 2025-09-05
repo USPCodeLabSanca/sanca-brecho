@@ -72,7 +72,7 @@ func GetReports(c *gin.Context) {
 		return
 	}
 
-	var detailedReports []ReportResponse
+	detailedReports := make([]ReportResponse, 0)
 	for _, report := range reports {
 		dr := ReportResponse{
 			Report: report,
