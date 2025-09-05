@@ -3,7 +3,7 @@ import { getIdToken } from "firebase/auth";
 import { auth } from "../firebase/config";
 
 const api = axios.create({
-    baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}/api` || "http://localhost:8080/api",
+    baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}/brechoapi` || "http://localhost:8080/brechoapi",
     timeout: 5000,
     headers: {
         "Content-Type": "application/json",

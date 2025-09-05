@@ -97,14 +97,9 @@ func GetListings(c *gin.Context) {
 // query param is mandatory. page and pageSize are optional. page starts at 1.
 // if page and pageSize are not provided, the default is 1 and 10 respectively.
 func GetListingsSearch(c *gin.Context) {
-	query, ok := c.Params.Get("query")
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "missing `query` param"})
-		return
-	}
-
+	query := c.Query("q")
 	if query == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "missing `query` param"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing `query` param"})
 		return
 	}
 
@@ -138,7 +133,7 @@ func GetListingsSearch(c *gin.Context) {
 	}
 
 	if len(result) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "No items match this query"})
+		c.JSON(http.StatusOK, []models.Listing{})
 		return
 	}
 

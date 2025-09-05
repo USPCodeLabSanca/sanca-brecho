@@ -67,6 +67,13 @@ export default function Navbar() {
     }, 200);
   };
 
+  const handleInputSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const searchValue = formData.get("search") as string;
+    router.push(`/categorias?q=${searchValue}`);
+  }
+
   const isLoading = loadingAuth || loadingUserProfile;
 
   const userProfileSlug = loggedInUserProfile?.slug;
@@ -84,7 +91,8 @@ export default function Navbar() {
 
           {/* Barra de Busca */}
           <div className="hidden md:flex justify-center flex-1 z-0">
-            <div
+            <form
+              onSubmit={handleInputSubmit}
               className={
                 "relative w-full px-4 " +
                 "md:max-w-md " +
@@ -94,10 +102,11 @@ export default function Navbar() {
               <Search className="absolute left-7 inset-y-0 my-auto w-4 h-4 text-slate-400" />
               <input
                 type="text"
+                name="search"
                 placeholder="O que você está procurando?"
                 className="flex h-10 w-full rounded-md border border-slate-300 px-3 py-2 pl-10 pr-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanca focus-visible:ring-offset-2 md:text-sm"
               />
-            </div>
+            </form>
           </div>
 
           {/* Navegação Desktop */}
@@ -181,14 +190,15 @@ export default function Navbar() {
 
         {/* Mobile: Barra de Busca (Aparece sempre abaixo do header principal no mobile) */}
         <div className="block md:hidden pb-2 pt-2 md:pt-0">
-          <div className="relative w-full">
+          <form onSubmit={handleInputSubmit} className="relative w-full">
             <Search className="absolute text-slate-400 left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
             <input
               type="text"
+              name="search"
               placeholder="Buscar..."
               className="flex h-10 w-full rounded-md border border-slate-300 px-3 py-2 pl-10 pr-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanca focus-visible:ring-offset-2 text-sm"
             />
-          </div>
+          </form>
         </div>
 
         {/* Mobile: Dropdown */}

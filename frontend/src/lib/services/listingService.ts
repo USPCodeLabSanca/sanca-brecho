@@ -103,3 +103,8 @@ export const createSale = async (id: string, buyer_identifier: string, final_pri
         return err.response?.data;
     }
 }
+
+export const searchListings = async (query: string): Promise<ListingType[]> => {
+    const response = await api.get(`/listings/search`, { params: { q: query } });
+    return response.data;
+}

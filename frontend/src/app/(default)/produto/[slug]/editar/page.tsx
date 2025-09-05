@@ -36,7 +36,7 @@ export default function EditarProdutoClient() {
   const [formData, setFormData] = useState<{
     title: string;
     description: string;
-    keywords: string[];
+    keywords: string;
     price: number;
     category_id: string;
     condition: string;
@@ -45,7 +45,7 @@ export default function EditarProdutoClient() {
   }>({
     title: '',
     description: '',
-    keywords: [],
+    keywords: '',
     price: 0,
     category_id: '',
     condition: '',
@@ -68,11 +68,12 @@ export default function EditarProdutoClient() {
       setIsLoading(true);
       try {
         const productData = await getListingBySlug(slug);
+        console.log(productData.keywords);
         setProduct(productData);
         setFormData({
           title: productData.title,
           description: productData.description,
-          keywords: productData.keywords.split(' '),
+          keywords: productData.keywords,
           price: productData.price,
           category_id: productData.category_id.toString(),
           condition: productData.condition,
@@ -118,9 +119,8 @@ export default function EditarProdutoClient() {
   };
 
   const handleKeywordsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    const keywordsArray = value.split(' ').filter(kw => kw.trim() !== '');
-    setFormData(prev => ({ ...prev, keywords: keywordsArray }));
+    const value = e.target.value;
+    setFormData(prev => ({ ...prev, keywords: value }));
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,7 +198,7 @@ export default function EditarProdutoClient() {
 
       const updatedListing = await updateListing(product.id, {
         ...formData,
-        keywords: formData.keywords.join(' '),
+        keywords: formData.keywords.trim(),
         condition: formData.condition as ListingType['condition'],
         category_id: parseInt(formData.category_id),
         price: Number(formData.price),
@@ -422,7 +422,7 @@ export default function EditarProdutoClient() {
                     type="text"
                     name="keywords"
                     id="keywords"
-                    value={formData.keywords.join(' ')}
+                    value={formData.keywords}
                     onChange={handleKeywordsChange}
                     className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-sanca"
                     placeholder="Ex: livro cálculo thomas"
