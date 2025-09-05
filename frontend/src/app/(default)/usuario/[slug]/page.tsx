@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
@@ -13,18 +14,18 @@ import {
   Edit,
   BadgeCheck,
   ShieldCheck,
-  Handshake,
-  ShoppingBag,
-  Flag
+  Star,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ProfileType, ListingType, ProfileMetricsType } from "@/lib/types/api";
+import { ProfileType, ListingType, ProfileMetricsType, ReviewType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
 import { getProfileBySlug, getProfileMetricsBySlug } from "@/lib/services/profileService";
 import { getMe } from "@/lib/services/userService";
 import { getListingsByUser } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
 import Spinner from "@/app/components/spinner";
+import { getReviewsReceived } from "@/lib/services/reviewService";
+import ReviewCard from "@/app/components/reviewCard";
 import { ReportDialog } from "@/app/components/reportModal";
 
 const Usuario = () => {
@@ -44,11 +45,103 @@ const Usuario = () => {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [errorProducts, setErrorProducts] = useState<string | null>(null);
 
+  const [userReviews, setUserReviews] = useState<ReviewType[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [errorReviews, setErrorReviews] = useState<string | null>(null);
+
+  // Mocks
+  const [soldProducts, setSoldProducts] = useState<
+    (ListingType & { soldTo: { id: string, display_name: string, slug: string, photo_url?: string }, buyerReview?: { rating: number, comment?: string, reviewed_at: string } })[]
+  >([
+    {
+      id: "123e4567-e89b-12d3-a456-426614174000" as any,
+      title: "Cadeira de Escritório Ergonômica",
+      description: "Cadeira semi-nova, super confortável.",
+      keywords: "cadeira escritório",
+      price: 450.00,
+      condition: "used",
+      is_negotiable: true,
+      seller_can_deliver: true,
+      location: "São Carlos, SP",
+      category_id: 1,
+      category: { id: 1, name: "Móveis", icon: "🪑", parent_id: null, parent: null, children: [] },
+      user_id: "user-seller-1",
+      created_at: new Date("2023-01-10T10:00:00Z"),
+      updated_at: new Date("2023-01-15T11:00:00Z"),
+      status: "sold",
+      slug: "cadeira-escritorio-ergonomica",
+      user: {
+        id: "user-seller-1",
+        display_name: "Ana Vendedora",
+        email: "ana@email.com",
+        photo_url: "https://i.pravatar.cc/150?u=ana",
+        whatsapp: "16999999999",
+        telegram: null,
+        university: "USP São Carlos",
+        verified: true,
+        created_at: new Date("2022-01-01T00:00:00Z"),
+        updated_at: new Date("2022-01-01T00:00:00Z"),
+        slug: "ana-vendedora",
+        role: "user"
+      },
+      soldTo: {
+        id: "user-buyer-1",
+        display_name: "Carlos Comprador",
+        slug: "carlos-comprador",
+        photo_url: "https://i.pravatar.cc/150?u=carlos"
+      },
+      buyerReview: {
+        rating: 5,
+        comment: "Excelente vendedor e produto, super recomendo!",
+        reviewed_at: "2023-01-20T14:30:00Z"
+      }
+    }
+  ]);
+
+  const [purchasedProducts, setPurchasedProducts] = useState<
+    (ListingType & { buyerReview?: { rating: number, comment?: string, reviewed_at: string } })[]
+  >([
+    {
+      id: "123e4567-e89b-12d3-a456-426614174001" as any,
+      title: "Tablet Samsung Galaxy Tab S7",
+      description: "Tablet em excelente estado, usado por 6 meses.",
+      keywords: "tablet samsung",
+      price: 1800.00,
+      condition: "used",
+      is_negotiable: true,
+      seller_can_deliver: true,
+      location: "São Carlos, SP",
+      category_id: 2,
+      category: { id: 2, name: "Eletrônicos", icon: "💻", parent_id: null, parent: null, children: [] },
+      user_id: "user-seller-2",
+      created_at: new Date("2023-03-01T15:00:00Z"),
+      updated_at: new Date("2023-03-05T16:00:00Z"),
+      status: "sold",
+      slug: "tablet-samsung-galaxy-tab-s7",
+      user: {
+        id: "user-seller-2",
+        display_name: "Pedro Vendedor",
+        email: "pedro@email.com",
+        photo_url: "https://i.pravatar.cc/150?u=pedro",
+        whatsapp: "16988888888",
+        telegram: "pedrovendedor",
+        university: "UFSCar",
+        verified: true,
+        created_at: new Date("2022-02-01T00:00:00Z"),
+        updated_at: new Date("2022-02-01T00:00:00Z"),
+        slug: "pedro-vendedor",
+        role: "user"
+      },
+      buyerReview: undefined
+    }
+  ]);
+  // Fim dos Mocks
+
   const [isOwnerProfile, setIsOwnerProfile] = useState<boolean | undefined>(undefined);
   const [loadingOwnership, setLoadingOwnership] = useState(true);
   const [errorOwnership, setErrorOwnership] = useState<string | null>(null);
 
-  // TO-DO: Falta o "buscando por" e "avaliações", precisa ter o backend e frontend
+  // TO-DO: Falta o "buscando por", precisa ter o backend e frontend
 
   // Busca o usuário pela slug
   useEffect(() => {
@@ -146,19 +239,49 @@ const Usuario = () => {
     fetchUserProducts();
   }, [userProfile?.slug]);
 
-  if (loadingProfile || loadingProducts || loadingAuth || loadingOwnership) {
+  useEffect(() => {
+    if (isOwnerProfile) {
+      // TODO: Implementar
+      // fetchSoldProducts();
+      // fetchPurchasedProducts();
+    }
+  }, [isOwnerProfile]);
+
+
+  // Busca as avaliações do usuário
+  useEffect(() => {
+    const fetchUserReviews = async () => {
+      if (!userProfile?.slug) {
+        setLoadingReviews(false);
+        return;
+      }
+      try {
+        const data = await getReviewsReceived(userProfile.slug);
+        setUserReviews(data);
+      } catch (error: any) {
+        setUserReviews([]);
+        setErrorReviews(error.message);
+        showErrorToast("Erro ao buscar avaliações do usuário");
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+    fetchUserReviews();
+  }, [userProfile?.slug]);
+
+  if (loadingProfile || loadingProducts || loadingReviews || loadingAuth || loadingOwnership) {
     return Spinner();
   }
 
   if (!userProfile || (userProfile && !userProfile.role)) {
-    notFound();
+    return notFound();
   }
 
-  if (errorProfile || errorProducts || errorOwnership) {
+  if (errorProfile || errorProducts || errorReviews || errorOwnership) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center text-red-500">
         <p>Erro ao carregar a página do usuário:</p>
-        <p>{errorProfile || errorProducts || errorOwnership}</p>
+        <p>{errorProfile || errorProducts || errorReviews || errorOwnership}</p>
       </div>
     );
   }
@@ -167,7 +290,7 @@ const Usuario = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-grow py-5">
+      <main className="flex-grow py-10">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             {isOwnerProfile && !userProfile.verified && (
@@ -190,7 +313,14 @@ const Usuario = () => {
               <div className="h-32 bg-gradient-to-r from-sanca to-[#0ea5e9]"></div>
               <div className="px-6 py-4 relative">
                 <div className="absolute -top-12 left-6 border-4 border-white rounded-full overflow-hidden bg-white">
-                  <img src={userAvatar} alt={`Foto de perfil de ${userProfile.display_name}`} className="h-24 w-24 object-cover" />
+                  <div className="h-24 w-24">
+                    <Image
+                      src={userAvatar}
+                      alt={`Foto de perfil de ${userProfile.display_name}`}
+                      fill
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
                 </div>
                 <div className="pt-14 pb-2 flex flex-col md:flex-row md:items-center md:justify-between">
                   <div className="w-full">
@@ -215,13 +345,20 @@ const Usuario = () => {
                         Membro desde {new Date(userProfile.created_at).toLocaleDateString('pt-BR')}
                       </div>
                       <div className="flex items-center">
+                        <Star size={16} className="mr-1 fill-yellow-400 text-yellow-400" />
+                        {userReviews.length > 0 ?
+                          `${userReviews.reduce((acc, r) => acc + r.rating, 0) / userReviews.length} (${userReviews.length} avaliações)`
+                          : 'Sem avaliações'}
+                      </div>
+                      {/* TODO: repensar e talvez remover isso aqui
+                      <div className="flex items-center">
                         <Handshake size={16} className="mr-1" />
                         Produtos vendidos: {metrics?.items_sold || 0}
                       </div>
                       <div className="flex items-center">
                         <ShoppingBag size={16} className="mr-1" />
                         Anúncios ativos: {metrics?.active_listings_count || 0}
-                      </div>
+                      </div>*/}
                     </div>
                     <div className="mt-4 md:mt-0 flex space-x-2">
                       {isOwnerProfile ? (
@@ -239,33 +376,39 @@ const Usuario = () => {
                             </Link>
                           )}
                         </>
-                      ) : ( 
+                      ) : (
                         <div className="w-full flex items-center justify-between">
-                        {userProfile.verified && (
-                          
+                          {userProfile.verified && (
+
                             <Link href={`https://wa.me/${userProfile.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`}>
                               <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-[#25D366] hover:bg-[#25D366]/90">
                                 <FaWhatsapp className="text-white" />Entrar em contato
                               </button>
                             </Link>
-                        )}
-                            <span/>
-                            <ReportDialog targetId={userProfile.slug} targetType="user" />
-                          </div>
+                          )}
+                          <span />
+                          <ReportDialog targetId={userProfile.slug} targetType="user" />
+                        </div>
                       )}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <Tabs defaultValue="products">
-              <TabList className="grid bg-slate-100 rounded-sm p-1">
-                <Tab selectedClassName="bg-white rounded-sm shadow-xs" value="products" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><Package className="h-4 w-4 mr-2" /><span>Produtos</span></Tab>
-                {/*<Tab selectedClassName="bg-white rounded-sm shadow-xs" value="lookingFor" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><Search className="h-4 w-4 mr-2" /><span>Buscando</span></Tab>
-              <Tab selectedClassName="bg-white rounded-sm shadow-xs" value="reviews" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none"><Star className="h-4 w-4 mr-2" /><span>Avaliações</span></Tab>
-              */}
+            <Tabs>
+              <TabList className={`overflow-x-auto no-scrollbar bg-slate-100 rounded-sm p-1 grid grid-cols-2`}>
+                <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
+                  <Package className="h-4 w-4 mr-2" />
+                  <span className="text-xs sm:text-base">
+                    {isOwnerProfile ? 'Meus Produtos' : 'Produtos'}
+                  </span>
+                </Tab>
+                <Tab selectedClassName="bg-white rounded-sm shadow-xs" value="reviews" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
+                  <Star className="h-4 w-4 mr-2" />
+                  <span className="text-xs sm:text-base">Avaliações</span>
+                </Tab>
               </TabList>
-              <TabPanel value="products">
+              <TabPanel>
                 <div className="bg-white rounded-xl p-6">
                   <h2 className="text-lg font-semibold mb-4">Produtos Anunciados ({userProducts.length})</h2>
                   {userProducts.length > 0 ? (
@@ -289,96 +432,23 @@ const Usuario = () => {
                   )}
                 </div>
               </TabPanel>
-              {/*
-              <TabPanel value="lookingFor">
-              <div className="bg-white rounded-xl p-6">
-                <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Produtos que Busca ({userLookingFor.length})</h2>
-                {isOwnProfile && (
-                  <Link href="/buscar-produto">
-                    <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90">
-                      <Plus className="h-4 w-4" />Adicionar
-                    </button>
-                  </Link>
-                )}
-                </div>
-                {userLookingFor.length > 0 ? (
-                <div className="space-y-4">
-                  {userLookingFor.map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex justify-between">
-                    <h3 className="font-medium">{item.title}</h3>
-                    <span className="text-sm text-gray-500">{new Date(item.createdAt).toLocaleDateString('pt-BR')}</span>
+              <TabPanel value="reviews">
+                <div className="bg-white rounded-xl p-6">
+                  <h2 className="text-lg font-semibold mb-4">Avaliações Recebidas</h2>
+                  {userReviews.length > 0 ? (
+                    <div className="space-y-4">
+                      {userReviews.map((review) => (
+                        <ReviewCard key={review.id} review={review} />
+                      ))}
                     </div>
-                    <p className="text-gray-600 text-sm mt-2">{item.description}</p>
-                    <div className="mt-3 flex justify-between items-center">
-                    <span className="text-sm text-gray-500">Categoria: {item.category}</span>
-                    {!isOwnProfile ? (
-                      <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-48 bg-[#25D366] hover:bg-[#25D366]/90">
-                        <FaWhatsapp className="text-white" />Entrar em contato
-                      </button>
-                    ) : (
-                      <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-24 bg-sanca hover:bg-sanca/90">
-                        <Trash2 className="h-4 w-4" />Excluir
-                      </button>
-                    )}
+                  ) : (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                      <Star className="h-12 w-12 mx-auto text-gray-300" />
+                      <p className="mt-2 text-gray-500">Nenhuma avaliação recebida</p>
                     </div>
-                  </div>
-                  ))}
-                </div>
-                ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <Search className="h-12 w-12 mx-auto text-gray-300" />
-                  <p className="mt-2 text-gray-500">Nenhum produto na lista de buscas</p>
-                  {isOwnProfile && (
-                  <Link href="/buscar-produto">
-                    <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90">
-                      Adicionar produto buscado
-                    </button>
-                  </Link>
                   )}
                 </div>
-                )}
-              </div>
               </TabPanel>
-              <TabPanel value="reviews">
-              <div className="bg-white rounded-xl p-6">
-                <h2 className="text-lg font-semibold mb-4">Avaliações Recebidas</h2>
-                {userReviews.length > 0 ? (
-                <div className="space-y-4">
-                  {userReviews.map((review) => (
-                  <div key={review.id} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
-                    <div className="flex items-start">
-                    <img src={review.userAvatar} alt={`Foto de ${review.userName}`} className="h-10 w-10 rounded-full object-cover" />
-                    <div className="ml-3 flex-1">
-                      <div className="flex items-center justify-between">
-                      <Link href={`/usuario/${review.reviewerId}`} className="font-medium text-gray-800">{review.userName}</Link>
-                      <span className="text-sm text-gray-500">{new Date(review.date).toLocaleDateString('pt-BR')}</span>
-                      </div>
-                      <div className="flex items-center mt-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                        key={i}
-                        size={16}
-                        className={i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
-                        />
-                      ))}
-                      </div>
-                      <p className="mt-2 text-gray-700">{review.comment}</p>
-                    </div>
-                    </div>
-                  </div>
-                  ))}
-                </div>
-                ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <Star className="h-12 w-12 mx-auto text-gray-300" />
-                  <p className="mt-2 text-gray-500">Nenhuma avaliação recebida</p>
-                </div>
-                )}
-              </div>
-              </TabPanel>
-              */}
             </Tabs>
           </div>
         </div>
