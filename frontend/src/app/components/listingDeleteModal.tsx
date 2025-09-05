@@ -23,7 +23,7 @@ export function ListingDeleteModal({ modalState, setModalState, refetchListings 
 
   const handleDelete = async () => {
     if (!modalState) return;
-    
+
     setIsSubmitting(true);
     try {
       await deleteListingByAdmin(String(modalState.listing.id));
@@ -51,16 +51,16 @@ export function ListingDeleteModal({ modalState, setModalState, refetchListings 
             Tem certeza que deseja excluir o anúncio "{modalState.listing.title}"? Esta ação não pode ser desfeita.
           </Dialog.Description>
           <div className="mt-6 flex justify-end gap-3">
-            <button type="button" onClick={handleClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+            <button type="button" onClick={handleClose} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
               Cancelar
             </button>
-            <button onClick={handleDelete} disabled={isSubmitting} className="inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 disabled:bg-gray-400">
+            <button onClick={handleDelete} disabled={isSubmitting} className="cursor-pointer inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 disabled:bg-gray-400">
               <Trash2 className="w-4 h-4" />
               {isSubmitting ? "Excluindo..." : "Confirmar Exclusão"}
             </button>
           </div>
           <Dialog.Close asChild>
-            <button className="absolute right-4 top-4 rounded-sm opacity-70">
+            <button className="absolute right-4 top-4 rounded-sm opacity-70 cursor-pointer">
               <X className="h-4 w-4" />
             </button>
           </Dialog.Close>

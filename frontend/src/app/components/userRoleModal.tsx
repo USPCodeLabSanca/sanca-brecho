@@ -73,17 +73,17 @@ export function UserRoleModal({ modalState, setModalState, refetchUsers }: UserR
               </select>
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <button type="button" onClick={handleClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+              <button type="button" onClick={handleClose} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
                 Cancelar
               </button>
-              <button type="submit" disabled={isSubmitting} className="inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-sanca border border-transparent rounded-md shadow-sm hover:opacity-90 disabled:bg-gray-400">
+              <button type="submit" disabled={isSubmitting} className="cursor-pointer inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-sanca border border-transparent rounded-md shadow-sm hover:opacity-90 disabled:bg-gray-400">
                 <UserCog className="w-4 h-4" />
                 {isSubmitting ? "Salvando..." : "Salvar Alterações"}
               </button>
             </div>
           </form>
           <Dialog.Close asChild>
-            <button className="absolute right-4 top-4 rounded-sm opacity-70">
+            <button className="cursor-pointer absolute right-4 top-4 rounded-sm opacity-70">
               <X className="h-4 w-4" />
             </button>
           </Dialog.Close>
