@@ -8,6 +8,7 @@ import Image from "next/image";
 import { getListingImages } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
 import Spinner from "./spinner";
+import SafeImage from "./safeImage";
 
 interface ProductCardProps {
   product: ListingType;
@@ -17,7 +18,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, className }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string>('https://sancabrechobucket.s3.us-east-2.amazonaws.com/notfound.png');
+  const [imageSrc, setImageSrc] = useState<string>('/product_placeholder.png');
   const [loadingImage, setLoadingImage] = useState(true);
   const [errorImage, setErrorImage] = useState<string | null>(null);
 
@@ -30,11 +31,11 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
         if (data && Array.isArray(data) && data.length > 0 && data[0].src) {
           setImageSrc(data[0].src);
         } else {
-          setImageSrc('https://sancabrechobucket.s3.us-east-2.amazonaws.com/notfound.png');
+          setImageSrc('/product_placeholder.png');
         }
       } catch (error: any) {
         setErrorImage(error.message);
-        setImageSrc('https://sancabrechobucket.s3.us-east-2.amazonaws.com/notfound.png');
+        setImageSrc('/product_placeholder.png');
         showErrorToast('Erro ao carregar a imagem do produto.');
       } finally {
         setLoadingImage(false);
@@ -69,7 +70,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
               Erro ao carregar imagem
             </div>
           ) : (
-            <Image
+            <SafeImage
               src={imageSrc}
               alt={product.title}
               width={500}
@@ -106,10 +107,12 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
           <h3 className="h-10 text-sm font-medium line-clamp-2">{product.title}</h3>
 
           <div className="flex items-center mt-2 text-xs text-gray-500">
-            <img
-              src={product.user.photo_url || 'https://sancabrechobucket.s3.us-east-2.amazonaws.com/Portrait_Placeholder.png'}
+            <Image
+              src={product.user.photo_url || '/user_placeholder.png'}
               alt={product.user.display_name}
               className="h-4 w-4 rounded-full mr-1 object-cover"
+              width={36}
+              height={36}
             />
             <span className="truncate">{product.user.display_name}</span>
           </div>

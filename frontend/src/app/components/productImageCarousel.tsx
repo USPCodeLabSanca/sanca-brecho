@@ -15,6 +15,7 @@ import 'swiper/css/thumbs'
 import 'swiper/css/pagination'
 import { getListingImages } from '@/lib/services/listingService'
 import { showErrorToast } from '@/lib/toast'
+import SafeImage from './safeImage'
 
 type ProductImageCarouselProps = {
   productId: string; // ID do produto para buscar as imagens
@@ -124,7 +125,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
         >
           {images.map((img, index) => (
             <SwiperSlide key={img.id}>
-              <Image
+              <SafeImage
                 src={img.src}
                 alt={`Foto ${index + 1}`}
                 width={1280}
@@ -150,7 +151,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
         >
           {images.map((img, index) => (
             <SwiperSlide key={img.id} className="aspect-square w-full h-auto">
-              <Image
+              <SafeImage
                 src={img.src}
                 alt={`Thumb ${index + 1}`}
                 width={150}

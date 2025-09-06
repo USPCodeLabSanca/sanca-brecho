@@ -77,7 +77,7 @@ export default function Navbar() {
   const isLoading = loadingAuth || loadingUserProfile;
 
   const userProfileSlug = loggedInUserProfile?.slug;
-  const userAvatarSrc = loggedInUserProfile?.photo_url || 'https://sancabrechobucket.s3.us-east-2.amazonaws.com/Portrait_Placeholder.png';
+  const userAvatarSrc = loggedInUserProfile?.photo_url || '/user_placeholder.png';
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200">

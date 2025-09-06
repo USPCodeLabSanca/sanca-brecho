@@ -8,6 +8,7 @@ import Spinner from "./spinner";
 import { ChevronRight, MessageCircle } from "lucide-react";
 import CreateReviewModal from "./createReviewModal";
 import ReviewPrompt from "./reviewPrompt";
+import SafeImage from "./safeImage";
 
 interface SaleDetailsProps {
   sale: SaleType;
@@ -18,7 +19,7 @@ interface SaleDetailsProps {
 const SaleDetails = ({ sale, context, onReviewSuccess }: SaleDetailsProps) => {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string>('https://sancabrechobucket.s3.us-east-2.amazonaws.com/notfound.png');
+  const [imageSrc, setImageSrc] = useState<string>('/product_placeholder.png');
   const [loadingImage, setLoadingImage] = useState(true);
   const [errorImage, setErrorImage] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,11 +33,11 @@ const SaleDetails = ({ sale, context, onReviewSuccess }: SaleDetailsProps) => {
         if (data && Array.isArray(data) && data.length > 0 && data[0].src) {
           setImageSrc(data[0].src);
         } else {
-          setImageSrc('https://sancabrechobucket.s3.us-east-2.amazonaws.com/notfound.png');
+          setImageSrc('/product_placeholder.png');
         }
       } catch (error: any) {
         setErrorImage(error.message);
-        setImageSrc('https://sancabrechobucket.s3.us-east-2.amazonaws.com/notfound.png');
+        setImageSrc('/product_placeholder.png');
         console.error("Erro ao carregar imagem:", error);
       } finally {
         setLoadingImage(false);
@@ -62,7 +63,7 @@ const SaleDetails = ({ sale, context, onReviewSuccess }: SaleDetailsProps) => {
   const otherParty = context === 'buyer' ? sale.seller : sale.buyer;
 
   const otherPartyProfileSlug = otherParty?.slug;
-  const otherPartyAvatarSrc = otherParty?.photo_url || 'https://sancabrechobucket.s3.us-east-2.amazonaws.com/Portrait_Placeholder.png';
+  const otherPartyAvatarSrc = otherParty?.photo_url || '/user_placeholder.png';
 
   const handleModalSuccess = (newReview: ReviewType) => {
     onReviewSuccess(newReview);
@@ -108,7 +109,7 @@ const SaleDetails = ({ sale, context, onReviewSuccess }: SaleDetailsProps) => {
                   Erro
                 </div>
               ): (
-                <Image 
+                <SafeImage 
                   src={imageSrc}
                   alt={sale.listing.title}
                   fill

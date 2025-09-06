@@ -198,7 +198,7 @@ const Usuario = () => {
     );
   }
 
-  const userAvatar = userProfile.photo_url || 'https://sancabrechobucket.s3.us-east-2.amazonaws.com/Portrait_Placeholder.png';
+  const userAvatar = userProfile.photo_url || '/user_placeholder.png';
 
   return (
     <div className="min-h-screen flex flex-col">
