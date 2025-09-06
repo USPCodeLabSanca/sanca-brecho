@@ -240,7 +240,7 @@ export default function ProdutoClient() {
                   <Image
                     width={50}
                     height={50}
-                    src={product.user.photo_url || 'https://sancabrechobucket.s3.us-east-2.amazonaws.com/Portrait_Placeholder.png'}
+                    src={product.user.photo_url || '/user_placeholder.png'}
                     alt={product.user.display_name}
                     className="rounded-full"
                   ></Image>

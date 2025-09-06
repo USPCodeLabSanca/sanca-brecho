@@ -16,7 +16,7 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
     return <p className="p-4 text-sm text-red-500">Dados da avaliação incompletos</p>
   }
 
-  const avatarImageSrc = author.photo_url ?? 'https://sancabrechobucket.s3.us-east-2.amazonaws.com/Portrait_Placeholder.png'
+  const avatarImageSrc = author.photo_url ?? '/user_placeholder.png'
 
   return (
     <div className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">

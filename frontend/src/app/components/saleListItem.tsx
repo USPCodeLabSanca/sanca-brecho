@@ -4,10 +4,10 @@ import { getListingImages } from "@/lib/services/listingService";
 import { SaleType } from "@/lib/types/api";
 import { useEffect, useState } from "react";
 import { Check, ChevronRight } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import Spinner from "./spinner";
 import { RiUserStarLine } from "react-icons/ri";
+import SafeImage from "./safeImage";
 
 interface SaleListItemProps {
   sale: SaleType;
@@ -16,7 +16,7 @@ interface SaleListItemProps {
 
 const SaleListItem = ({ sale, context }: SaleListItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string>('https://sancabrechobucket.s3.us-east-2.amazonaws.com/notfound.png');
+  const [imageSrc, setImageSrc] = useState<string>('/product_placeholder.png');
   const [loadingImage, setLoadingImage] = useState(true);
   const [errorImage, setErrorImage] = useState<string | null>(null);
 
@@ -29,11 +29,11 @@ const SaleListItem = ({ sale, context }: SaleListItemProps) => {
         if (data && Array.isArray(data) && data.length > 0 && data[0].src) {
           setImageSrc(data[0].src);
         } else {
-          setImageSrc('https://sancabrechobucket.s3.us-east-2.amazonaws.com/notfound.png');
+          setImageSrc('/product_placeholder.png');
         }
       } catch (error: any) {
         setErrorImage(error.message);
-        setImageSrc('https://sancabrechobucket.s3.us-east-2.amazonaws.com/notfound.png');
+        setImageSrc('/product_placeholder.png');
         console.error("Erro ao carregar imagem:", error);
       } finally {
         setLoadingImage(false);
@@ -69,7 +69,7 @@ const SaleListItem = ({ sale, context }: SaleListItemProps) => {
                 Erro
               </div>
             ): (
-              <Image 
+              <SafeImage 
                 src={imageSrc}
                 alt={sale.listing.title}
                 fill
