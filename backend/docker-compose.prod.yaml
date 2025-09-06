@@ -27,13 +27,16 @@ services:
         condition: service_healthy
     environment:
       # Application config
-      OPENAI_API_KEY: "${OPENAI_API_KEY}"
       JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
+      FRONTEND_URL: "${FRONTEND_URL}"
       DB_HOST: db
       DB_USER: "${DB_USER}"
       DB_PASSWORD: "${DB_PASSWORD}"
       DB_NAME: "${DB_NAME}"
       DB_PORT: "${DB_PORT}"
+      CREDENTIALS_PATH: "/app/credentials.json"
+    volumes:
+      - ./credentials.json:/app/credentials.json:ro
     ports:
       - "8080:8080"
     logging:
