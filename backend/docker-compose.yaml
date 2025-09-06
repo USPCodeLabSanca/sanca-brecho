@@ -4,10 +4,12 @@ services:
     image: boost-aex-backend
     environment:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      CREDENTIALS_PATH: "/app/credentials.json"
+    volumes:
+      - ./credentials.json:/app/credentials.json:ro
+      - .:/app
     ports:
       - 8080:8080
-    volumes:
-      - .:/app
     depends_on:
       db:
         condition: service_healthy

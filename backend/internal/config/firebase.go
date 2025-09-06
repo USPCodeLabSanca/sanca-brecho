@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"log"
+	"os"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
@@ -14,7 +15,7 @@ var (
 )
 
 func InitFirebase() error {
-	opt := option.WithCredentialsFile("./credentials.json")
+	opt := option.WithCredentialsFile(os.Getenv("CREDENTIALS_PATH"))
 	config := &firebase.Config{ProjectID: "sanca-brecho"}
 	app, err := firebase.NewApp(context.Background(), config, opt)
 	if err != nil {
