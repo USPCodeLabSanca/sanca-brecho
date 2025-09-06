@@ -3,7 +3,9 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { AuthProvider } from "@/lib/context/AuthContext";
-import DynamicToaster from "./components/dynamic-toaster";
+import DynamicToaster from "@/app/components/dynamic-toaster";
+import { Suspense } from "react";
+import Spinner from "@/app/components/spinner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,8 +28,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <DynamicToaster /> 
-          {children}
+          <Suspense fallback={<Spinner />}>
+            <DynamicToaster /> 
+            {children}
+          </Suspense>
         </AuthProvider>
       </body>
     </html>
