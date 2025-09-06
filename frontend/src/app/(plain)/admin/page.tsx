@@ -15,6 +15,7 @@ import { ReportActionModal, ReportModalState } from "@/app/components/reportActi
 import { useAuth } from "@/lib/context/AuthContext";
 import { showErrorToast } from "@/lib/toast";
 import router from "next/router";
+import SafeImage from "@/app/components/safeImage";
 
 export default function AdminDashboardPage() {
   const { user: firebaseUser, loading: authLoading } = useAuth();
@@ -79,7 +80,7 @@ export default function AdminDashboardPage() {
     };
 
     checkAdminStatus();
-  }, [firebaseUser, authLoading, router]);
+  }, [firebaseUser, authLoading]);
 
   const handleDeleteUser = async (userSlug: string) => {
     if (confirm("Tem certeza que deseja deletar este usuário? Esta ação é irreversível.")) {
@@ -164,7 +165,7 @@ export default function AdminDashboardPage() {
             <tbody>{users.map((user, index) => (
               <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="p-3 flex items-center gap-3">
-                  <img src={user.photo_url || "/default-avatar.png"} alt={user.display_name} className="w-9 h-9 rounded-full object-cover" />
+                  <SafeImage src={user.photo_url || "/default-avatar.png"} alt={user.display_name} fallbackSrc="/user_placeholder.png" className="w-9 h-9 rounded-full object-cover" width={96} height={96} />
                   {user.display_name}
                 </td>
                 <td className="p-3">{user.email}</td>

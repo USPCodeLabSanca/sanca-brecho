@@ -12,6 +12,7 @@ import { getMe, updateMe, deleteMe } from "@/lib/services/userService";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import notFound from "../not-found";
 import { signOutUser } from "@/lib/firebase/auth";
+import Image from "next/image";
 
 const EditarUsuario = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -150,7 +151,7 @@ const EditarUsuario = () => {
 
   const userAvatar =
     userProfile?.photo_url ||
-    "https://sancabrechobucket.s3.us-east-2.amazonaws.com/Portrait_Placeholder.png";
+    "/user_placeholder.png";
 
   return (
     <div className="bg-sanca/10 min-h-screen">
@@ -172,10 +173,12 @@ const EditarUsuario = () => {
             <div className="mb-6 flex flex-col items-center">
               <div className="mb-4 relative">
                 <div className="h-24 w-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border-2 border-gray-200">
-                  <img
+                  <Image
                     src={userAvatar}
                     alt="Avatar"
                     className="h-full w-full object-cover"
+                    width={96}
+                    height={96}
                   />
                 </div>
               </div>
