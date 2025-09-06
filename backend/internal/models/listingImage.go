@@ -8,4 +8,5 @@ type ListingImage struct {
 	Listing   Listing   `json:"listing" gorm:"foreignKey:ListingID;references:ID"`
 	Src       string    `json:"src" gorm:"not null"`
 	Order     int       `json:"order" gorm:"default:0"`
+	Key       string    `json:"key" gorm:"not null"`
 }

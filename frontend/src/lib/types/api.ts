@@ -16,13 +16,13 @@ const Status = {
     Sold: 'sold' as Status,
 }
 
-export type UserRole = typeof UserRole[keyof typeof UserRole]; 
+export type UserRole = typeof UserRole[keyof typeof UserRole];
 
 export const UserRole = {
-  User: "user",
-  Admin: "admin",
+    User: "user",
+    Admin: "admin",
 } as const;
-export interface UserType{
+export interface UserType {
     id: string;
     display_name: string;
     slug: string;
@@ -73,6 +73,7 @@ export interface ListingImageType {
     listing: ListingType;
     src: string;
     order: number;
+    key: string;
 }
 
 export interface ProfileType {

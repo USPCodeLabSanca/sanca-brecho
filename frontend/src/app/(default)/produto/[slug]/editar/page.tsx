@@ -22,6 +22,7 @@ const MAX_WIDTH_OR_HEIGHT = 1024
 
 type previewImage = {
   id: string,
+  key: string,
   publicURL: string,
   isNew?: boolean,
   file?: File,
@@ -82,7 +83,7 @@ export default function EditarProdutoClient() {
         });
 
         const imagesData = await getListingImages(productData.id);
-        setImages(imagesData.map(img => ({ id: img.id, publicURL: img.src })));
+        setImages(imagesData.map(img => ({ id: img.id, publicURL: img.src, key: img.key })));
         setOriginalImages(imagesData);
 
         const categoriesData = await getCategories();
@@ -154,6 +155,7 @@ export default function EditarProdutoClient() {
       publicURL: URL.createObjectURL(file),
       isNew: true,
       file: compressedFile,
+      key: tempId, // Use the temporary ID as the key for now
     };
     setImages(prev => [...prev, newPreview]);
     event.target.value = '';
@@ -183,7 +185,11 @@ export default function EditarProdutoClient() {
     setError(null);
     try {
       const newImagesToUpload = images.filter(img => img.isNew && img.file);
-      const uploadedImageUrls: { [tempId: string]: string } = {};
+      const uploadedImageUrls: {
+        [tempId: string]: {
+          key: string; publicURL: string;
+        }
+      } = {};
 
       // Upload new images to s3
       for (const img of newImagesToUpload) {
@@ -193,7 +199,10 @@ export default function EditarProdutoClient() {
             "Content-Type": img.file!.type
           }
         });
-        uploadedImageUrls[img.id] = presignedUrlData.publicURL;
+        uploadedImageUrls[img.id] = {
+          key: presignedUrlData.key,
+          publicURL: presignedUrlData.publicURL
+        };
       }
 
       const updatedListing = await updateListing(product.id, {
@@ -221,8 +230,9 @@ export default function EditarProdutoClient() {
         const order = images.findIndex(i => i.id === img.id);
         return createListingImage({
           listing_id: product.id,
-          src: uploadedImageUrls[img.id],
+          src: uploadedImageUrls[img.id].publicURL,
           order,
+          key: uploadedImageUrls[img.id].key,
         });
       });
 

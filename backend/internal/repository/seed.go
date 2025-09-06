@@ -230,12 +230,14 @@ func Seed() error {
 				ListingID: lst.ID,
 				Src:       "https://picsum.photos/id/0/640/480",
 				Order:     0,
+				Key:       "example1",
 			}
 			sec := &models.ListingImage{
 				ID:        uuid.New(),
 				ListingID: lst.ID,
 				Src:       "https://picsum.photos/id/2/640/480",
 				Order:     1,
+				Key:       "example2",
 			}
 
 			if err := tx.Create([]*models.ListingImage{prim, sec}).Error; err != nil {

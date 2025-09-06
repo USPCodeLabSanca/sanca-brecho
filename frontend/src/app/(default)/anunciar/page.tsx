@@ -118,6 +118,7 @@ export default function Anunciar() {
           listing_id: newListing.id,
           src: img.publicURL,
           order: index,
+          key: img.key,
         });
       });
 
