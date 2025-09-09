@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/context/AuthContext";
-import { Bell, Search, Menu, User as UserIcon, LogOut, Plus, LogIn, ShoppingBagIcon, Tag } from "lucide-react";
+import { Search, Menu, User as UserIcon, LogOut, Plus, LogIn, ShoppingBagIcon, Tag } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { signOutUser } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
@@ -118,9 +118,11 @@ export default function Navbar() {
                 <Link className="text-gray-700 hover:text-sanca" href="/anunciar">
                   Anunciar
                 </Link>
+                {/* Não implementado
                 <Link href="/notifications" aria-label="Notificações">
                   <Bell className="text-gray-700 w-5 h-5 hover:text-sanca" />
                 </Link>
+                */}
                 <div
                   className="relative"
                   onMouseEnter={handleMouseEnterProfile}
@@ -221,6 +223,7 @@ export default function Navbar() {
                   <Plus className="w-4 h-4 mr-2" />
                   Anunciar
                 </Link>
+                {/* Não implementado
                 <Link
                   href="/notifications"
                   className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
@@ -229,6 +232,7 @@ export default function Navbar() {
                   <Bell className="w-4 h-4 mr-2" />
                   Notificações
                 </Link>
+                */}
                 <Link
                   href={`/vendas`}
                   className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
