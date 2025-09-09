@@ -1,6 +1,6 @@
-# Frontend - Boost AEX 25.1
+# Frontend - Sanca Brechó
 
-Este diretório contém a aplicação web do projeto **boost-aex**, desenvolvida em Next.js (React).
+Este diretório contém a aplicação web do projeto **Sanca Brechó**, desenvolvida em Next.js (React).
 
 ## ⬇️ Baixando o Projeto e Dependências
 

@@ -1,6 +1,6 @@
-# Backend - Boost AEX 25.1
+# Backend - Sanca Brechó
 
-Este diretório contém a API do projeto **boost-aex**, desenvolvida em Go.
+Este diretório contém a API do projeto **Sanca Brechó**, desenvolvida em Go.
 
 ## ⬇️ Baixando o Projeto e Dependências
 
