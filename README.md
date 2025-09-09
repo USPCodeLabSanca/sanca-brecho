@@ -1,7 +1,7 @@
-# Boost AEX - 25.1
+# Sanca Brechó
 
 ## 🧪 Sobre o Projeto
-Este repositório reúne o projeto **boost-aex**, uma Atividade Extensionista Curricular (AEX) criada pelo grupo de extensão **USPCodeLabSanca**, da USP de São Carlos.
+Este repositório reúne o projeto **Sanca Brechó**, uma Atividade Extensionista Curricular (AEX) criada pelo grupo de extensão **USPCodeLabSanca**, da USP de São Carlos.
 
 O objetivo é desenvolver uma plataforma para universitários que facilite o anúncio da venda de produtos usados, promovendo economia circular.
 
@@ -17,8 +17,8 @@ Cada diretório possui seu próprio README com instruções de instalação, con
 
 Primeiro, clone o repositório localmente:
 ```sh
-git clone https://github.com/USPCodeLabSanca/boost-aex.git
-cd boost-aex
+git clone https://github.com/USPCodeLabSanca/sanca-brecho.git
+cd sanca-brecho
 ```
 Para rodar o projeto, leia atentamente as instruções nos READMEs de cada parte:
 
