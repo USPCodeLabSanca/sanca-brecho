@@ -22,7 +22,7 @@ export function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-export function isEmoji(char: String): boolean {
+export function isEmoji(char: string): boolean {
   if (!char) return false;
   const codePoint = char.codePointAt(0)!;
   // Rough check for emoji ranges in Unicode

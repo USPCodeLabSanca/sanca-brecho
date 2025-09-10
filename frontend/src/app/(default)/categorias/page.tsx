@@ -54,7 +54,7 @@ export default function Categorias() {
     }
 
     router.replace(`?${params.toString()}`);
-  }, [debouncedSearch, selectedCategoryId]);
+  }, [debouncedSearch, selectedCategoryId, router, searchParams]);
 
   // Fetch categories
   useEffect(() => {

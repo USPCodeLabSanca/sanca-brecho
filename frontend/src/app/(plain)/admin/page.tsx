@@ -5,7 +5,7 @@ import { getListings } from "@/lib/services/listingService";
 import { getCategories } from "@/lib/services/categoryService";
 import { getReports } from "@/lib/services/reportService";
 import { UserType, ListingType, CategoryType, ReportType } from "@/lib/types/api";
-import { Users, LayoutGrid, Tag, ShieldAlert, Trash2, Edit, UserCog, PlusCircle, ArrowLeft, MoreHorizontalIcon, MoreHorizontal } from "lucide-react";
+import { Users, LayoutGrid, Tag, ShieldAlert, Trash2, Edit, UserCog, PlusCircle, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { CategoryModal, ModalState as CategoryModalState } from "@/app/components/categoryModal";
