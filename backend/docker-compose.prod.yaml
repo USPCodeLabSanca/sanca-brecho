@@ -29,6 +29,8 @@ services:
       # Application config
       JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
       FRONTEND_URL: "${FRONTEND_URL}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
       DB_HOST: db
       DB_USER: "${DB_USER}"
       DB_PASSWORD: "${DB_PASSWORD}"

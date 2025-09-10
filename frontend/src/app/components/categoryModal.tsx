@@ -10,6 +10,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "@/lib/services/categoryService";
+import { isEmoji } from "@/lib/utils";
 
 export type ModalState =
   | { type: "add" }
@@ -30,6 +31,7 @@ export function CategoryModal({
 }: CategoryModalProps) {
   // Estados manuais para o formulário
   const [name, setName] = useState("");
+  const [icon, setIcon] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -37,8 +39,10 @@ export function CategoryModal({
   useEffect(() => {
     if (modalState?.type === "edit") {
       setName(modalState.category.name);
+      setIcon(modalState.category.icon);
     } else {
       setName(""); // Limpa para o modo de adição
+      setIcon("");
     }
     setError(null); // Sempre limpa os erros ao abrir
   }, [modalState]);
@@ -55,18 +59,37 @@ export function CategoryModal({
     return true;
   };
 
+  // Função de validação do ícone
+  const validateIcon = () => {
+    if (icon.trim() === "") {
+      setError("O ícone da categoria não pode estar vazio.");
+      return false;
+    }
+    if (Array.from(icon).length !== 1) {
+      setError("O ícone da categoria deve ter apenas 1 caractere.");
+      return false;
+    }
+    if (!isEmoji(icon)) {
+      setError("O ícone da categoria deve ser um emoji.");
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!validateName()) return;
+    if (!validateIcon()) return;
 
     if (modalState?.type !== "add" && modalState?.type !== "edit") return;
 
     setIsSubmitting(true);
     try {
       if (modalState.type === "add") {
-        await createCategory({ name, icon: "default", parent_id: null });
+        await createCategory({ name, icon, parent_id: null });
       } else {
-        await updateCategory(modalState.category.id, { name });
+        await updateCategory(modalState.category.id, { name, icon });
       }
       refetchCategories();
       handleClose();
@@ -127,6 +150,17 @@ export function CategoryModal({
                   placeholder="Ex: Eletrônicos"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-sanca focus:ring-sanca sm:text-sm h-10 px-3"
+                />
+                <label htmlFor="icon" className="mt-4 block text-sm font-medium text-gray-700">
+                  Ícone (Apenas 1 emoji)
+                </label>
+                <input
+                  id="icon"
+                  type="text"
+                  placeholder="Ex: 📱"
+                  value={icon}
+                  onChange={(e) => setIcon(e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-sanca focus:ring-sanca sm:text-sm h-10 px-3"
                 />
                 {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
