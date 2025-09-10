@@ -87,7 +87,7 @@ const EditarUsuario = () => {
       showErrorToast("Você não tem permissão para editar este perfil.");
       router.push(`/usuario/${slug}`);
     }
-  }, [isOwnerProfile, loadingOwnership, router, slug]);
+  }, [isOwnerProfile, loadingOwnership, router, slug, isDeleting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,12 +135,12 @@ const EditarUsuario = () => {
   if (!isOwnerProfile) {
     return <Spinner />;
   }
-  
+
   // Se o perfil não for encontrado após o carregamento
   if (!userProfile) {
     return notFound();
   }
-  
+
   if (errorProfile) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center text-red-500">
