@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/lib/context/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, ArrowLeft, Camera, CheckCircle2, Upload } from "lucide-react";
+import { AlertCircle, ArrowLeft, Camera, CheckCircle2, LogIn, Upload, User } from "lucide-react";
 import { useCallback, useEffect, useState, FormEvent } from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { DndProvider } from "react-dnd";
@@ -17,6 +17,7 @@ import { getCategories } from "@/lib/services/categoryService";
 import { createListing, createListingImage, createListingImagePresignedUrl } from "@/lib/services/listingService";
 import axios from "axios";
 import Spinner from "@/app/components/spinner";
+import ActionPrompt from "@/app/components/actionPrompt";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -51,24 +52,6 @@ export default function Anunciar() {
   // Estados de imagem
   const [previewImages, setPreviewImages] = useState<previewImage[]>([]);
   const [activeImage, setActiveImage] = useState<string | null>(null);
-
-  // Redirecionar para a página de login se o usuário não estiver logado, ou para a de onboarding se não tiver telefone cadastrado
-  useEffect(() => {
-    if (loading) {
-      return;
-    }
-
-    if (!user) {
-      showErrorToast("Você precisa estar logado para criar um anúncio.");
-      router.push("/login");
-      return;
-    }
-
-    if (!user.phoneNumber) {
-      showErrorToast("Você precisa completar seu cadastro antes de criar um anúncio.");
-      router.push("/onboarding");
-    }
-  }, [loading, user, router]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -203,6 +186,36 @@ export default function Anunciar() {
   const removeImage = useCallback((idx: number) => {
     setPreviewImages((imgs) => imgs.filter((_, i) => i !== idx));
   }, []);
+  
+  // Condição para usuário não logado
+  if (!user) {
+    return (
+      <ActionPrompt
+        icon={<User className="h-12 w-12" />}
+        title="Acesso Restrito"
+        description="Para anunciar um produto, você precisa estar logado em sua conta. Faça o login para continuar."
+        actions={[
+          { href: "/", text: "Voltar", icon: <ArrowLeft className="h-4 w-4" /> },
+          { href: "/login", text: "Fazer Login", variant: 'primary', icon: <LogIn className="h-4 w-4" /> }
+        ]}
+      />
+    );
+  }
+
+  // Condição para usuário sem telefone verificado
+  if (!user.phoneNumber) {
+    return (
+      <ActionPrompt
+        icon={<AlertCircle className="h-12 w-12" />}
+        title="Complete seu Cadastro"
+        description="É necessário verificar seu número de telefone antes de poder criar anúncios. Isso garante mais segurança para todos na plataforma."
+        actions={[
+          { href: "/", text: "Voltar", icon: <ArrowLeft className="h-4 w-4" /> },
+          { href: "/onboarding", text: "Completar Cadastro", variant: 'primary' }
+        ]}
+      />
+    );
+  }
 
   return (
     <>
