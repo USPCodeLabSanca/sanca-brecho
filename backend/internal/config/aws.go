@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -34,6 +35,12 @@ func InitAwsClients() {
 }
 
 func CleanupS3AndDB() {
+	// Not letting it run if the environment is not production
+	if os.Getenv("ENVIRONMENT") != "production" {
+		log.Println("⚠️ CleanupS3AndDB skipped: not in production environment")
+		return
+	}
+
 	// 1. Get all image keys from DB
 	var dbImages []models.ListingImage
 	if err := repository.DB.Find(&dbImages).Error; err != nil {

@@ -5,6 +5,7 @@ services:
     environment:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       CREDENTIALS_PATH: "/app/credentials.json"
+      ENVIRONMENT: "DEVELOPMENT"
     volumes:
       - ./credentials.json:/app/credentials.json:ro
       - .:/app
