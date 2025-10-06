@@ -19,7 +19,7 @@ import (
 // Presigned requests contain temporary credentials and can be made from any HTTP client.
 var (
 	AwsRegion     = "us-east-2"
-	BucketName    = "sancabrechobucket"
+	BucketName    = os.Getenv("S3BUCKET")
 	PresignClient *s3.PresignClient
 	S3Client      *s3.Client
 )
