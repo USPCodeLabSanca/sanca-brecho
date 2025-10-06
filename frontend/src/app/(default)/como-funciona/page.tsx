@@ -1,7 +1,12 @@
+"use client";
+
 import { CheckCircle, Clock, MessageCircle, Search, Upload, User } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/lib/context/AuthContext";
 
 export default function ComoFunciona() {
+  const { user, loading } = useAuth();
+
   const steps = [
     {
       icon: <User className="h-10 w-10 text-sanca" />,
@@ -61,24 +66,28 @@ export default function ComoFunciona() {
         ))}
       </div>
       
-      <div className="bg-[#f3eefe] rounded-xl p-8 text-center">
+      {!loading && <div className="bg-[#f3eefe] rounded-xl p-8 text-center">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Pronto para começar?</h2>
         <p className="text-gray-700 mb-6">
-        Crie sua conta ou anuncie seu primeiro produto agora mesmo!
+        {user ? "Anuncie seu primeiro produto agora mesmo!" : "Crie sua conta e anuncie seu primeiro produto agora mesmo!"}
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-        <Link href="/login">
-          <button className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-sm font-medium text-white bg-sanca rounded-md cursor-pointer hover:opacity-50">
-          Criar conta
-          </button>
-        </Link>
+        {user ? 
         <Link href="/anunciar">
-          <button className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-sm font-medium text-sanca bg-white border-2 border-sanca rounded-md cursor-pointer hover:opacity-50">
+          <button className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-sm font-medium text-white bg-sanca rounded-md cursor-pointer hover:opacity-50">
           Anunciar produto
           </button>
         </Link>
+        :
+        <Link href="/login">
+           <button className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-sm font-medium text-white bg-sanca rounded-md cursor-pointer hover:opacity-50">
+            Criar conta
+          </button>
+        </Link> 
+        }
         </div>
       </div>
+      }
       </div>
     </div>
     </main>
