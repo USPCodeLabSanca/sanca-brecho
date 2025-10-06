@@ -3,6 +3,7 @@ package repository
 import (
 	"api/internal/models"
 	"log"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
@@ -17,6 +18,11 @@ func StringPtr(s string) *string {
 
 // Seed insere dados de demonstração de forma idempotente.
 func Seed() error {
+	if os.Getenv("ENVIRONMENT") != "development" {
+		log.Println("⚠️ Seed skipped: not in development environment")
+		return nil
+	}
+
 	return DB.Transaction(func(tx *gorm.DB) error {
 		/* ------------------------------------------------------------------
 		   1. Categorias

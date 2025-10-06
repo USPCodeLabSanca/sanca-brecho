@@ -38,6 +38,7 @@ services:
       DB_NAME: "${DB_NAME}"
       DB_PORT: "${DB_PORT}"
       CREDENTIALS_PATH: "/app/credentials.json"
+      S3BUCKET: "sancabrechobucket-prod"
     volumes:
       - ./credentials.json:/app/credentials.json:ro
     ports:
