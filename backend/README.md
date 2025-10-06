@@ -28,6 +28,30 @@ Para parar:
 docker compose down
 ```
 
+## 🏃‍♂️ Rodando o Backend em Produção!
+
+Para buildar o backend em produção:
+```sh
+docker compose -f docker-compose.prod.yaml build
+```
+
+Para iniciar o backend em produção:
+```sh
+docker compose -f docker-compose.prod.yaml up -d
+```
+
+Para parar:
+```sh
+docker compose -f docker-compose.prod.yaml down
+```
+
+**Atenção**
+Periodicamente, rodar:
+```
+docker system prune
+```
+para descartar imagens desatualizadas e não utilizadas
+
 ## Contribuindo
 
 Veja o README principal para mais informações sobre o projeto e como contribuir.

@@ -27,6 +27,7 @@ services:
         condition: service_healthy
     environment:
       # Application config
+      ENVIRONMENT: "PRODUCTION"
       JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
       FRONTEND_URL: "${FRONTEND_URL}"
       AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
