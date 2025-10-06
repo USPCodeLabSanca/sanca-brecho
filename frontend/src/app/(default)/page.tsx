@@ -152,7 +152,7 @@ export default function Home() {
             <p>Carregando produtos...</p>
           ) : errorProducts ? (
             <p className="text-red-500">Erro ao carregar os produtos: {errorProducts}</p>
-          ) : (
+          ) : products.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {products.map((product) => (
                 <div className="max-w-xs" key={product.id}>
@@ -161,6 +161,10 @@ export default function Home() {
                   />
                 </div>
               ))}
+            </div>
+          ) : (
+            <div className="text-center sm:text-left">
+              <p className="text-slate-600">Nenhum produto encontrado.</p>
             </div>
           )}
 
