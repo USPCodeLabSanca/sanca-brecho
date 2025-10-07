@@ -6,13 +6,14 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { Search, Menu, User as UserIcon, LogOut, Plus, LogIn, ShoppingBagIcon, Tag } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { signOutUser } from "@/lib/firebase/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { UserType } from "@/lib/types/api";
 import { showErrorToast, showLogoutSuccessToast } from "@/lib/toast";
 import { getMe } from "@/lib/services/userService";
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, loading: loadingAuth } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -20,6 +21,8 @@ export default function Navbar() {
 
   const [loggedInUserProfile, setLoggedInUserProfile] = useState<UserType | null>(null);
   const [loadingUserProfile, setLoadingUserProfile] = useState(true);
+
+  const isCategoriasPage = pathname === '/categorias';
 
   useEffect(() => {
     const fetchLoggedInUserProfile = async () => {
@@ -90,24 +93,26 @@ export default function Navbar() {
           </Link>
 
           {/* Barra de Busca */}
-          <div className="hidden md:flex justify-center flex-1 z-0">
-            <form
-              onSubmit={handleInputSubmit}
-              className={
-                "relative w-full px-4 " +
-                "md:max-w-md " +
-                "lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2"
-              }
-            >
-              <Search className="absolute left-7 inset-y-0 my-auto w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                name="search"
-                placeholder="O que você está procurando?"
-                className="flex h-10 w-full rounded-md border border-slate-300 px-3 py-2 pl-10 pr-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanca focus-visible:ring-offset-2 md:text-sm"
-              />
-            </form>
-          </div>
+          {!isCategoriasPage && (
+            <div className="hidden md:flex justify-center flex-1 z-0">
+              <form
+                onSubmit={handleInputSubmit}
+                className={
+                  "relative w-full px-4 " +
+                  "md:max-w-md " +
+                  "lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2"
+                }
+              >
+                <Search className="absolute left-7 inset-y-0 my-auto w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="O que você está procurando?"
+                  className="flex h-10 w-full rounded-md border border-slate-300 px-3 py-2 pl-10 pr-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanca focus-visible:ring-offset-2 md:text-sm"
+                />
+              </form>
+            </div>
+          )}
 
           {/* Navegação Desktop */}
           <div className="hidden md:flex items-center space-x-4 z-10">
@@ -118,11 +123,6 @@ export default function Navbar() {
                 <Link className="text-gray-700 hover:text-sanca" href="/anunciar">
                   Anunciar
                 </Link>
-                {/* Não implementado
-                <Link href="/notifications" aria-label="Notificações">
-                  <Bell className="text-gray-700 w-5 h-5 hover:text-sanca" />
-                </Link>
-                */}
                 <div
                   className="relative"
                   onMouseEnter={handleMouseEnterProfile}
@@ -190,18 +190,20 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile: Barra de Busca (Aparece sempre abaixo do header principal no mobile) */}
-        <div className="block md:hidden pb-2 pt-2 md:pt-0">
-          <form onSubmit={handleInputSubmit} className="relative w-full">
-            <Search className="absolute text-slate-400 left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
-            <input
-              type="text"
-              name="search"
-              placeholder="Buscar..."
-              className="flex h-10 w-full rounded-md border border-slate-300 px-3 py-2 pl-10 pr-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanca focus-visible:ring-offset-2 text-sm"
-            />
-          </form>
-        </div>
+        {/* Mobile: Barra de Busca */}
+        {!isCategoriasPage && (
+          <div className="block md:hidden pb-2 pt-2 md:pt-0">
+            <form onSubmit={handleInputSubmit} className="relative w-full">
+              <Search className="absolute text-slate-400 left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
+              <input
+                type="text"
+                name="search"
+                placeholder="Buscar..."
+                className="flex h-10 w-full rounded-md border border-slate-300 px-3 py-2 pl-10 pr-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sanca focus-visible:ring-offset-2 text-sm"
+              />
+            </form>
+          </div>
+        )}
 
         {/* Mobile: Dropdown */}
         <div
@@ -223,16 +225,14 @@ export default function Navbar() {
                   <Plus className="w-4 h-4 mr-2" />
                   Anunciar
                 </Link>
-                {/* Não implementado
                 <Link
-                  href="/notifications"
+                  href={`/usuario/${userProfileSlug}`}
                   className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
                   onClick={() => setMobileOpen(false)}
                 >
-                  <Bell className="w-4 h-4 mr-2" />
-                  Notificações
+                  <UserIcon className="w-4 h-4 mr-2" />
+                  Perfil
                 </Link>
-                */}
                 <Link
                   href={`/vendas`}
                   className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
@@ -246,14 +246,6 @@ export default function Navbar() {
                 >
                   <ShoppingBagIcon className="w-4 h-4 mr-2" />
                   Minhas compras
-                </Link>
-                <Link
-                  href={`/usuario/${userProfileSlug}`}
-                  className="flex items-center p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <UserIcon className="w-4 h-4 mr-2" />
-                  Perfil
                 </Link>
                 <button
                   onClick={handleLogout}

@@ -1,5 +1,5 @@
 "use client";
-import { Search, LayoutGrid } from "lucide-react";
+import { Search, LayoutGrid, ChevronDown } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { getListings, searchListings } from "@/lib/services/listingService";
 import { getCategories } from "@/lib/services/categoryService";
@@ -23,6 +23,8 @@ export default function Categorias() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 1000);
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Load category & search from URL
   useEffect(() => {
@@ -101,6 +103,59 @@ export default function Categorias() {
     });
   }, [products, selectedCategoryId]);
 
+  const handleCategorySelect = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
+    setIsDropdownOpen(false);
+  };
+
+  const selectedCategory = useMemo(() => 
+    categories.find((c) => c.id === selectedCategoryId),
+    [categories, selectedCategoryId]
+  );
+
+  const CategoryListContent = (
+    <div className="bg-white p-4 rounded-lg shadow-sm">
+      <h2 className="hidden sm:block text-lg font-semibold mb-4 text-slate-700">
+        Filtrar por categoria
+      </h2>
+      {loadingCategories ? (
+        <p className="text-sm text-slate-500">Carregando...</p>
+      ) : errorCategories ? (
+        <p className="text-sm text-red-500">{errorCategories}</p>
+      ) : (
+        <ul className="space-y-2">
+          <li>
+            <button
+              onClick={() => handleCategorySelect(null)}
+              className={`w-full text-left flex items-center gap-1 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
+                selectedCategoryId === null
+                  ? "bg-blue-100 text-sanca"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              Todas as categorias
+            </button>
+          </li>
+          {categories.map((category) => (
+            <li key={category.id}>
+              <button
+                onClick={() => handleCategorySelect(category.id)}
+                className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
+                  selectedCategoryId === category.id
+                    ? "bg-purple-100 text-sanca"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {category.icon} {category.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+
   return (
     <section className="mx-auto px-4 py-8 max-w-[1200px]">
       <div className="md:flex justify-between items-center">
@@ -120,47 +175,36 @@ export default function Categorias() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-8 mt-5">
-        {/* Sidebar */}
-        <aside className="w-full md:w-1/4 lg:w-1/5">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h2 className="text-lg font-semibold mb-4 text-slate-700">
-              Filtrar por categoria
-            </h2>
-            {loadingCategories ? (
-              <p className="text-sm text-slate-500">Carregando...</p>
-            ) : errorCategories ? (
-              <p className="text-sm text-red-500">{errorCategories}</p>
-            ) : (
-              <ul className="space-y-2">
-                <li>
-                  <button
-                    onClick={() => setSelectedCategoryId(null)}
-                    className={`w-full text-left flex items-center gap-1 px-3 py-2 rounded-md transition-colors text-sm font-medium ${selectedCategoryId === null
-                      ? "bg-blue-100 text-sanca"
-                      : "text-slate-600 hover:bg-slate-100"
-                      }`}
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                    Todas as categorias
-                  </button>
-                </li>
-                {categories.map((category) => (
-                  <li key={category.id}>
-                    <button
-                      onClick={() => setSelectedCategoryId(category.id)}
-                      className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium ${selectedCategoryId === category.id
-                        ? "bg-purple-100 text-sanca"
-                        : "text-slate-600 hover:bg-slate-100"
-                        }`}
-                    >
-                      {category.icon} {category.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+        <div className="w-full md:w-1/4 lg:w-1/5">
+          <div className="sm:hidden relative">
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full bg-white p-4 rounded-lg shadow-sm flex justify-between items-center text-left"
+            >
+              <div>
+                <h2 className="text-xs text-slate-500 font-medium">Filtrar por</h2>
+                <span className="text-md font-semibold text-slate-800">
+                  {selectedCategory ? selectedCategory.name : 'Todas as categorias'}
+                </span>
+              </div>
+              <ChevronDown
+                className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${
+                  isDropdownOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+            {isDropdownOpen && (
+              <div className="absolute z-10 top-full mt-2 w-full border border-slate-200 rounded-lg shadow-lg">
+                {CategoryListContent}
+              </div>
             )}
           </div>
-        </aside>
+
+          <aside className="hidden sm:block">
+            {CategoryListContent}
+          </aside>
+        </div>
 
         {/* Products */}
         <div className="flex-1">
