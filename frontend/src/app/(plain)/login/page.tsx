@@ -35,10 +35,12 @@ export default function Login() {
             }
         } catch (error: any) {
             console.error("Falha no login:", error);
-            if (error.message === "Failed to fetch") {
+            if (error.response && error.response.data && error.response.data.error) {
+                setErrorMessage(error.response.data.error);
+            } else if (error.message === "Failed to fetch") {
                 setErrorMessage("Erro de conexão. Verifique sua internet ou tente novamente mais tarde.");
             } else {
-                setErrorMessage(`Algo deu errado durante o login: ${error.message}`);
+                setErrorMessage(`Algo deu errado: ${error.message}`);
             }
         }
     };
