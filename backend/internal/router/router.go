@@ -12,6 +12,8 @@ import (
 func New() *gin.Engine {
 	router := gin.Default()
 
+	router.SetTrustedProxies(nil)
+
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "http://localhost", os.Getenv("FRONTEND_URL")}, // Dominios permitidos, (localhost para testes)
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},

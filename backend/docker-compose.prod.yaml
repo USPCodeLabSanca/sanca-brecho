@@ -16,7 +16,7 @@ services:
     networks:
       - backend-net
 
-  backend:
+  brecho-backend:
     build:
       context: .
       dockerfile: dockerfile.prod
@@ -27,6 +27,7 @@ services:
         condition: service_healthy
     environment:
       # Application config
+      GIN_MODE: "release"
       ENVIRONMENT: "PRODUCTION"
       JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
       FRONTEND_URL: "${FRONTEND_URL}"
