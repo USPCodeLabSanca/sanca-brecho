@@ -13,6 +13,9 @@ import (
 func CreateReview(c *gin.Context) {
 	id := c.Param("id")
 
+	user, _ := c.Get("currentUser")
+	currentUser := user.(models.User)
+
 	var requestBody struct {
 		Rating  int    `json:"rating"`
 		Comment string `json:"comment"`
@@ -27,6 +30,11 @@ func CreateReview(c *gin.Context) {
 
 	if err := database.DB.First(&sale, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Sale not found"})
+		return
+	}
+
+	if sale.BuyerID == nil || *sale.BuyerID != currentUser.ID {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You are not authorized to review this sale"})
 		return
 	}
 
