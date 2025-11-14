@@ -55,7 +55,7 @@ export default function Login() {
                     <h2 className="mt-3 font-semibold">Entrar ou registrar sua conta</h2>
                     <p className="text-sm text-gray-500 mt-1">Compre e venda produtos na comunidade universitária</p>
                 </section>
-                <section className="bg-white rounded-lg shadow-sm">
+                <section className="bg-white rounded-lg shadow-sm mx-2">
 
                     <section className="p-4">
                         <section className="space-y-4">
