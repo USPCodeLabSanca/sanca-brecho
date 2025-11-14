@@ -27,11 +27,13 @@ import Spinner from "@/app/components/spinner";
 import { getReviewsReceived } from "@/lib/services/reviewService";
 import ReviewCard from "@/app/components/reviewCard";
 import { ReportDialog } from "@/app/components/reportModal";
+import LoginPromptModal from "@/app/components/loginPromptModal";
 
 const Usuario = () => {
   const { slug } = useParams<{ slug: string }>();
 
   const { user: currentUserFirebase, loading: loadingAuth } = useAuth();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const [userProfile, setUserProfile] = useState<ProfileType | undefined>(undefined);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -291,12 +293,18 @@ const Usuario = () => {
                       ) : (
                         <div className="w-full flex items-center justify-between">
                           {userProfile.verified && (
-
-                            <Link href={`https://wa.me/${userProfile.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`}>
-                              <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-[#25D366] hover:bg-[#25D366]/90">
-                                <FaWhatsapp className="text-white" />Entrar em contato
-                              </button>
-                            </Link>
+                            <button 
+                              onClick={() => {
+                                if (!currentUserFirebase) {
+                                  setIsLoginModalOpen(true);
+                                } else {
+                                  const whatsappUrl = `https://wa.me/${userProfile.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`;
+                                  window.open(whatsappUrl, '_blank');
+                                }
+                              }}
+                              className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-[#25D366] hover:bg-[#25D366]/90">
+                              <FaWhatsapp />Entrar em contato
+                            </button>
                           )}
                           <span />
                           <ReportDialog targetId={userProfile.slug} targetType="user" />
@@ -365,6 +373,7 @@ const Usuario = () => {
           </div>
         </div>
       </main>
+      <LoginPromptModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </div>
   );
 };

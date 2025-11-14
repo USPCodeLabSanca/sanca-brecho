@@ -16,6 +16,7 @@ import { getProfileMetricsBySlug } from "@/lib/services/profileService";
 import Spinner from "@/app/components/spinner";
 import { ReportDialog } from "@/app/components/reportModal";
 import CreateSaleModal from "@/app/components/createSaleModal";
+import LoginPromptModal from "@/app/components/loginPromptModal";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
@@ -25,6 +26,7 @@ export default function ProdutoClient() {
   const { user, loading: loadingAuth } = useAuth();
   const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // Função para formatar a condição do produto
   const getDisplayCondition = (condition: string): string => {
@@ -113,8 +115,12 @@ export default function ProdutoClient() {
   }
 
   const handleWhatsAppClick = () => {
-    const whatsappUrl = `https://wa.me/${product.user.whatsapp}?text=Olá! Vi seu anúncio do produto "${product.title}" no Sanca Brechó e gostaria de mais informações.`;
-    window.open(whatsappUrl, '_blank');
+    if (!user) {
+      setIsLoginModalOpen(true);
+    } else {
+      const whatsappUrl = `https://wa.me/${product.user.whatsapp}?text=Olá! Vi seu anúncio do produto "${product.title}" no Sanca Brechó e gostaria de mais informações.`;
+      window.open(whatsappUrl, '_blank');
+    }
   };
 
   const handleShare = async () => {
@@ -149,6 +155,7 @@ export default function ProdutoClient() {
           listing={product}
           onSuccess={handleSaleSuccess}
         />}
+      <LoginPromptModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
       <main className="flex-grow pb-10">
         <div className="container mx-auto px-4">
           {/* Breadcrumb */}
