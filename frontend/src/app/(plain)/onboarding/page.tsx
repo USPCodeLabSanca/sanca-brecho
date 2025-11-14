@@ -108,7 +108,7 @@ export default function Onboarding() {
 
       setVerificationId(verId);
       setIsCodeSent(true);
-      setOnboardingSuccess("Código de verificação enviado! Confira seu WhatsApp ou SMS.");
+      setOnboardingSuccess("Código de verificação enviado! Confira seu SMS. (Verifique também a caixa de spam)");
     } catch (error: any) {
       setOnboardingError(getFriendlyErrorMessage(error));
     } finally {
