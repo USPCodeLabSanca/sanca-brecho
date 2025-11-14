@@ -23,6 +23,7 @@ type Status string
 const (
 	Available Status = "available"
 	Sold      Status = "sold"
+	Deleted   Status = "deleted"
 )
 
 type Listing struct {

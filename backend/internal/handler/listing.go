@@ -12,6 +12,20 @@ import (
 	"gorm.io/gorm"
 )
 
+func checkIsAdmin(c *gin.Context) bool {
+	user, exists := c.Get("currentUser")
+	if !exists {
+		return false
+	}
+
+	currentUser, ok := user.(models.User)
+	if !ok {
+		return false
+	}
+
+	return currentUser.Role == models.RoleAdmin
+}
+
 func CreateListing(c *gin.Context) {
 	user, _ := c.Get("currentUser")
 	CurrentUser := user.(models.User)
@@ -145,7 +159,15 @@ func GetListing(c *gin.Context) {
 
 	var listing models.Listing
 
-	if err := database.DB.Preload("User").Preload("Category").First(&listing, "id = ?", id).Error; err != nil {
+	query := database.DB.Preload("User").Preload("Category").Where("id = ?", id)
+
+	// Se NÃO for admin, aplica o filtro de status
+	if !checkIsAdmin(c) {
+		query = query.Where("status IN ?", []models.Status{models.Available, models.Sold})
+	}
+	// Se for admin, o query continua sem filtro de status (vê tudo)
+
+	if err := query.First(&listing).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
 		return
 	}
@@ -158,7 +180,16 @@ func GetListingBySlug(c *gin.Context) {
 
 	var listing models.Listing
 
-	if err := database.DB.Preload("User").Preload("Category").First(&listing, "slug = ?", slug).Error; err != nil {
+	query := database.DB.Preload("User").Preload("Category").Where("slug = ?", slug)
+
+	// Se NÃO for admin, aplica o filtro de status
+	if !checkIsAdmin(c) {
+		// CORREÇÃO AQUI: de []string para []models.Status
+		query = query.Where("status IN ?", []models.Status{models.Available, models.Sold})
+	}
+	// Se for admin, o query continua sem filtro de status (vê tudo)
+
+	if err := query.First(&listing).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
 		return
 	}
@@ -271,8 +302,8 @@ func DeleteListing(c *gin.Context) {
 
 	id := c.Param("id")
 
-	// Check if the listing is the user's listing
 	var listing models.Listing
+	// 1. Busca o anúncio
 	if err := database.DB.First(&listing, "id = ?", id).Error; err != nil {
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
@@ -282,12 +313,14 @@ func DeleteListing(c *gin.Context) {
 		return
 	}
 
+	// 2. Verifica se o usuário é o dono
 	if listing.UserID != CurrentUser.ID {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Cannot delete another user's listing"})
 		return
 	}
 
-	if err := database.DB.Delete(&listing).Error; err != nil {
+	// 3. Em vez de deletar, atualiza o status para 'deleted'
+	if err := database.DB.Model(&listing).Update("status", models.Deleted).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete listing"})
 		return
 	}
