@@ -21,6 +21,7 @@ import { ProfileType, ListingType, ReviewType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
 import { getProfileBySlug } from "@/lib/services/profileService";
 import { getMe } from "@/lib/services/userService";
+import { getProfileContact } from "@/lib/services/profileService";
 import { getListingsByUser } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
 import Spinner from "@/app/components/spinner";
@@ -54,6 +55,8 @@ const Usuario = () => {
   const [isOwnerProfile, setIsOwnerProfile] = useState<boolean | undefined>(undefined);
   const [loadingOwnership, setLoadingOwnership] = useState(true);
   const [errorOwnership, setErrorOwnership] = useState<string | null>(null);
+
+  const [isContactLoading, setIsContactLoading] = useState(false);
 
   // TO-DO: Falta o "buscando por", precisa ter o backend e frontend
 
@@ -202,6 +205,24 @@ const Usuario = () => {
 
   const userAvatar = userProfile.photo_url || '/user_placeholder.png';
 
+const handleWhatsAppClick = async () => {
+    if (!currentUserFirebase) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+  
+    setIsContactLoading(true);
+    try {
+      const contactInfo = await getProfileContact(userProfile.slug);
+      const whatsappUrl = `https://wa.me/${contactInfo.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`;
+      window.open(whatsappUrl, '_blank');
+    } catch {
+      showErrorToast("Não foi possível carregar o contato. Tente novamente.");
+    } finally {
+      setIsContactLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow py-10">
@@ -294,16 +315,14 @@ const Usuario = () => {
                         <div className="w-full flex items-center justify-between flex-wrap max-[340px]:gap-2 max-[340px]:justify-center">
                           {userProfile.verified && (
                             <button 
-                              onClick={() => {
-                                if (!currentUserFirebase) {
-                                  setIsLoginModalOpen(true);
-                                } else {
-                                  const whatsappUrl = `https://wa.me/${userProfile.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`;
-                                  window.open(whatsappUrl, '_blank');
-                                }
-                              }}
+                              onClick={handleWhatsAppClick}
                               className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 bg-[#25D366] hover:bg-[#25D366]/90">
-                              <FaWhatsapp />Entrar em contato
+                              {isContactLoading ? 'Carregando...' : (
+                                <>
+                                  <FaWhatsapp className="text-white" />
+                                  Entrar em contato
+                                </>
+                              )}
                             </button>
                           )}
                           <span />

@@ -157,11 +157,8 @@ func FindProfile(c *gin.Context) {
 	resp := models.Profile{
 		DisplayName: user.DisplayName,
 		Slug:        user.Slug,
-		Email:       user.Email,
 		PhotoURL:    user.PhotoURL,
 		University:  user.University,
-		Whatsapp:    user.Whatsapp,
-		Telegram:    user.Telegram,
 		Verified:    user.Verified,
 		CreatedAt:   user.CreatedAt,
 		Role:        user.Role,
@@ -220,15 +217,34 @@ func GetProfileMetrics(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"metrics": metrics})
 }
 
+func GetProfileContact(c *gin.Context) {
+	slug := c.Param("slug")
+
+	var user models.User
+
+	if err := repository.DB.Where("slug = ?", slug).First(&user).Error; err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"whatsapp": user.Whatsapp,
+		"telegram": user.Telegram,
+	})
+}
 
 func GetAllUsers(c *gin.Context) {
-    var users []models.User
-    if err := repository.DB.Find(&users).Error; err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users"})
-        return
-    }
+	var users []models.User
+	if err := repository.DB.Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users"})
+		return
+	}
 
-    c.JSON(http.StatusOK, gin.H{"users": users})
+	c.JSON(http.StatusOK, gin.H{"users": users})
 }
 
 func DeleteUserByAdmin(c *gin.Context) {

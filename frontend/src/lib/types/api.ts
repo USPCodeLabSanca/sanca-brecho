@@ -79,11 +79,8 @@ export interface ListingImageType {
 export interface ProfileType {
     display_name: string;
     slug: string;
-    email: string;
     photo_url: string | null;
     university: string | null;
-    whatsapp: string | null;
-    telegram: string | null;
     verified: boolean;
     created_at: Date;
     role: UserRole;

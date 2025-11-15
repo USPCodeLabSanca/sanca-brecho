@@ -68,7 +68,12 @@ func SearchListingsFTS(query string, page, pageSize int) ([]models.Listing, erro
 
 	var listings []models.Listing
 	if len(ids) > 0 {
-		DB.Preload("User").Preload("Category").Find(&listings, "id IN ?", ids)
+		safeFields := "id, display_name, slug, photo_url, university, verified, role, created_at"
+		DB.Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select(safeFields)
+		}).
+			Preload("Category").
+			Find(&listings, "id IN ?", ids)
 	}
 
 	return listings, nil

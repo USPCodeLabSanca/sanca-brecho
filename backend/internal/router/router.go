@@ -29,6 +29,7 @@ func New() *gin.Engine {
 		api.GET("/profile/:slug", handler.FindProfile)                                     // qualquer usuário
 		api.GET("/profile/:slug/metrics", handler.GetProfileMetrics)                       // qualquer usuário
 		api.GET("/profile/:slug/is-owner", middleware.Auth, handler.CheckProfileOwnership) // usuário logado
+		api.GET("/profile/:slug/contact", middleware.Auth, handler.GetProfileContact)      // usuário logado
 
 		userRouter := api.Group("/users")
 		userRouter.Use(middleware.Auth)

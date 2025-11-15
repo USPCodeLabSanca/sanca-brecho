@@ -15,3 +15,8 @@ export const getProfileMetricsBySlug = async (slug: string): Promise<any> => {
     const response = await api.get(`/profile/${slug}/metrics`);
     return response.data.metrics;
 };
+
+export const getProfileContact = async (slug: string): Promise<{ whatsapp: string | null, telegram: string | null }> => {
+    const response = await api.get(`/profile/${slug}/contact`);
+    return response.data;
+};

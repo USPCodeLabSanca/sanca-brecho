@@ -12,7 +12,7 @@ import { ListingType, ProfileMetricsType } from "@/lib/types/api";
 import { useAuth } from "@/lib/context/AuthContext";
 import { getListingBySlug } from "@/lib/services/listingService";
 import { showErrorToast, showNotificationToast } from "@/lib/toast";
-import { getProfileMetricsBySlug } from "@/lib/services/profileService";
+import { getProfileMetricsBySlug, getProfileContact } from "@/lib/services/profileService";
 import Spinner from "@/app/components/spinner";
 import { ReportDialog } from "@/app/components/reportModal";
 import CreateSaleModal from "@/app/components/createSaleModal";
@@ -27,6 +27,7 @@ export default function ProdutoClient() {
   const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isContactLoading, setIsContactLoading] = useState(false);
 
   // Função para formatar a condição do produto
   const getDisplayCondition = (condition: string): string => {
@@ -114,12 +115,21 @@ export default function ProdutoClient() {
     setIsModalOpen(false);
   }
 
-  const handleWhatsAppClick = () => {
+  const handleWhatsAppClick = async () => {
     if (!user) {
       setIsLoginModalOpen(true);
-    } else {
-      const whatsappUrl = `https://wa.me/${product.user.whatsapp}?text=Olá! Vi seu anúncio do produto "${product.title}" no Sanca Brechó e gostaria de mais informações.`;
+      return;
+    }
+
+    setIsContactLoading(true);
+    try {
+      const contactInfo = await getProfileContact(product.user.slug);
+      const whatsappUrl = `https://wa.me/${contactInfo.whatsapp}?text=Olá! Vi seu anúncio do produto "${product.title}" no Sanca Brechó e gostaria de mais informações.`;
       window.open(whatsappUrl, '_blank');
+    } catch {
+      showErrorToast("Não foi possível carregar o contato. Tente novamente.");
+    } finally {
+      setIsContactLoading(false);
     }
   };
 
@@ -237,7 +247,12 @@ export default function ProdutoClient() {
                     className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     {isAvailable && <FaWhatsapp />}
-                    {isSold ? 'Vendido' : 'Contatar Vendedor pelo WhatsApp'}
+                    {isSold ? 'Vendido' : 
+                    (isContactLoading ? 'Carregando...' : (
+                      <>
+                        Contatar Vendedor pelo WhatsApp
+                      </>
+                    ))}
                   </button>
                 )}
               </div>

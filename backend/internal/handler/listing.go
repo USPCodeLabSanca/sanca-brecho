@@ -12,6 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var publicUserFields = "id, display_name, slug, photo_url, university, verified, role, created_at"
+
 func checkIsAdmin(c *gin.Context) bool {
 	user, exists := c.Get("currentUser")
 	if !exists {
@@ -53,7 +55,9 @@ func CreateListing(c *gin.Context) {
 
 	var userActiveListings []models.Listing
 	if err := database.DB.
-		Preload("User").
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select(publicUserFields)
+		}).
 		Preload("Category").
 		Where("user_id = ? AND status = ?", CurrentUser.ID, models.Available).
 		Find(&userActiveListings).Error; err != nil {
@@ -89,7 +93,9 @@ func CreateListing(c *gin.Context) {
 	}
 
 	// Loading related data to return in the response
-	if err := database.DB.Preload("User").Preload("Category").First(&listing, "id = ?", listing.ID).Error; err != nil {
+	if err := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select(publicUserFields)
+	}).Preload("Category").First(&listing, "id = ?", listing.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load related data"})
 		return
 	}
@@ -100,7 +106,9 @@ func CreateListing(c *gin.Context) {
 func GetListings(c *gin.Context) {
 	var listings []models.Listing
 
-	if err := database.DB.Preload("User").Preload("Category").Where("status = ?", models.Available).Find(&listings).Error; err != nil {
+	if err := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select(publicUserFields)
+	}).Preload("Category").Where("status = ?", models.Available).Find(&listings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
 		return
 	}
@@ -159,7 +167,9 @@ func GetListing(c *gin.Context) {
 
 	var listing models.Listing
 
-	query := database.DB.Preload("User").Preload("Category").Where("id = ?", id)
+	query := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select(publicUserFields)
+	}).Preload("Category").Where("id = ?", id)
 
 	// Se NÃO for admin, aplica o filtro de status
 	if !checkIsAdmin(c) {
@@ -180,7 +190,9 @@ func GetListingBySlug(c *gin.Context) {
 
 	var listing models.Listing
 
-	query := database.DB.Preload("User").Preload("Category").Where("slug = ?", slug)
+	query := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select(publicUserFields)
+	}).Preload("Category").Where("slug = ?", slug)
 
 	// Se NÃO for admin, aplica o filtro de status
 	if !checkIsAdmin(c) {
@@ -211,7 +223,9 @@ func GetListingsByUser(c *gin.Context) {
 	}
 
 	var listings []models.Listing
-	if err := database.DB.Preload("User").Preload("Category").Where("user_id = ? AND status = ?", user.ID, models.Available).Find(&listings).Error; err != nil {
+	if err := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select(publicUserFields)
+	}).Preload("Category").Where("user_id = ? AND status = ?", user.ID, models.Available).Find(&listings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings for user"})
 		return
 	}
@@ -287,7 +301,9 @@ func UpdateListing(c *gin.Context) {
 	}
 
 	// Loading related data after the update
-	if err := database.DB.Preload("User").Preload("Category").First(&existing, "id = ?", existing.ID).Error; err != nil {
+	if err := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select(publicUserFields)
+	}).Preload("Category").First(&existing, "id = ?", existing.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load related data"})
 		return
 	}

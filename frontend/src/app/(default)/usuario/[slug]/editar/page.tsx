@@ -5,7 +5,7 @@ import { Mail, Save, ArrowLeft, Trash2, Phone, Send } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
-import { ProfileType } from "@/lib/types/api";
+import { ProfileType, UserType } from "@/lib/types/api";
 import { getProfileBySlug } from "@/lib/services/profileService";
 import Spinner from "@/app/components/spinner";
 import { getMe, updateMe } from "@/lib/services/userService";
@@ -19,6 +19,7 @@ const EditarUsuario = () => {
   const router = useRouter();
   const { user: currentUserFirebase, loading: loadingAuth } = useAuth();
 
+  const [me, setMe] = useState<UserType | null>(null);
   const [userProfile, setUserProfile] = useState<ProfileType | undefined>(undefined);
   const [telegram, setTelegram] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -41,7 +42,6 @@ const EditarUsuario = () => {
       try {
         const data = await getProfileBySlug(slug);
         setUserProfile(data);
-        setTelegram(data.telegram || "");
       } catch (error: any) {
         setUserProfile(undefined);
         setErrorProfile(error.message);
@@ -64,6 +64,8 @@ const EditarUsuario = () => {
       const checkOwnership = async () => {
         try {
           const data = await getMe();
+          setMe(data);
+          setTelegram(data.telegram || "");
           setIsOwnerProfile(data.slug === slug);
         } catch (error: any) {
           console.error("Falha ao verificar propriedade:", error);
@@ -124,7 +126,7 @@ const EditarUsuario = () => {
   }
 
   const userAvatar =
-    userProfile?.photo_url ||
+    me?.photo_url ||
     "/user_placeholder.png";
 
   return (
@@ -172,7 +174,7 @@ const EditarUsuario = () => {
                   </div>
                   <input
                     type="email"
-                    value={userProfile?.email}
+                    value={me?.email}
                     id="email"
                     name="email"
                     placeholder="seu@email.com"
@@ -198,7 +200,7 @@ const EditarUsuario = () => {
                   </div>
                   <input
                     type="text"
-                    value={userProfile?.whatsapp || ""}
+                    value={me?.whatsapp || ""}
                     id="telefone"
                     name="telefone"
                     placeholder="(00) 00000-0000"
