@@ -5,7 +5,7 @@ import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import ProductCard from "@/app/components/productCard";
-import { FaWhatsapp } from 'react-icons/fa';
+import { FaWhatsapp, FaTelegramPlane } from 'react-icons/fa';
 import {
   MapPin,
   Calendar,
@@ -40,10 +40,6 @@ const Usuario = () => {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [errorProfile, setErrorProfile] = useState<string | null>(null);
 
-  //const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
-  //const [loadingMetrics, setLoadingMetrics] = useState(true);
-  //const [errorMetrics, setErrorMetrics] = useState<string | null>(null);
-
   const [userProducts, setUserProducts] = useState<ListingType[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [errorProducts, setErrorProducts] = useState<string | null>(null);
@@ -57,8 +53,7 @@ const Usuario = () => {
   const [errorOwnership, setErrorOwnership] = useState<string | null>(null);
 
   const [isContactLoading, setIsContactLoading] = useState(false);
-
-  // TO-DO: Falta o "buscando por", precisa ter o backend e frontend
+  const [contactInfo, setContactInfo] = useState<{ whatsapp: string | null; telegram: string | null } | null>(null);
 
   // Busca o usuário pela slug
   useEffect(() => {
@@ -82,26 +77,25 @@ const Usuario = () => {
     fetchProfile();
   }, [slug]);
 
-  /*
+  // Carrega informações de contato automaticamente se não for o dono do perfil
   useEffect(() => {
-    const fetchMetrics = async () => {
-      if (!slug) {
-        setLoadingMetrics(false);
+    const preloadContact = async () => {
+      if (!currentUserFirebase || isOwnerProfile || !userProfile?.slug) {
         return;
       }
+      
       try {
-        const data = await getProfileMetricsBySlug(slug);
-        setMetrics(data);
-      } catch (error: any) {
-        setMetrics(undefined);
-        setErrorMetrics(error.message);
-        console.error("Falha ao buscar métricas:", error);
-      } finally {
-        setLoadingMetrics(false);
+        const data = await getProfileContact(userProfile.slug);
+        setContactInfo(data);
+      } catch {
+        // Silenciosamente ignora erro, usuário pode tentar novamente clicando
       }
     };
-    fetchMetrics();
-  }, [slug]);*/
+
+    if (!loadingAuth && !loadingOwnership && userProfile) {
+      preloadContact();
+    }
+  }, [currentUserFirebase, isOwnerProfile, userProfile, loadingAuth, loadingOwnership]);
 
   // Verifica se o usuário atual é o dono do perfil
   useEffect(() => {
@@ -164,7 +158,6 @@ const Usuario = () => {
     }
   }, [isOwnerProfile]);
 
-
   // Busca as avaliações do usuário
   useEffect(() => {
     const fetchUserReviews = async () => {
@@ -186,6 +179,46 @@ const Usuario = () => {
     fetchUserReviews();
   }, [userProfile?.slug]);
 
+  const loadContactInfo = async () => {
+    if (!currentUserFirebase) {
+      setIsLoginModalOpen(true);
+      return null;
+    }
+
+    if (contactInfo) {
+      return contactInfo;
+    }
+
+    setIsContactLoading(true);
+    try {
+      const data = await getProfileContact(userProfile!.slug);
+      setContactInfo(data);
+      return data;
+    } catch {
+      showErrorToast("Não foi possível carregar o contato. Tente novamente.");
+      return null;
+    } finally {
+      setIsContactLoading(false);
+    }
+  };
+
+  const handleWhatsAppClick = async () => {
+    const contact = await loadContactInfo();
+    if (!contact?.whatsapp) return;
+
+    const whatsappUrl = `https://wa.me/${contact.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleTelegramClick = async () => {
+    const contact = await loadContactInfo();
+    if (!contact?.telegram) return;
+
+    const telegramUsername = contact.telegram.replace(/[^a-zA-Z0-9_]/g, '');
+    const telegramUrl = `https://t.me/${telegramUsername}`;
+    window.open(telegramUrl, '_blank');
+  };
+
   if (loadingProfile || loadingProducts || loadingReviews || loadingAuth || loadingOwnership) {
     return Spinner();
   }
@@ -204,24 +237,6 @@ const Usuario = () => {
   }
 
   const userAvatar = userProfile.photo_url || '/user_placeholder.png';
-
-const handleWhatsAppClick = async () => {
-    if (!currentUserFirebase) {
-      setIsLoginModalOpen(true);
-      return;
-    }
-  
-    setIsContactLoading(true);
-    try {
-      const contactInfo = await getProfileContact(userProfile.slug);
-      const whatsappUrl = `https://wa.me/${contactInfo.whatsapp}?text=Olá! Vi seu perfil no Sanca Brechó e gostaria de entrar em contato.`;
-      window.open(whatsappUrl, '_blank');
-    } catch {
-      showErrorToast("Não foi possível carregar o contato. Tente novamente.");
-    } finally {
-      setIsContactLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -282,18 +297,9 @@ const handleWhatsAppClick = async () => {
                       <div className="flex items-center">
                         <Star size={16} className="mr-1 fill-yellow-400 text-yellow-400" />
                         {userReviews.length > 0 ?
-                          `${userReviews.reduce((acc, r) => acc + r.rating, 0) / userReviews.length} (${userReviews.length} avaliações)`
+                          `${(userReviews.reduce((acc, r) => acc + r.rating, 0) / userReviews.length).toFixed(1)} (${userReviews.length} avaliações)`
                           : 'Sem avaliações'}
                       </div>
-                      {/* TODO: repensar e talvez remover isso aqui
-                      <div className="flex items-center">
-                        <Handshake size={16} className="mr-1" />
-                        Produtos vendidos: {metrics?.items_sold || 0}
-                      </div>
-                      <div className="flex items-center">
-                        <ShoppingBag size={16} className="mr-1" />
-                        Anúncios ativos: {metrics?.active_listings_count || 0}
-                      </div>*/}
                     </div>
                     <div className="mt-4 md:mt-0 flex space-x-2">
                       {isOwnerProfile ? (
@@ -305,25 +311,39 @@ const handleWhatsAppClick = async () => {
                           </Link>
                           {userProfile.role === 'admin' && (
                             <Link href="/admin">
-                              <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90">
+                              <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90">
                                 <Settings className="mr-1 h-4 w-4" />Admin
                               </button>
                             </Link>
                           )}
                         </>
                       ) : (
-                        <div className="w-full flex items-center justify-between flex-wrap max-[340px]:gap-2 max-[340px]:justify-center">
+                        <div className="w-full flex items-center justify-between flex-wrap max-[388px]:gap-2 max-[388px]:justify-center">
                           {userProfile.verified && (
-                            <button 
-                              onClick={handleWhatsAppClick}
-                              className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 bg-[#25D366] hover:bg-[#25D366]/90">
-                              {isContactLoading ? 'Carregando...' : (
-                                <>
-                                  <FaWhatsapp className="text-white" />
-                                  Entrar em contato
-                                </>
+                            <div className="flex gap-1">
+                              <button 
+                                onClick={handleWhatsAppClick}
+                                disabled={isContactLoading}
+                                className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 bg-sanca hover:bg-sanca/90">
+                                {isContactLoading ? 'Carregando...' : (
+                                  <>
+                                    <FaWhatsapp className="text-white" />
+                                    Entrar em contato
+                                  </>
+                                )}
+                              </button>
+                              
+                              {/* Botão Telegram - aparece se contactInfo tiver telegram */}
+                              {contactInfo?.telegram && (
+                                <button 
+                                  onClick={handleTelegramClick}
+                                  disabled={isContactLoading}
+                                  className="cursor-pointer inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 w-10 border border-gray-300 hover:bg-gray-100">
+
+                                  <FaTelegramPlane className="text-gray-500" />
+                                </button>
                               )}
-                            </button>
+                            </div>
                           )}
                           <span />
                           <ReportDialog targetId={userProfile.slug} targetType="user" />
@@ -335,14 +355,14 @@ const handleWhatsAppClick = async () => {
               </div>
             </div>
             <Tabs>
-              <TabList className={`overflow-x-auto no-scrollbar bg-slate-100 rounded-sm p-1 grid grid-cols-2`}>
+              <TabList className="overflow-x-auto no-scrollbar bg-slate-100 rounded-sm p-1 grid grid-cols-2">
                 <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
                   <Package className="h-4 w-4 mr-2" />
                   <span className="text-xs sm:text-base">
                     {isOwnerProfile ? 'Meus Produtos' : 'Produtos'}
                   </span>
                 </Tab>
-                <Tab selectedClassName="bg-white rounded-sm shadow-xs" value="reviews" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
+                <Tab selectedClassName="bg-white rounded-sm shadow-xs" className="flex items-center justify-center p-1 cursor-pointer focus:outline-none">
                   <Star className="h-4 w-4 mr-2" />
                   <span className="text-xs sm:text-base">Avaliações</span>
                 </Tab>
@@ -353,8 +373,8 @@ const handleWhatsAppClick = async () => {
                   {userProducts.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {userProducts.map((product) => (
-                        <ProductCard product={product} key={product.id} />))
-                      }
+                        <ProductCard product={product} key={product.id} />
+                      ))}
                     </div>
                   ) : (
                     <div className="text-center py-16 bg-gray-50 rounded-lg">
@@ -362,7 +382,7 @@ const handleWhatsAppClick = async () => {
                       <p className="mt-2 mb-6 text-gray-500">Nenhum produto anunciado</p>
                       {isOwnerProfile && (
                         <Link href="/anunciar">
-                          <button className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-48 bg-sanca hover:bg-sanca/90">
+                          <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-48 bg-sanca hover:bg-sanca/90">
                             Anunciar Produto
                           </button>
                         </Link>
@@ -371,7 +391,7 @@ const handleWhatsAppClick = async () => {
                   )}
                 </div>
               </TabPanel>
-              <TabPanel value="reviews">
+              <TabPanel>
                 <div className="bg-white rounded-xl p-6">
                   <h2 className="text-lg font-semibold mb-4">Avaliações Recebidas</h2>
                   {userReviews.length > 0 ? (
