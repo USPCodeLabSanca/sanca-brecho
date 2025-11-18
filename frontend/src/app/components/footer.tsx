@@ -50,7 +50,7 @@ export default function Footer() {
                     target="_blank" 
                     rel="noopener noreferrer"
                   >
-                    Código Fonte
+                    Código-fonte
                   </Link>
                 </li>
                 </ul>
