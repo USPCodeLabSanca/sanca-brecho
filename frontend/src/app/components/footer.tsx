@@ -61,7 +61,7 @@ export default function Footer() {
 
             <div className="border-t border-gray-200 mt-8 pt-6">
               <p className="text-sm text-gray-600 text-center">
-              ©  2025 Sanca Brechó - Feito com 💜 por <a href="https://codelab.icmc.usp.br/" target="_blank" rel="noopener noreferrer" className="text-sanca font-medium hover:underline">USPCodeLab Sanca</a>
+              ©  2025 Sanca Brechó - Feito com 💜 por <a href="https://codelab.icmc.usp.br/" target="_blank" rel="noopener noreferrer" className="text-sanca font-medium hover:underline">USPCodeLab</a>
               </p>
             </div>
           </div>
