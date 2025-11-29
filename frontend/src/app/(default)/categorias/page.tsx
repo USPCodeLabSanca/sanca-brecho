@@ -36,8 +36,14 @@ export default function Categorias() {
     const searchFromUrl = searchParams.get("q");
 
     if (categoryFromUrl) {
-      const n = parseInt(categoryFromUrl, 10);
-      setSelectedCategoryId(Number.isFinite(n) ? n : null);
+      // Check if categoryFromUrl is a valid integer string
+      if (/^\d+$/.test(categoryFromUrl)) {
+        setSelectedCategoryId(parseInt(categoryFromUrl, 10));
+        setErrorCategories(null);
+      } else {
+        setSelectedCategoryId(null);
+        setErrorCategories("Invalid category ID in URL.");
+      }
     }
     if (searchFromUrl) {
       setSearchQuery(searchFromUrl);
