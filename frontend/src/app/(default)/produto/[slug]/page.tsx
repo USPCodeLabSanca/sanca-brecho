@@ -57,7 +57,7 @@ export default function ProdutoClient() {
         const data = await getListingBySlug(slug);
         setProduct(data);
       } catch (error: any) {
-        setErrorProduct(error.message);
+        setErrorProduct(error.response?.data?.error || error.message);
         showErrorToast('Erro ao carregar o produto.');
       } finally {
         setLoadingProduct(false);
@@ -247,12 +247,12 @@ export default function ProdutoClient() {
                     className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     {isAvailable && <FaWhatsapp />}
-                    {isSold ? 'Vendido' : 
-                    (isContactLoading ? 'Carregando...' : (
-                      <>
-                        Contatar Vendedor pelo WhatsApp
-                      </>
-                    ))}
+                    {isSold ? 'Vendido' :
+                      (isContactLoading ? 'Carregando...' : (
+                        <>
+                          Contatar Vendedor pelo WhatsApp
+                        </>
+                      ))}
                   </button>
                 )}
               </div>

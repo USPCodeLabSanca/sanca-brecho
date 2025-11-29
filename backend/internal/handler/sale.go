@@ -29,14 +29,14 @@ func CreateSale(c *gin.Context) {
 		var listing models.Listing
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&listing, "id = ?", listingID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return errors.New("Listing not found")
+				return errors.New("listing not found")
 			} else {
-				return errors.New("Failed to retrieve Listing")
+				return errors.New("failed to retrieve Listing")
 			}
 		}
 
 		if listing.Status != models.Available {
-			return errors.New("Listing not available for sale")
+			return errors.New("listing not available for sale")
 		}
 
 		var buyerID *string
@@ -44,7 +44,7 @@ func CreateSale(c *gin.Context) {
 		if requestBody.BuyerIdentifier != "" {
 			var buyer models.User
 			if err := tx.Where("email = ? OR slug = ?", requestBody.BuyerIdentifier, requestBody.BuyerIdentifier).First(&buyer).Error; err != nil {
-				return errors.New("Failed to retrieve Buyer")
+				return errors.New("failed to retrieve Buyer")
 			}
 			buyerID = &buyer.ID
 		}
@@ -87,6 +87,7 @@ func GetSale(c *gin.Context) {
 
 	if err := database.DB.Preload("Seller").Preload("Buyer").Preload("Listing").Preload("Review").Find(&sale, "id = ?", saleID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve sale"})
+		return
 	}
 
 	c.JSON(http.StatusOK, sale)
@@ -100,6 +101,7 @@ func GetSalesAsBuyer(c *gin.Context) {
 
 	if err := database.DB.Preload("Seller").Preload("Listing").Preload("Review").Find(&sales, "buyer_id = ?", currentUser.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve bought items"})
+		return
 	}
 
 	c.JSON(http.StatusOK, sales)
@@ -113,6 +115,7 @@ func GetSalesAsSeller(c *gin.Context) {
 
 	if err := database.DB.Preload("Buyer").Preload("Listing").Preload("Review").Find(&sales, "seller_id = ?", currentUser.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve sold items"})
+		return
 	}
 
 	c.JSON(http.StatusOK, sales)

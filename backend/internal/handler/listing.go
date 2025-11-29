@@ -104,62 +104,115 @@ func CreateListing(c *gin.Context) {
 }
 
 func GetListings(c *gin.Context) {
-	var listings []models.Listing
+	pageStr := c.DefaultQuery("page", "1")
+	pageSizeStr := c.DefaultQuery("pageSize", "20")
 
-	if err := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
-		return db.Select(publicUserFields)
-	}).Preload("Category").Where("status = ?", models.Available).Find(&listings).Error; err != nil {
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid `page` param"})
+		return
+	}
+
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil || pageSize < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid `pageSize` param"})
+		return
+	}
+
+	offset := (page - 1) * pageSize
+
+	var total int64
+	if err := database.DB.Model(&models.Listing{}).
+		Where("status = ?", models.Available).
+		Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count listings"})
+		return
+	}
+
+	// paginated query recents listings
+	var listings []models.Listing
+	if err := database.DB.
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select(publicUserFields)
+		}).
+		Preload("Category").
+		Where("status = ?", models.Available).
+		Order("created_at desc, id desc").
+		Limit(pageSize).
+		Offset(offset).
+		Find(&listings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
 		return
 	}
 
-	c.JSON(http.StatusOK, listings)
+	c.JSON(http.StatusOK, gin.H{
+		"data":     listings,
+		"page":     page,
+		"pageSize": pageSize,
+		"total":    total,
+	})
 }
 
 // query param is mandatory. page and pageSize are optional. page starts at 1.
 // if page and pageSize are not provided, the default is 1 and 10 respectively.
 func GetListingsSearch(c *gin.Context) {
-	query := c.Query("q")
-	if query == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "missing `query` param"})
+	q := c.Query("q")
+	if q == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing `q` param"})
 		return
 	}
 
-	page, ok := c.GetQuery("page")
-	if !ok {
-		page = "1"
-	}
+	pageStr := c.DefaultQuery("page", "1")
+	pageSizeStr := c.DefaultQuery("pageSize", "20")
 
-	pageSize, ok := c.GetQuery("pageSize")
-	if !ok {
-		pageSize = "10"
-	}
-
-	pageInt, err := strconv.Atoi(page)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid `page` param"})
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid `page` param"})
 		return
 	}
 
-	pageSizeInt, err := strconv.Atoi(pageSize)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid `pageSize` param"})
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil || pageSize < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid `pageSize` param"})
 		return
 	}
 
-	// do query here
-	result, err := database.SearchListingsFTS(query, pageInt, pageSizeInt)
+	// perform full-text search for the paginated results
+	results, err := database.SearchListingsFTS(q, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
 		return
 	}
 
-	if len(result) == 0 {
-		c.JSON(http.StatusOK, []models.Listing{})
-		return
+	// compute total matching entries for pagination
+	var total int64
+	db := database.DB.Model(&models.Listing{})
+	likePattern := "%" + q + "%"
+
+	// if not admin, only count available (same behavior as other endpoints)
+	if !checkIsAdmin(c) {
+		if err := db.Where("status = ? AND (title ILIKE ? OR description ILIKE ?)", models.Available, likePattern, likePattern).Order("created_at desc, id desc").Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count listings"})
+			return
+		}
+	} else {
+		if err := db.Where("(title ILIKE ? OR description ILIKE ?)", likePattern, likePattern).Order("created_at desc, id desc").Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count listings"})
+			return
+		}
 	}
 
-	c.JSON(http.StatusOK, result)
+	// ensure non-nil slice in response
+	if results == nil {
+		results = []models.Listing{}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":     results,
+		"page":     page,
+		"pageSize": pageSize,
+		"total":    total,
+	})
 }
 
 func GetListing(c *gin.Context) {
@@ -196,7 +249,6 @@ func GetListingBySlug(c *gin.Context) {
 
 	// Se NÃO for admin, aplica o filtro de status
 	if !checkIsAdmin(c) {
-		// CORREÇÃO AQUI: de []string para []models.Status
 		query = query.Where("status IN ?", []models.Status{models.Available, models.Sold})
 	}
 	// Se for admin, o query continua sem filtro de status (vê tudo)

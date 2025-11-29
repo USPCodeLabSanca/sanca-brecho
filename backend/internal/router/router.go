@@ -37,7 +37,7 @@ func New() *gin.Engine {
 			userRouter.GET("/me", handler.GetUser)                                       // usuário logado
 			userRouter.PUT("/me", handler.UpdateUser)                                    // usuário logado
 			userRouter.DELETE("/me", handler.DeleteUser)                                 // usuário logado
-			userRouter.GET("/", middleware.AdminAuth, handler.GetAllUsers)               // usuário admin
+			userRouter.GET("/", middleware.AdminAuth, handler.GetUsers)                  // usuário admin
 			userRouter.DELETE("/:slug", middleware.AdminAuth, handler.DeleteUserByAdmin) // usuário admin
 			userRouter.PUT("/:slug/role", middleware.AdminAuth, handler.UpdateUserRole)  // usuário admin
 		}

@@ -237,14 +237,47 @@ func GetProfileContact(c *gin.Context) {
 	})
 }
 
-func GetAllUsers(c *gin.Context) {
+func GetUsers(c *gin.Context) {
+	type QueryParams struct {
+		Page     int `form:"page,default=1"`
+		PageSize int `form:"page_size,default=20"`
+	}
+
+	var qp QueryParams
+	if err := c.ShouldBindQuery(&qp); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid query parameters"})
+		return
+	}
+
+	if qp.Page < 1 {
+		qp.Page = 1
+	}
+	if qp.PageSize <= 0 {
+		qp.PageSize = 20
+	}
+	if qp.PageSize > 100 {
+		qp.PageSize = 100
+	}
+
+	var total int64
+	if err := repository.DB.Model(&models.User{}).Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count users"})
+		return
+	}
+
+	offset := (qp.Page - 1) * qp.PageSize
 	var users []models.User
-	if err := repository.DB.Find(&users).Error; err != nil {
+	if err := repository.DB.Limit(qp.PageSize).Offset(offset).Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"users": users})
+	c.JSON(http.StatusOK, gin.H{
+		"data":     users,
+		"page":     qp.Page,
+		"pageSize": qp.PageSize,
+		"total":    total,
+	})
 }
 
 func DeleteUserByAdmin(c *gin.Context) {

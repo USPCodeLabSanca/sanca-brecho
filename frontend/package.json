@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.5",
     "@radix-ui/react-dialog": "^1.1.15",
     "axios": "^1.12.2",
     "browser-image-compression": "^2.0.2",

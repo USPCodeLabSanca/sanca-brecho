@@ -3,16 +3,20 @@ import { Search, LayoutGrid, ChevronDown } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { getListings, searchListings } from "@/lib/services/listingService";
 import { getCategories } from "@/lib/services/categoryService";
-import { CategoryType, ListingType } from "@/lib/types/api";
+import { CategoryType, ListingType, PaginationType } from "@/lib/types/api";
 import ProductCard from "../../components/productCard";
 import { useDebounce } from "@/lib/utils";
 import { useSearchParams, useRouter } from "next/navigation";
+import Pagination from "@mui/material/Pagination";
 
 export default function Categorias() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [products, setProducts] = useState<ListingType[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [total, setTotal] = useState(0);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [errorProducts, setErrorProducts] = useState<string | null>(null);
 
@@ -77,13 +81,14 @@ export default function Categorias() {
     const fetchProducts = async () => {
       setLoadingProducts(true);
       try {
-        let data: ListingType[];
+        let response: PaginationType<ListingType>;
         if (debouncedSearch.trim()) {
-          data = await searchListings(debouncedSearch);
+          response = await searchListings(debouncedSearch);
         } else {
-          data = await getListings();
+          response = await getListings();
         }
-        setProducts(data);
+        setProducts(response.data);
+        setTotal(response.total);
       } catch (error: any) {
         setErrorProducts(error.message);
       } finally {
@@ -91,7 +96,7 @@ export default function Categorias() {
       }
     };
     fetchProducts();
-  }, [debouncedSearch]);
+  }, [debouncedSearch, page, pageSize]);
 
   // Category filter
   const filteredProducts = useMemo(() => {
@@ -108,7 +113,7 @@ export default function Categorias() {
     setIsDropdownOpen(false);
   };
 
-  const selectedCategory = useMemo(() => 
+  const selectedCategory = useMemo(() =>
     categories.find((c) => c.id === selectedCategoryId),
     [categories, selectedCategoryId]
   );
@@ -127,11 +132,10 @@ export default function Categorias() {
           <li>
             <button
               onClick={() => handleCategorySelect(null)}
-              className={`w-full text-left flex items-center gap-1 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
-                selectedCategoryId === null
-                  ? "bg-blue-100 text-sanca"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
+              className={`w-full text-left flex items-center gap-1 px-3 py-2 rounded-md transition-colors text-sm font-medium ${selectedCategoryId === null
+                ? "bg-blue-100 text-sanca"
+                : "text-slate-600 hover:bg-slate-100"
+                }`}
             >
               <LayoutGrid className="w-4 h-4" />
               Todas as categorias
@@ -141,11 +145,10 @@ export default function Categorias() {
             <li key={category.id}>
               <button
                 onClick={() => handleCategorySelect(category.id)}
-                className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
-                  selectedCategoryId === category.id
-                    ? "bg-purple-100 text-sanca"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
+                className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium ${selectedCategoryId === category.id
+                  ? "bg-purple-100 text-sanca"
+                  : "text-slate-600 hover:bg-slate-100"
+                  }`}
               >
                 {category.icon} {category.name}
               </button>
@@ -189,9 +192,8 @@ export default function Categorias() {
                 </span>
               </div>
               <ChevronDown
-                className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${
-                  isDropdownOpen ? 'rotate-180' : ''
-                }`}
+                className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''
+                  }`}
               />
             </button>
             {isDropdownOpen && (
@@ -215,13 +217,16 @@ export default function Categorias() {
               Erro ao carregar os produtos: {errorProducts}
             </p>
           ) : filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredProducts.map((product) => (
-                <div className="max-w-xs" key={product.id}>
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredProducts.map((product) => (
+                  <div className="max-w-xs" key={product.id}>
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+              <Pagination count={Math.ceil(total / pageSize)} page={page} onChange={(_, value) => setPage(value)} shape="rounded" className="flex justify-center mt-6" />
+            </>
           ) : (
             <div className="text-center py-10">
               <p className="text-slate-600">Nenhum produto encontrado.</p>

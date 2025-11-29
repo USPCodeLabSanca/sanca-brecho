@@ -1,10 +1,10 @@
 import api from '../api/axiosConfig';
-import { ListingImageType, ListingType, PresignedUrl, SaleType, ErrorType } from '../types/api';
+import { ListingImageType, ListingType, PresignedUrl, SaleType, ErrorType, PaginationType } from '../types/api';
 
 
 // Buscar todos os listings
-export const getListings = async (): Promise<ListingType[]> => {
-    const response = await api.get('/listings/');
+export const getListings = async (page: number = 1, pageSize: number = 20): Promise<PaginationType<ListingType>> => {
+    const response = await api.get('/listings/', { params: { page, pageSize } });
     return response.data;
 }
 
@@ -104,7 +104,7 @@ export const createSale = async (id: string, buyer_identifier: string, final_pri
     }
 }
 
-export const searchListings = async (query: string): Promise<ListingType[]> => {
-    const response = await api.get(`/listings/search`, { params: { q: query } });
+export const searchListings = async (query: string, page: number = 1, pageSize: number = 20): Promise<PaginationType<ListingType>> => {
+    const response = await api.get(`/listings/search`, { params: { q: query, page, pageSize } });
     return response.data;
 }

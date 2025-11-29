@@ -15,6 +15,7 @@ import {
   BadgeCheck,
   ShieldCheck,
   Star,
+  ShieldUser,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProfileType, ListingType, ReviewType } from "@/lib/types/api";
@@ -83,7 +84,7 @@ const Usuario = () => {
       if (!currentUserFirebase || isOwnerProfile || !userProfile?.slug) {
         return;
       }
-      
+
       try {
         const data = await getProfileContact(userProfile.slug);
         setContactInfo(data);
@@ -170,7 +171,7 @@ const Usuario = () => {
         setUserReviews(data);
       } catch (error: any) {
         setUserReviews([]);
-        setErrorReviews(error.message);
+        setErrorReviews(error.response?.data?.error || error.message);
         showErrorToast("Erro ao buscar avaliações do usuário");
       } finally {
         setLoadingReviews(false);
@@ -284,6 +285,14 @@ const Usuario = () => {
                           </div>
                         </div>
                       )}
+                      {userProfile.role === 'admin' && (
+                        <div className="relative group">
+                          <ShieldUser className="text-gray-500 pl-1.5 h-8 w-8" />
+                          <div className="absolute w-32 text-center bottom-full mb-1 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 text-xs text-white bg-black px-2 py-1 rounded-md">
+                            Usuário administrador
+                          </div>
+                        </div>
+                      )}
                     </h1>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2 pb-4 text-sm text-gray-500">
                       <div className="flex items-center">
@@ -321,7 +330,7 @@ const Usuario = () => {
                         <div className="w-full flex items-center justify-between flex-wrap max-[388px]:gap-2 max-[388px]:justify-center">
                           {userProfile.verified && (
                             <div className="flex gap-1">
-                              <button 
+                              <button
                                 onClick={handleWhatsAppClick}
                                 disabled={isContactLoading}
                                 className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 bg-sanca hover:bg-sanca/90">
@@ -332,10 +341,10 @@ const Usuario = () => {
                                   </>
                                 )}
                               </button>
-                              
+
                               {/* Botão Telegram - aparece se contactInfo tiver telegram */}
                               {contactInfo?.telegram && (
-                                <button 
+                                <button
                                   onClick={handleTelegramClick}
                                   disabled={isContactLoading}
                                   className="cursor-pointer inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 w-10 border border-gray-300 hover:bg-gray-100">
