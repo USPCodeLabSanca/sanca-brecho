@@ -115,7 +115,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-6 px-4">
+      <section className="py-6 px-4 scroll-mt-14" id="products-section">
         <div className="container mx-auto">
           <h1 className="text-2xl font-bold pb-4 sm:text-left text-center">Produtos Recentes</h1>
           {/* Não implementado 
@@ -170,7 +170,12 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Pagination count={Math.ceil(total / pageSize)} page={page} onChange={(_, value) => setPage(value)} shape="rounded" className="flex justify-center mt-6" />
+              <Pagination count={Math.ceil(total / pageSize)} page={page} onChange={(_, value) => {
+                setPage(value);
+                document
+                  .getElementById("products-section")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }} shape="rounded" className="flex justify-center mt-6" />
             </>
           ) : (
             <div className="text-center sm:text-left">
