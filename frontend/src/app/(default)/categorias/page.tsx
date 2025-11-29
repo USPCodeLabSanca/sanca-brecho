@@ -234,7 +234,15 @@ export default function Categorias() {
                   </div>
                 ))}
               </div>
-              <Pagination count={Math.ceil(total / pageSize)} page={page} onChange={(_, value) => setPage(value)} shape="rounded" className="flex justify-center mt-6" />
+              <Pagination 
+                count={Math.ceil(total / pageSize)}
+                page={page}
+                onChange={(_, value) => {
+                  setPage(value)
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                shape="rounded"
+                className="flex justify-center mt-6" />
             </>
           ) : (
             <div className="text-center py-10">
