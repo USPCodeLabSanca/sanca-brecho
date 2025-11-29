@@ -124,14 +124,14 @@ export default function AdminDashboardPage() {
 
   const fetchReports = useCallback(async () => {
     try {
-      const reportsResponse = await getReports(1, 10, 'open');
+      const reportsResponse = await getReports(pageReport, pageSizeReport, 'open');
       setReports(reportsResponse.data);
       setTotalReports(reportsResponse.total);
     } catch (error) {
       console.error("Erro ao carregar denúncias:", error);
       alert("Falha ao carregar as denúncias. Verifique o console.");
     }
-  }, []);
+  }, [pageReport, pageSizeReport]);
 
   useEffect(() => {
     fetchAllData();
