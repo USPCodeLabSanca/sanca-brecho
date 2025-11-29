@@ -21,7 +21,6 @@ export const deleteMe = async (): Promise<void> => {
 // Buscar todos os usuários
 export const getUsers = async (page: number = 1, pageSize: number = 20): Promise<PaginationType<UserType>> => {
     const response = await api.get('/users/', { params: { page, pageSize } });
-    console.log(response.data);
     return response.data;
 };
 
