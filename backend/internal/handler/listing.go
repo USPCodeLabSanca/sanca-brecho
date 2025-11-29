@@ -2,6 +2,7 @@ package handler
 
 import (
 	"api/internal/models"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -13,6 +14,79 @@ import (
 )
 
 var publicUserFields = "id, display_name, slug, photo_url, university, verified, role, created_at"
+
+// paginationParams holds common pagination parameters
+type paginationParams struct {
+	Page     int
+	PageSize int
+	Offset   int
+}
+
+// parsePaginationParams parses and validates pagination query parameters.
+// Returns paginationParams and an error message if validation fails.
+func parsePaginationParams(c *gin.Context) (*paginationParams, string) {
+	pageStr := c.DefaultQuery("page", "1")
+	pageSizeStr := c.DefaultQuery("pageSize", "20")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		return nil, "invalid `page` param"
+	}
+
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil || pageSize < 1 {
+		return nil, "invalid `pageSize` param"
+	}
+
+	return &paginationParams{
+		Page:     page,
+		PageSize: pageSize,
+		Offset:   (page - 1) * pageSize,
+	}, ""
+}
+
+// parseCategoryParam parses and validates the category query parameter.
+// Returns (categoryID, hasCategory, errorMessage, httpStatus).
+func parseCategoryParam(c *gin.Context) (int, bool, string, int) {
+	categoryStr := c.Query("category")
+	if categoryStr == "" {
+		return 0, false, "", 0
+	}
+
+	id, err := strconv.Atoi(categoryStr)
+	if err != nil {
+		return 0, false, "invalid `category` param", http.StatusBadRequest
+	}
+
+	var category models.Category
+	if err := database.DB.First(&category, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, false, "Invalid CategoryID", http.StatusBadRequest
+		}
+		return 0, false, "Failed to retrieve category", http.StatusInternalServerError
+	}
+
+	return id, true, "", 0
+}
+
+// baseListingQuery returns a base query with common preloads for listing queries.
+func baseListingQuery() *gorm.DB {
+	return database.DB.
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select(publicUserFields)
+		}).
+		Preload("Category")
+}
+
+// sendPaginatedResponse sends a standardized paginated response.
+func sendPaginatedResponse(c *gin.Context, data interface{}, pagination *paginationParams, total int64) {
+	c.JSON(http.StatusOK, gin.H{
+		"data":     data,
+		"page":     pagination.Page,
+		"pageSize": pagination.PageSize,
+		"total":    total,
+	})
+}
 
 func checkIsAdmin(c *gin.Context) bool {
 	user, exists := c.Get("currentUser")
@@ -104,62 +178,115 @@ func CreateListing(c *gin.Context) {
 }
 
 func GetListings(c *gin.Context) {
-	var listings []models.Listing
+	// Parse pagination parameters
+	pagination, errMsg := parsePaginationParams(c)
+	if errMsg != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errMsg})
+		return
+	}
 
-	if err := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
-		return db.Select(publicUserFields)
-	}).Preload("Category").Where("status = ?", models.Available).Find(&listings).Error; err != nil {
+	// Parse category parameter
+	categoryID, hasCategory, errMsg, status := parseCategoryParam(c)
+	if errMsg != "" {
+		c.JSON(status, gin.H{"error": errMsg})
+		return
+	}
+
+	// Count total matching entries
+	var total int64
+	dbCount := database.DB.Model(&models.Listing{}).Where("status = ?", models.Available)
+	if hasCategory {
+		dbCount = dbCount.Where("category_id = ?", categoryID)
+	}
+	if err := dbCount.Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count listings"})
+		return
+	}
+
+	// Fetch paginated results
+	var listings []models.Listing
+	query := baseListingQuery().Where("status = ?", models.Available)
+
+	if hasCategory {
+		query = query.Where("category_id = ?", categoryID)
+	}
+
+	if err := query.
+		Order("created_at desc, id desc").
+		Limit(pagination.PageSize).
+		Offset(pagination.Offset).
+		Find(&listings).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
 		return
 	}
 
-	c.JSON(http.StatusOK, listings)
+	sendPaginatedResponse(c, listings, pagination, total)
 }
 
 // query param is mandatory. page and pageSize are optional. page starts at 1.
-// if page and pageSize are not provided, the default is 1 and 10 respectively.
+// if page and pageSize are not provided, the default is 1 and 20 respectively.
 func GetListingsSearch(c *gin.Context) {
-	query := c.Query("q")
-	if query == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "missing `query` param"})
+	q := c.Query("q")
+	if q == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing `q` param"})
 		return
 	}
 
-	page, ok := c.GetQuery("page")
-	if !ok {
-		page = "1"
-	}
-
-	pageSize, ok := c.GetQuery("pageSize")
-	if !ok {
-		pageSize = "10"
-	}
-
-	pageInt, err := strconv.Atoi(page)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid `page` param"})
+	// Parse category parameter
+	categoryID, hasCategory, errMsg, status := parseCategoryParam(c)
+	if errMsg != "" {
+		c.JSON(status, gin.H{"error": errMsg})
 		return
 	}
 
-	pageSizeInt, err := strconv.Atoi(pageSize)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid `pageSize` param"})
+	// Parse pagination parameters
+	pagination, errMsg := parsePaginationParams(c)
+	if errMsg != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errMsg})
 		return
 	}
 
-	// do query here
-	result, err := database.SearchListingsFTS(query, pageInt, pageSizeInt)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
+	likePattern := "%" + q + "%"
+
+	// Count total matching entries with same filters
+	var total int64
+	dbCount := database.DB.Model(&models.Listing{}).Where("(title ILIKE ? OR description ILIKE ?)", likePattern, likePattern)
+	if hasCategory {
+		dbCount = dbCount.Where("category_id = ?", categoryID)
+	}
+	if !checkIsAdmin(c) {
+		dbCount = dbCount.Where("status = ?", models.Available)
+	}
+	if err := dbCount.Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count listings"})
 		return
 	}
 
-	if len(result) == 0 {
-		c.JSON(http.StatusOK, []models.Listing{})
+	// Fetch paginated results with same filters
+	var results []models.Listing
+	query := baseListingQuery().Where("(title ILIKE ? OR description ILIKE ?)", likePattern, likePattern)
+
+	if hasCategory {
+		query = query.Where("category_id = ?", categoryID)
+	}
+	if !checkIsAdmin(c) {
+		query = query.Where("status = ?", models.Available)
+	}
+
+	if err := query.
+		Order("created_at desc, id desc").
+		Limit(pagination.PageSize).
+		Offset(pagination.Offset).
+		Find(&results).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
 		return
 	}
 
-	c.JSON(http.StatusOK, result)
+	if results == nil {
+		results = []models.Listing{}
+	}
+
+	sendPaginatedResponse(c, results, pagination, total)
 }
 
 func GetListing(c *gin.Context) {
@@ -196,7 +323,6 @@ func GetListingBySlug(c *gin.Context) {
 
 	// Se NÃO for admin, aplica o filtro de status
 	if !checkIsAdmin(c) {
-		// CORREÇÃO AQUI: de []string para []models.Status
 		query = query.Where("status IN ?", []models.Status{models.Available, models.Sold})
 	}
 	// Se for admin, o query continua sem filtro de status (vê tudo)

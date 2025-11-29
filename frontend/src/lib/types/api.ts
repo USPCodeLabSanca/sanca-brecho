@@ -156,3 +156,10 @@ export interface ReportType {
     target_name: string;
     target_slug: string;
 }
+
+export interface PaginationType<T> {
+    data: T[];
+    page: number;
+    pageSize: number;
+    total: number;
+}

@@ -109,8 +109,7 @@ export default function Anunciar() {
       showSuccessToast("Anúncio publicado com sucesso!");
       router.push(`/produto/${newListing.slug}`);
     } catch (error: any) {
-      console.error("Erro ao publicar anúncio:", error);
-      setFormError(error.message || "Ocorreu um erro desconhecido.");
+      setFormError(error.response?.data?.error || "Ocorreu um erro desconhecido.");
     } finally {
       setIsSubmitting(false);
     }
@@ -152,7 +151,7 @@ export default function Anunciar() {
 
       setPreviewImages([...previewImages, { publicURL: data.publicURL, key: data.key }]);
     } catch (err: any) {
-      const message = err.message || 'Erro desconhecido ao enviar a imagem.';
+      const message = err.response?.data?.error || 'Erro desconhecido ao enviar a imagem.';
       showErrorToast(message);
     } finally {
       setIsUploading(false);
@@ -186,7 +185,7 @@ export default function Anunciar() {
   const removeImage = useCallback((idx: number) => {
     setPreviewImages((imgs) => imgs.filter((_, i) => i !== idx));
   }, []);
-  
+
   // Condição para usuário não logado
   if (!user) {
     return (

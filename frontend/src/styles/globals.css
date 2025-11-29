@@ -6,9 +6,12 @@
 }
 
 /* Simular App Nativo com PWA */
-html, body {
-  touch-action: manipulation; /* reduz chances de zoom acidental */
-  overscroll-behavior-y: none; /* bloqueia pull-to-refresh */
+html,
+body {
+  touch-action: manipulation;
+  /* reduz chances de zoom acidental */
+  overscroll-behavior-y: none;
+  /* bloqueia pull-to-refresh */
 }
 
 /* Setas do carrossel de imagens de produto */

@@ -4,6 +4,7 @@ import ProductCard from "../components/productCard";
 import Categories from "../components/categories";
 import { useState, useEffect } from "react";
 import { CategoryType, ListingType } from "@/lib/types/api"
+import Pagination from '@mui/material/Pagination';
 import { ArrowRight } from "lucide-react";
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css';
@@ -14,6 +15,9 @@ import { getListings } from "@/lib/services/listingService";
 export default function Home() {
   const [categories, setCategories] = useState<CategoryType[]>([]);
   const [products, setProducts] = useState<ListingType[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [total, setTotal] = useState(0);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [errorCategories, setErrorCategories] = useState<string | null>(null);
@@ -21,11 +25,12 @@ export default function Home() {
 
   useEffect(() => {
     const fetchCategories = async () => {
+      setLoadingCategories(true);
       try {
         const data = await getCategories();
         setCategories(data);
       } catch (error: any) {
-        setErrorCategories(error.message);
+        setErrorCategories(error.response?.data?.error || error.message);
         console.error("Failed to fetch categories:", error);
       } finally {
         setLoadingCategories(false);
@@ -36,18 +41,20 @@ export default function Home() {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoadingProducts(true);
       try {
-        const data = await getListings();
-        setProducts(data);
+        const response = await getListings(page, pageSize);
+        setProducts(response.data);
+        setTotal(response.total);
       } catch (error: any) {
-        setErrorProducts(error.message);
+        setErrorProducts(error.response?.data?.error || error.message);
         console.error("Failed to fetch products:", error);
       } finally {
         setLoadingProducts(false);
       }
     };
     fetchProducts();
-  }, []);
+  }, [page, pageSize]);
 
   return (
     <>
@@ -153,15 +160,18 @@ export default function Home() {
           ) : errorProducts ? (
             <p className="text-red-500">Erro ao carregar os produtos: {errorProducts}</p>
           ) : products.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {products.map((product) => (
-                <div className="max-w-xs" key={product.id}>
-                  <ProductCard
-                    product={product}
-                  />
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {products.map((product) => (
+                  <div className="max-w-xs" key={product.id}>
+                    <ProductCard
+                      product={product}
+                    />
+                  </div>
+                ))}
+              </div>
+              <Pagination count={Math.ceil(total / pageSize)} page={page} onChange={(_, value) => setPage(value)} shape="rounded" className="flex justify-center mt-6" />
+            </>
           ) : (
             <div className="text-center sm:text-left">
               <p className="text-slate-600">Nenhum produto encontrado.</p>

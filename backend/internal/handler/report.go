@@ -32,7 +32,7 @@ func CreateReport(c *gin.Context) {
 }
 
 type PaginatedReportsResponse struct {
-	Reports  []ReportResponse `json:"reports"`
+	Data     []ReportResponse `json:"data"`
 	Total    int64            `json:"total"`
 	Page     int              `json:"page"`
 	PageSize int              `json:"pageSize"`
@@ -58,9 +58,10 @@ func GetReports(c *gin.Context) {
 	query := repository.DB.Preload("Reporter")
 
 	// Lógica de filtro (procura todos se status não for especificado)
-	if status == "open" {
+	switch status {
+	case "open":
 		query = query.Where("status = ?", "open")
-	} else if status == "closed" {
+	case "closed":
 		query = query.Where("status IN ?", []string{"resolved", "rejected"})
 	}
 
@@ -78,7 +79,8 @@ func GetReports(c *gin.Context) {
 			Report: report,
 		}
 
-		if report.TargetType == models.TargetTypeProduct {
+		switch report.TargetType {
+		case models.TargetTypeProduct:
 			var listing struct {
 				Title string
 				Slug  string
@@ -86,7 +88,7 @@ func GetReports(c *gin.Context) {
 			repository.DB.Model(&models.Listing{}).Where("id = ?", report.TargetID).First(&listing)
 			dr.TargetName = listing.Title
 			dr.TargetSlug = listing.Slug
-		} else if report.TargetType == models.TargetTypeUser {
+		case models.TargetTypeUser:
 			var user struct {
 				DisplayName string
 				Slug        string
@@ -99,7 +101,7 @@ func GetReports(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, PaginatedReportsResponse{
-		Reports:  detailedReports,
+		Data:     detailedReports,
 		Total:    total,
 		Page:     page,
 		PageSize: pageSize,

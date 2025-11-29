@@ -3,16 +3,20 @@ import { Search, LayoutGrid, ChevronDown } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { getListings, searchListings } from "@/lib/services/listingService";
 import { getCategories } from "@/lib/services/categoryService";
-import { CategoryType, ListingType } from "@/lib/types/api";
+import { CategoryType, ListingType, PaginationType } from "@/lib/types/api";
 import ProductCard from "../../components/productCard";
 import { useDebounce } from "@/lib/utils";
 import { useSearchParams, useRouter } from "next/navigation";
+import Pagination from "@mui/material/Pagination";
 
 export default function Categorias() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [products, setProducts] = useState<ListingType[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [total, setTotal] = useState(0);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [errorProducts, setErrorProducts] = useState<string | null>(null);
 
@@ -32,7 +36,14 @@ export default function Categorias() {
     const searchFromUrl = searchParams.get("q");
 
     if (categoryFromUrl) {
-      setSelectedCategoryId(Number.parseInt(categoryFromUrl));
+      // Check if categoryFromUrl is a valid integer string
+      if (/^\d+$/.test(categoryFromUrl)) {
+        setSelectedCategoryId(parseInt(categoryFromUrl, 10));
+        setErrorCategories(null);
+      } else {
+        setSelectedCategoryId(null);
+        setErrorCategories("Invalid category ID in URL.");
+      }
     }
     if (searchFromUrl) {
       setSearchQuery(searchFromUrl);
@@ -55,7 +66,11 @@ export default function Categorias() {
       params.delete("category");
     }
 
-    router.replace(`?${params.toString()}`);
+    const qs = params.toString();
+    if (qs !== searchParams.toString()) {
+      const path = typeof window !== "undefined" ? window.location.pathname : "/";
+      router.replace(qs ? `${path}?${qs}` : path);
+    }
   }, [debouncedSearch, selectedCategoryId, router, searchParams]);
 
   // Fetch categories
@@ -73,17 +88,21 @@ export default function Categorias() {
     fetchCategories();
   }, []);
 
+  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       setLoadingProducts(true);
+      setErrorProducts(null);
       try {
-        let data: ListingType[];
+        let response: PaginationType<ListingType>;
         if (debouncedSearch.trim()) {
-          data = await searchListings(debouncedSearch);
+          response = await searchListings(debouncedSearch, page, pageSize, selectedCategoryId);
         } else {
-          data = await getListings();
+          response = await getListings(page, pageSize, selectedCategoryId);
         }
-        setProducts(data);
+        const items = Array.isArray(response?.data) ? response.data : [];
+        setProducts(items);
+        setTotal(typeof response?.total === "number" ? response.total : 0);
       } catch (error: any) {
         setErrorProducts(error.message);
       } finally {
@@ -91,24 +110,19 @@ export default function Categorias() {
       }
     };
     fetchProducts();
-  }, [debouncedSearch]);
-
-  // Category filter
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      if (selectedCategoryId && product.category_id !== selectedCategoryId) {
-        return false;
-      }
-      return true;
-    });
-  }, [products, selectedCategoryId]);
+  }, [debouncedSearch, page, pageSize, selectedCategoryId]);
 
   const handleCategorySelect = (categoryId: number | null) => {
     setSelectedCategoryId(categoryId);
+    setPage(1);
     setIsDropdownOpen(false);
   };
 
-  const selectedCategory = useMemo(() => 
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, selectedCategoryId]);
+
+  const selectedCategory = useMemo(() =>
     categories.find((c) => c.id === selectedCategoryId),
     [categories, selectedCategoryId]
   );
@@ -127,11 +141,10 @@ export default function Categorias() {
           <li>
             <button
               onClick={() => handleCategorySelect(null)}
-              className={`w-full text-left flex items-center gap-1 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
-                selectedCategoryId === null
-                  ? "bg-blue-100 text-sanca"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
+              className={`w-full text-left flex items-center gap-1 px-3 py-2 rounded-md transition-colors text-sm font-medium ${selectedCategoryId === null
+                ? "bg-blue-100 text-sanca"
+                : "text-slate-600 hover:bg-slate-100 hover:cursor-pointer"
+                }`}
             >
               <LayoutGrid className="w-4 h-4" />
               Todas as categorias
@@ -141,11 +154,10 @@ export default function Categorias() {
             <li key={category.id}>
               <button
                 onClick={() => handleCategorySelect(category.id)}
-                className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium ${
-                  selectedCategoryId === category.id
-                    ? "bg-purple-100 text-sanca"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
+                className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium ${selectedCategoryId === category.id
+                  ? "bg-purple-100 text-sanca"
+                  : "text-slate-600 hover:bg-slate-100 hover:cursor-pointer"
+                  }`}
               >
                 {category.icon} {category.name}
               </button>
@@ -189,9 +201,8 @@ export default function Categorias() {
                 </span>
               </div>
               <ChevronDown
-                className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${
-                  isDropdownOpen ? 'rotate-180' : ''
-                }`}
+                className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''
+                  }`}
               />
             </button>
             {isDropdownOpen && (
@@ -214,14 +225,17 @@ export default function Categorias() {
             <p className="text-red-500">
               Erro ao carregar os produtos: {errorProducts}
             </p>
-          ) : filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredProducts.map((product) => (
-                <div className="max-w-xs" key={product.id}>
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
+          ) : products.length > 0 ? (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {products.map((product) => (
+                  <div className="max-w-xs" key={product.id}>
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+              <Pagination count={Math.ceil(total / pageSize)} page={page} onChange={(_, value) => setPage(value)} shape="rounded" className="flex justify-center mt-6" />
+            </>
           ) : (
             <div className="text-center py-10">
               <p className="text-slate-600">Nenhum produto encontrado.</p>
