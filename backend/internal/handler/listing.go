@@ -2,6 +2,7 @@ package handler
 
 import (
 	"api/internal/models"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -59,7 +60,7 @@ func parseCategoryParam(c *gin.Context) (int, bool, string, int) {
 
 	var category models.Category
 	if err := database.DB.First(&category, "id = ?", id).Error; err != nil {
-		if err.Error() == "record not found" {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return 0, false, "Invalid CategoryID", http.StatusBadRequest
 		}
 		return 0, false, "Failed to retrieve category", http.StatusInternalServerError
