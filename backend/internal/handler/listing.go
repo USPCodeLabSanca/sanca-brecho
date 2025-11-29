@@ -106,6 +106,30 @@ func CreateListing(c *gin.Context) {
 func GetListings(c *gin.Context) {
 	pageStr := c.DefaultQuery("page", "1")
 	pageSizeStr := c.DefaultQuery("pageSize", "20")
+	categoryStr := c.Query("category")
+
+	categoryID := 0
+	hasCategory := false
+	if categoryStr != "" {
+		id, err := strconv.Atoi(categoryStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid `category` param"})
+			return
+		}
+
+		var category models.Category
+		if err := database.DB.First(&category, "id = ?", id).Error; err != nil {
+			if err.Error() == "record not found" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid CategoryID"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve category"})
+			}
+			return
+		}
+
+		categoryID = id
+		hasCategory = true
+	}
 
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
@@ -122,21 +146,29 @@ func GetListings(c *gin.Context) {
 	offset := (page - 1) * pageSize
 
 	var total int64
-	if err := database.DB.Model(&models.Listing{}).
-		Where("status = ?", models.Available).
-		Count(&total).Error; err != nil {
+	dbCount := database.DB.Model(&models.Listing{}).Where("status = ?", models.Available)
+	if hasCategory {
+		dbCount = dbCount.Where("category_id = ?", categoryID)
+	}
+	if err := dbCount.Count(&total).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count listings"})
 		return
 	}
 
-	// paginated query recents listings
+	// paginated query recent listings
 	var listings []models.Listing
-	if err := database.DB.
+	query := database.DB.
 		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Select(publicUserFields)
 		}).
 		Preload("Category").
-		Where("status = ?", models.Available).
+		Where("status = ?", models.Available)
+
+	if hasCategory {
+		query = query.Where("category_id = ?", categoryID)
+	}
+
+	if err := query.
 		Order("created_at desc, id desc").
 		Limit(pageSize).
 		Offset(offset).
@@ -162,6 +194,30 @@ func GetListingsSearch(c *gin.Context) {
 		return
 	}
 
+	categoryStr := c.Query("category")
+	categoryID := 0
+	hasCategory := false
+	if categoryStr != "" {
+		id, err := strconv.Atoi(categoryStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid `category` param"})
+			return
+		}
+
+		var category models.Category
+		if err := database.DB.First(&category, "id = ?", id).Error; err != nil {
+			if err.Error() == "record not found" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid CategoryID"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve category"})
+			}
+			return
+		}
+
+		categoryID = id
+		hasCategory = true
+	}
+
 	pageStr := c.DefaultQuery("page", "1")
 	pageSizeStr := c.DefaultQuery("pageSize", "20")
 
@@ -177,32 +233,48 @@ func GetListingsSearch(c *gin.Context) {
 		return
 	}
 
-	// perform full-text search for the paginated results
-	results, err := database.SearchListingsFTS(q, page, pageSize)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
+	offset := (page - 1) * pageSize
+	likePattern := "%" + q + "%"
+
+	// count total matching entries with same filters
+	var total int64
+	dbCount := database.DB.Model(&models.Listing{}).Where("(title ILIKE ? OR description ILIKE ?)", likePattern, likePattern)
+	if hasCategory {
+		dbCount = dbCount.Where("category_id = ?", categoryID)
+	}
+	if !checkIsAdmin(c) {
+		dbCount = dbCount.Where("status = ?", models.Available)
+	}
+	if err := dbCount.Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count listings"})
 		return
 	}
 
-	// compute total matching entries for pagination
-	var total int64
-	db := database.DB.Model(&models.Listing{})
-	likePattern := "%" + q + "%"
+	// fetch paginated results with same filters
+	var results []models.Listing
+	query := database.DB.
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select(publicUserFields)
+		}).
+		Preload("Category").
+		Where("(title ILIKE ? OR description ILIKE ?)", likePattern, likePattern)
 
-	// if not admin, only count available (same behavior as other endpoints)
+	if hasCategory {
+		query = query.Where("category_id = ?", categoryID)
+	}
 	if !checkIsAdmin(c) {
-		if err := db.Where("status = ? AND (title ILIKE ? OR description ILIKE ?)", models.Available, likePattern, likePattern).Order("created_at desc, id desc").Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count listings"})
-			return
-		}
-	} else {
-		if err := db.Where("(title ILIKE ? OR description ILIKE ?)", likePattern, likePattern).Order("created_at desc, id desc").Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count listings"})
-			return
-		}
+		query = query.Where("status = ?", models.Available)
 	}
 
-	// ensure non-nil slice in response
+	if err := query.
+		Order("created_at desc, id desc").
+		Limit(pageSize).
+		Offset(offset).
+		Find(&results).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
+		return
+	}
+
 	if results == nil {
 		results = []models.Listing{}
 	}

@@ -13,7 +13,7 @@ import { UserRoleModal, UserModalState } from "@/app/components/userRoleModal";
 import { ListingDeleteModal, ListingModalState } from "@/app/components/listingDeleteModal";
 import { ReportActionModal, ReportModalState } from "@/app/components/reportActionModal";
 import { useAuth } from "@/lib/context/AuthContext";
-import { showErrorToast } from "@/lib/toast";
+import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import router from "next/router";
 import SafeImage from "@/app/components/safeImage";
 import Link from "next/link";
@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
     if (confirm("Tem certeza que deseja deletar este usuário? Esta ação não pode ser desfeita.")) {
       try {
         await deleteUser(userSlug);
-        showErrorToast("Usuário deletado com sucesso.");
+        showSuccessToast("Usuário deletado com sucesso.");
         fetchUsers();
       } catch (error) {
         console.error("Erro ao deletar usuário:", error);

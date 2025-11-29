@@ -3,8 +3,12 @@ import { ListingImageType, ListingType, PresignedUrl, SaleType, ErrorType, Pagin
 
 
 // Buscar todos os listings
-export const getListings = async (page: number = 1, pageSize: number = 20): Promise<PaginationType<ListingType>> => {
-    const response = await api.get('/listings/', { params: { page, pageSize } });
+export const getListings = async (page: number = 1, pageSize: number = 20, categoryId: number | null = null): Promise<PaginationType<ListingType>> => {
+    const params: any = { page, pageSize };
+    if (categoryId !== null) {
+        params.category = categoryId;
+    }
+    const response = await api.get('/listings/', { params });
     return response.data;
 }
 
@@ -104,7 +108,11 @@ export const createSale = async (id: string, buyer_identifier: string, final_pri
     }
 }
 
-export const searchListings = async (query: string, page: number = 1, pageSize: number = 20): Promise<PaginationType<ListingType>> => {
-    const response = await api.get(`/listings/search`, { params: { q: query, page, pageSize } });
+export const searchListings = async (query: string, page: number = 1, pageSize: number = 20, categoryId: number | null = null): Promise<PaginationType<ListingType>> => {
+    const params: any = { q: query, page, pageSize };
+    if (categoryId !== null) {
+        params.category = categoryId;
+    }
+    const response = await api.get(`/listings/search`, { params });
     return response.data;
 }

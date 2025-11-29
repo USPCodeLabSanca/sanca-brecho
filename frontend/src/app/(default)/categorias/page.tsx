@@ -36,7 +36,8 @@ export default function Categorias() {
     const searchFromUrl = searchParams.get("q");
 
     if (categoryFromUrl) {
-      setSelectedCategoryId(Number.parseInt(categoryFromUrl));
+      const n = parseInt(categoryFromUrl, 10);
+      setSelectedCategoryId(Number.isFinite(n) ? n : null);
     }
     if (searchFromUrl) {
       setSearchQuery(searchFromUrl);
@@ -59,7 +60,11 @@ export default function Categorias() {
       params.delete("category");
     }
 
-    router.replace(`?${params.toString()}`);
+    const qs = params.toString();
+    if (qs !== searchParams.toString()) {
+      const path = typeof window !== "undefined" ? window.location.pathname : "/";
+      router.replace(qs ? `${path}?${qs}` : path);
+    }
   }, [debouncedSearch, selectedCategoryId, router, searchParams]);
 
   // Fetch categories
@@ -77,18 +82,21 @@ export default function Categorias() {
     fetchCategories();
   }, []);
 
+  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       setLoadingProducts(true);
+      setErrorProducts(null);
       try {
         let response: PaginationType<ListingType>;
         if (debouncedSearch.trim()) {
-          response = await searchListings(debouncedSearch);
+          response = await searchListings(debouncedSearch, page, pageSize, selectedCategoryId);
         } else {
-          response = await getListings();
+          response = await getListings(page, pageSize, selectedCategoryId);
         }
-        setProducts(response.data);
-        setTotal(response.total);
+        const items = Array.isArray(response?.data) ? response.data : [];
+        setProducts(items);
+        setTotal(typeof response?.total === "number" ? response.total : 0);
       } catch (error: any) {
         setErrorProducts(error.message);
       } finally {
@@ -96,22 +104,17 @@ export default function Categorias() {
       }
     };
     fetchProducts();
-  }, [debouncedSearch, page, pageSize]);
-
-  // Category filter
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      if (selectedCategoryId && product.category_id !== selectedCategoryId) {
-        return false;
-      }
-      return true;
-    });
-  }, [products, selectedCategoryId]);
+  }, [debouncedSearch, page, pageSize, selectedCategoryId]);
 
   const handleCategorySelect = (categoryId: number | null) => {
     setSelectedCategoryId(categoryId);
+    setPage(1);
     setIsDropdownOpen(false);
   };
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, selectedCategoryId]);
 
   const selectedCategory = useMemo(() =>
     categories.find((c) => c.id === selectedCategoryId),
@@ -134,7 +137,7 @@ export default function Categorias() {
               onClick={() => handleCategorySelect(null)}
               className={`w-full text-left flex items-center gap-1 px-3 py-2 rounded-md transition-colors text-sm font-medium ${selectedCategoryId === null
                 ? "bg-blue-100 text-sanca"
-                : "text-slate-600 hover:bg-slate-100"
+                : "text-slate-600 hover:bg-slate-100 hover:cursor-pointer"
                 }`}
             >
               <LayoutGrid className="w-4 h-4" />
@@ -147,7 +150,7 @@ export default function Categorias() {
                 onClick={() => handleCategorySelect(category.id)}
                 className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium ${selectedCategoryId === category.id
                   ? "bg-purple-100 text-sanca"
-                  : "text-slate-600 hover:bg-slate-100"
+                  : "text-slate-600 hover:bg-slate-100 hover:cursor-pointer"
                   }`}
               >
                 {category.icon} {category.name}
@@ -216,10 +219,10 @@ export default function Categorias() {
             <p className="text-red-500">
               Erro ao carregar os produtos: {errorProducts}
             </p>
-          ) : filteredProducts.length > 0 ? (
+          ) : products.length > 0 ? (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredProducts.map((product) => (
+                {products.map((product) => (
                   <div className="max-w-xs" key={product.id}>
                     <ProductCard product={product} />
                   </div>
