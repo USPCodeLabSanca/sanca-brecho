@@ -84,6 +84,7 @@ export default function AdminDashboardPage() {
       setTotalListings(listingsResponse.total);
       setCategories(categoriesData);
       setReports(reportsResponse.data);
+      setTotalReports(reportsResponse.total);
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);
       alert("Falha ao carregar os dados do painel. Verifique o console.");
