@@ -24,27 +24,22 @@ export default function Categorias() {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [errorCategories, setErrorCategories] = useState<string | null>(null);
 
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(() => {
+    const categoryFromUrl = searchParams.get("category");
+    if (categoryFromUrl && /^\d+$/.test(categoryFromUrl)) {
+      return parseInt(categoryFromUrl, 10);
+    }
+    return null;
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 1000);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Load category & search from URL
+  // Load search from URL
   useEffect(() => {
-    const categoryFromUrl = searchParams.get("category");
     const searchFromUrl = searchParams.get("q");
 
-    if (categoryFromUrl) {
-      // Check if categoryFromUrl is a valid integer string
-      if (/^\d+$/.test(categoryFromUrl)) {
-        setSelectedCategoryId(parseInt(categoryFromUrl, 10));
-        setErrorCategories(null);
-      } else {
-        setSelectedCategoryId(null);
-        setErrorCategories("Invalid category ID in URL.");
-      }
-    }
     if (searchFromUrl) {
       setSearchQuery(searchFromUrl);
     }
