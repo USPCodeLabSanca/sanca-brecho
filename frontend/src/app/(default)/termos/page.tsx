@@ -7,7 +7,7 @@ export default function Termos() {
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Termos de uso</h1>
           <div className="prose prose-sanca max-w-none">
             <p className="text-gray-600 mb-4">
-            Última atualização: 10 de junho de 2025
+            Última atualização: 01 de dezembro de 2025
             </p>
             
             <h2 className="text-xl font-semibold mt-8 mb-4">1. Aceitação dos Termos</h2>
@@ -30,6 +30,7 @@ export default function Termos() {
             Ao publicar um anúncio em nossa plataforma, você declara e garante que:
             </p>
             <ul className="list-disc pl-6 mb-4 text-gray-700">
+            <li className="mb-2">O anúncio refere-se a um item único ou kit indivisível, devendo o preço corresponder ao valor total do conjunto.</li>
             <li className="mb-2">O produto anunciado é de sua propriedade ou tem autorização para vendê-lo</li>
             <li className="mb-2">As informações fornecidas são verdadeiras, precisas e completas</li>
             <li className="mb-2">O produto não viola direitos de terceiros</li>
