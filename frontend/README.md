@@ -11,6 +11,13 @@ Este diretório contém a aplicação web do projeto **Sanca Brechó**, desenvol
    npm install
    ```
 
+### Atualizando o Next.js
+
+Para atualizar o Next.js para a versão mais recente, execute o seguinte comando nesse diretório:
+```
+npx @next/codemod@canary upgrade latest
+```
+
 ## 🔐 Variáveis de Ambiente
 
 Crie um arquivo `.env` na raiz do frontend (`/frontend/.env`) seguindo o padrão do `.env.example`.
