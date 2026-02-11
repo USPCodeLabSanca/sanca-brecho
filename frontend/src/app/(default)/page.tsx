@@ -11,6 +11,7 @@ import 'swiper/css';
 import Link from "next/link";
 import { getCategories } from "@/lib/services/categoryService";
 import { getListings } from "@/lib/services/listingService";
+import { Button } from "../components/button";
 
 export default function Home() {
   const [categories, setCategories] = useState<CategoryType[]>([]);
@@ -67,16 +68,12 @@ export default function Home() {
           vida universitária.
         </p>
         <div className="flex flex-row items-center justify-center gap-5 text-lg">
-          <Link href={"/anunciar"}>
-            <button className="inline-flex items-center justify-center gap-2 p-3 text-sm font-medium text-sanca bg-white rounded-md cursor-pointer hover:bg-gray-100">
-              Anunciar Produto
-            </button>
-          </Link>
-          <Link href="/categorias" className="visited:text-inherit">
-            <button className="inline-flex items-center justify-center gap-2 p-3 text-sm font-medium text-white rounded-md cursor-pointer border border-white hover:bg-black/5">
-              Ver Categorias
-            </button>
-          </Link>
+          <Button variant="secondary" href="/anunciar">
+            Anunciar Produto
+          </Button>
+          <Button variant="outline" href="/categorias">
+            Ver Categorias
+          </Button>
         </div>
       </section>
 
@@ -84,7 +81,7 @@ export default function Home() {
         <div className="container mx-auto">
           <div className="flex justify-between items-center pb-4">
             <h1 className="text-2xl font-bold">Categorias</h1>
-            <Link className="flex items-center text-sanca visited:text-sanca" href="/categorias">
+            <Link className="flex gap-2 items-center text-sanca visited:text-sanca" href="/categorias">
               Ver Todas{" "}
               <ArrowRight className="w-4 h-4" />
             </Link>
@@ -201,11 +198,9 @@ export default function Home() {
           Anuncie seus produtos usados no Sanca Brechó e ajude outros
           universitários enquanto ganha um dinheiro extra.
         </p>
-        <Link href="/anunciar" className="visited:text-inherit">
-          <button className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-sm font-medium text-white bg-sanca rounded-md cursor-pointer hover:opacity-50">
-            Anunciar Produto
-          </button>
-        </Link>
+        <Button variant="primary" href="/anunciar">
+          Anunciar Produto
+        </Button>
       </section>
     </>
   );

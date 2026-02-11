@@ -7,6 +7,7 @@ import { FaGoogle } from "react-icons/fa";
 import { useState } from "react";
 import { showLoginSuccessToast } from "@/lib/toast";
 import { login } from "@/lib/services/authService";
+import { Button } from "@/app/components/button";
 
 export default function Login() {
 	const router = useRouter();
@@ -69,7 +70,7 @@ export default function Login() {
 								</div>
 							)}
 
-							<button type="submit" onClick={handleLogin} className="cursor-pointer flex items-center justify-center gap-2 h-10 px-3 py-2 w-full bg-sanca hover:bg-sanca/90 rounded-md text-white text-sm font-medium"><FaGoogle />Entrar com Google</button>
+							<Button type="submit" onClick={handleLogin} className="w-full"><FaGoogle />Entrar com Google</Button>
 						</section>
 					</section>
 				</section>

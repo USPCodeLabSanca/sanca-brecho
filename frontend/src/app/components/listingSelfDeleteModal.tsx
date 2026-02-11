@@ -6,6 +6,7 @@ import { X, Trash2 } from "lucide-react";
 import { ListingType } from "@/lib/types/api";
 import { deleteListing } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
+import { Button } from "./button";
 
 interface ListingSelfDeleteModalProps {
   isOpen: boolean;
@@ -47,18 +48,18 @@ export function ListingSelfDeleteModal({ isOpen, onClose, listing, onSuccess }: 
             Tem certeza que deseja excluir o anúncio &quot;{listing.title}&quot;? Esta ação não pode ser desfeita.
           </Dialog.Description>
           <div className="mt-6 flex justify-end gap-3">
-            <button type="button" onClick={onClose} disabled={isSubmitting} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+            <Button onClick={onClose} disabled={isSubmitting} variant="outline">
               Cancelar
-            </button>
-            <button onClick={handleDelete} disabled={isSubmitting} className="cursor-pointer inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 disabled:bg-gray-400">
+            </Button>
+            <Button onClick={handleDelete} disabled={isSubmitting} variant="danger">
               <Trash2 className="w-4 h-4" />
               {isSubmitting ? "Excluindo..." : "Confirmar Exclusão"}
-            </button>
+            </Button>
           </div>
           <Dialog.Close asChild>
-            <button className="absolute right-4 top-4 rounded-sm opacity-70 cursor-pointer">
+            <Button variant="icon"className="absolute right-4 top-4">
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>

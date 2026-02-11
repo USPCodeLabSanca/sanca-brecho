@@ -11,6 +11,7 @@ import { getReports, updateReportStatus } from "@/lib/services/reportService";
 import { ReportStatus, ReportType, UserType } from "@/lib/types/api";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import Spinner from "@/app/components/spinner";
+import { Button } from "@/app/components/button";
 
 export default function ReportsPage() {
   const { user: firebaseUser, loading: authLoading } = useAuth();
@@ -137,10 +138,10 @@ export default function ReportsPage() {
 
         <div className="mb-4 border-b border-gray-200">
           <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-            <button onClick={() => { setActiveTab('open'); setCurrentPage(1); }} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'open' ? 'border-sanca text-sanca' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+            <button type="button"onClick={() => { setActiveTab('open'); setCurrentPage(1); }} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'open' ? 'border-sanca text-sanca' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
               Abertas
             </button>
-            <button onClick={() => { setActiveTab('resolved'); setCurrentPage(1); }} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'resolved' ? 'border-sanca text-sanca' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+            <button type="button" onClick={() => { setActiveTab('resolved'); setCurrentPage(1); }} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'resolved' ? 'border-sanca text-sanca' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
               Histórico
             </button>
           </nav>
@@ -193,18 +194,18 @@ export default function ReportsPage() {
 
                     {report.status === 'open' && (
                       <div className="flex gap-2 self-start md:self-center flex-shrink-0">
-                        <button
+                        <Button
                           onClick={() => handleUpdateStatus(report.id, 'resolved')}
-                          className="px-3 py-1 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center gap-1"
+                          variant="green"
                         >
                           <CheckCircle size={14} /> Resolver
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => handleUpdateStatus(report.id, 'rejected')}
-                          className="px-3 py-1 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center gap-1"
+                          variant="danger"
                         >
                           <XCircle size={14} /> Rejeitar
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -219,8 +220,8 @@ export default function ReportsPage() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
                 <div className="flex flex-1 justify-between sm:hidden">
-                  <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Anterior</button>
-                  <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Próxima</button>
+                  <button type="button" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Anterior</button>
+                  <button type="button" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Próxima</button>
                 </div>
                 <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                   <div>
@@ -230,11 +231,11 @@ export default function ReportsPage() {
                   </div>
                   <div>
                     <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                      <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50">
+                      <button type="button" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50">
                         <span className="sr-only">Anterior</span>
                         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                       </button>
-                      <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50">
+                      <button type="button" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50">
                         <span className="sr-only">Próxima</span>
                         <ChevronRight className="h-5 w-5" aria-hidden="true" />
                       </button>

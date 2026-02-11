@@ -13,6 +13,7 @@ import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import notFound from "../not-found";
 import Image from "next/image";
 import { UserSelfDeleteModal } from "@/app/components/userSelfDeleteModal"
+import { Button } from "@/app/components/button";
 
 const EditarUsuario = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -237,41 +238,40 @@ const EditarUsuario = () => {
               </div>
 
               <div className="flex justify-end gap-4">
-                <Link href={`/usuario/${slug}`} className="w-1/2">
-                  <button
-                    type="button"
-                    className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
-                  >
-                    Cancelar
-                  </button>
-                </Link>
-                <button
+                <Button
+                  variant="outline"
+                  href={`/usuario/${slug}`}
+                  className="w-1/2"
+                >
+                  Cancelar
+                </Button>
+                <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-sanca disabled:bg-gray-400 text-white rounded-md hover:bg-sanca/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-1/2"
                 >
-                  <Save className="mr-2 h-4 w-4" />
+                  <Save className="h-4 w-4" />
                   {isSubmitting ? "Salvando..." : "Salvar Alterações"}
-                </button>
+                </Button>
               </div>
             </form>
             <div className="mt-8 border-t border-gray-300 pt-6">
               <h2 className="text-lg font-semibold text-red-600">
                 Zona de Perigo
               </h2>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-gray-600 my-2">
                 A exclusão da sua conta é uma ação permanente e irreversível.
                 Todos os seus dados, anúncios e informações de perfil serão
                 removidos.
               </p>
-              <button
+              <Button
                 onClick={() => setIsDeleteModalOpen(true)}
                 disabled={isSubmitting}
-                className="mt-4 inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                variant="danger"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Excluir minha conta
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { getMe } from "@/lib/services/userService";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/lib/context/AuthContext";
+import { Button } from "./button";
 
 interface ModalProps {
   isOpen: boolean;
@@ -92,7 +93,7 @@ const CreateSaleModal: React.FC<ModalProps> = ({ isOpen, onClose, listing, onSuc
       <div className="flex flex-col gap-4 bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
         <div className="flex justify-between">
             <h1 className="text-lg font-bold">Marcar como vendido</h1>
-            <button onClick={onClose} disabled={isLoading} className="cursor-pointer text-sm text-black font-medium disabled:pointer-events-none"><X /></button>
+            <Button onClick={onClose} disabled={isLoading} variant="icon"><X /></Button>
         </div>
         <div className="flex flex-col gap-2">
           <div className="flex gap-2 items-end">
@@ -118,9 +119,9 @@ const CreateSaleModal: React.FC<ModalProps> = ({ isOpen, onClose, listing, onSuc
               />
             </div>
           </div>
-          <button onClick={handleConfirm} disabled={isLoading} className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca-dark">
+          <Button onClick={handleConfirm} disabled={isLoading}>
             {isLoading ? 'Confirmando...' : 'Confirmar'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

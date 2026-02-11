@@ -11,6 +11,7 @@ import {
   deleteCategory,
 } from "@/lib/services/categoryService";
 import { isEmoji } from "@/lib/utils";
+import { Button } from "./button";
 
 export type ModalState =
   | { type: "add" }
@@ -166,29 +167,29 @@ export function CategoryModal({
                 {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
               </div>
               <div className="mt-6 flex justify-end gap-3">
-                <button type="button" onClick={handleClose} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+                <Button variant="outline" onClick={handleClose}>
                   Cancelar
-                </button>
-                <button type="submit" disabled={isSubmitting} className="cursor-pointer inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-sanca border border-transparent rounded-md shadow-sm hover:opacity-90 disabled:bg-gray-400">
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Salvando..." : "Salvar"}
-                </button>
+                </Button>
               </div>
             </form>
           ) : (
             <div className="mt-6 flex justify-end gap-3">
-              <button type="button" onClick={handleClose} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+              <Button variant="outline" onClick={handleClose}>
                 Cancelar
-              </button>
-              <button onClick={handleDelete} disabled={isSubmitting} className="cursor-pointer inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 disabled:bg-gray-400">
+              </Button>
+              <Button variant="danger" onClick={handleDelete} disabled={isSubmitting}>
                 {isSubmitting ? "Excluindo..." : "Confirmar Exclusão"}
-              </button>
+              </Button>
             </div>
           )}
 
           <Dialog.Close asChild>
-            <button className="cursor-pointer absolute right-4 top-4 rounded-sm opacity-70">
+            <Button variant="icon" className="absolute right-4 top-4">
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>

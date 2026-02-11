@@ -5,6 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X, CheckCircle } from "lucide-react";
 import { ReportType, ReportStatus } from "@/lib/types/api";
 import { updateReportStatus } from "@/lib/services/reportService";
+import { Button } from "./button";
 
 export type ReportModalState = {
   report: ReportType;
@@ -72,19 +73,19 @@ export function ReportActionModal({ modalState, setModalState, refetchReports }:
               </select>
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <button type="button" onClick={handleClose} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+              <Button onClick={handleClose} variant="outline">
                 Cancelar
-              </button>
-              <button type="submit" disabled={isSubmitting} className="cursor-pointer inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 disabled:bg-gray-400">
+              </Button>
+              <Button type="submit" disabled={isSubmitting} variant="green">
                 <CheckCircle className="w-4 h-4" />
                 {isSubmitting ? "Confirmando..." : "Confirmar Ação"}
-              </button>
+              </Button>
             </div>
           </form>
           <Dialog.Close asChild>
-            <button className="cursor-pointer absolute right-4 top-4 rounded-sm opacity-70">
+            <Button variant="icon" className="absolute right-4 top-4">
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>

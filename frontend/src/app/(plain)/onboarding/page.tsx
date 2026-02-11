@@ -10,6 +10,7 @@ import { updateMe } from '@/lib/services/userService';
 import { showErrorToast } from '@/lib/toast';
 import Link from 'next/link';
 import Spinner from '@/app/components/spinner';
+import { Button } from '@/app/components/button';
 
 declare global {
   interface Window {
@@ -248,13 +249,13 @@ export default function Onboarding() {
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
-              className="w-full h-10 px-3 py-2 rounded-md bg-sanca hover:bg-sanca/90 text-white text-sm font-medium disabled:bg-sanca/50"
+              className="w-full"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Processando...' : (isCodeSent ? "Verificar e Finalizar" : "Enviar Código")}
-            </button>
+            </Button>
             <div id="recaptcha-container" ref={recaptchaContainerRef}></div>
           </form>
           <p className="text-xs pb-4 px-4 text-center text-gray-500">

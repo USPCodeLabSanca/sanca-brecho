@@ -18,6 +18,7 @@ import router from "next/router";
 import SafeImage from "@/app/components/safeImage";
 import Link from "next/link";
 import Pagination from "@mui/material/Pagination";
+import { Button } from "@/app/components/button";
 
 export default function AdminDashboardPage() {
   const { user: firebaseUser, loading: authLoading } = useAuth();
@@ -206,32 +207,36 @@ export default function AdminDashboardPage() {
         <section className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h2 className="text-2xl font-bold mb-4">Gerenciamento de Anúncios</h2>
           <div className="overflow-x-auto"><table className="w-full text-left">
-            <thead className="border-b-2 border-gray-100"><tr>
-              <th className="p-3 font-semibold text-gray-600">Título</th>
-              <th className="p-3 font-semibold text-gray-600">Preço</th>
-              <th className="p-3 font-semibold text-gray-600">Data</th>
-              <th className="p-3 font-semibold text-gray-600">Vendedor</th>
-              <th className="p-3 font-semibold text-gray-600 text-center">Ações</th>
-            </tr></thead>
-            <tbody>{listings.map((listing) => (
-              <tr key={listing.id} className="border-b border-gray-100 hover:bg-gray-50">
-                <td className="p-3">
-                  <Link href={`/produto/${listing.slug}`} className="text-blue-600 hover:underline line-clamp-4">
-                    {listing.title}
-                  </Link>
-                </td>
-                <td className="p-3">R$ {listing.price.toFixed(2)}</td>
-                <td className="p-3">{new Date(listing.created_at).toLocaleDateString('pt-BR')}</td>
-                <td className="p-3">
-                  {listing.user.display_name}
-                </td>
-                <td className="p-3 text-center">
-                  <button onClick={() => setListingModalState({ listing })} className="text-red-500 hover:text-red-700 p-1 cursor-pointer" title="Deletar Anúncio">
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </td>
+            <thead className="border-b-2 border-gray-100">
+              <tr>
+                <th className="p-3 text-left font-semibold text-gray-600">Título</th>
+                <th className="p-3 text-left font-semibold text-gray-600">Preço</th>
+                <th className="p-3 text-left font-semibold text-gray-600">Data</th>
+                <th className="p-3 text-left font-semibold text-gray-600">Vendedor</th>
+                <th className="p-3 text-center font-semibold text-gray-600">Ações</th>
               </tr>
-            ))}</tbody>
+            </thead>
+            <tbody>
+              {listings.map((listing) => (
+                <tr key={listing.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="p-3 align-middle">
+                    <Link href={`/produto/${listing.slug}`} className="text-blue-600 hover:underline line-clamp-4">
+                      {listing.title}
+                    </Link>
+                  </td>
+                  <td className="p-3 align-middle">R$ {listing.price.toFixed(2)}</td>
+                  <td className="p-3 align-middle">{new Date(listing.created_at).toLocaleDateString('pt-BR')}</td>
+                  <td className="p-3 align-middle">
+                    {listing.user.display_name}
+                  </td>
+                  <td className="p-3 text-center align-middle">
+                    <Button onClick={() => setListingModalState({ listing })} variant="danger" title="Deletar Anúncio">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
             <Pagination className="mt-4 w-full" count={Math.ceil(totalListings / pageSizeListing)} page={pageListing} onChange={(_, value) => setPageListing(value)} color="primary" />
           </div>
@@ -240,33 +245,60 @@ export default function AdminDashboardPage() {
         <section className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h2 className="text-2xl font-bold mb-4">Gerenciamento de Usuários</h2>
           <div className="overflow-x-auto"><table className="w-full text-left">
-            <thead className="border-b-2 border-gray-100"><tr>
-              <th className="p-3 font-semibold text-gray-600">Foto</th>
-              <th className="p-3 font-semibold text-gray-600">Nome</th>
-              <th className="p-3 font-semibold text-gray-600">Email</th>
-              <th className="p-3 font-semibold text-gray-600">Verificado</th>
-              <th className="p-3 font-semibold text-gray-600">Cargo</th>
-              <th className="p-3 font-semibold text-gray-600 text-center">Ações</th>
-            </tr></thead>
-            <tbody>{users.map((user, index) => (
-              <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                <td className="p-3 flex items-center gap-3">
-                  <SafeImage src={user.photo_url || "/user_placeholder.png"} alt={user.display_name} fallbackSrc="/user_placeholder.png" className="w-9 h-9 rounded-full object-cover" width={96} height={96} />
-                </td>
-                <td className="p-3">
-                  <Link href={`/usuario/${user.slug}`} className="text-blue-600 hover:underline">
-                    {user.display_name}
-                  </Link>
-                </td>
-                <td className="p-3">{user.email}</td>
-                <td className="p-3"><span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.verified ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{user.verified ? "Sim" : "Não"}</span></td>
-                <td className="p-3"><span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.role === "admin" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>{user.role}</span></td>
-                <td className="p-3 flex gap-2 justify-center">
-                  <button onClick={() => handleDeleteUser(user.slug)} className="text-red-500 hover:text-red-700 p-1 cursor-pointer" title="Deletar Usuário"><Trash2 className="w-5 h-5" /></button>
-                  <button onClick={() => setUserModalState({ user })} className="text-blue-500 hover:text-blue-700 p-1 cursor-pointer" title="Alterar Cargo"><UserCog className="w-5 h-5" /></button>
-                </td>
-              </tr>
-            ))}</tbody>
+            <thead className="border-b-2 border-gray-100">
+  <tr>
+    <th className="p-3 text-left font-semibold text-gray-600">Foto</th>
+    <th className="p-3 text-left font-semibold text-gray-600">Nome</th>
+    <th className="p-3 text-left font-semibold text-gray-600">Email</th>
+    <th className="p-3 text-left font-semibold text-gray-600">Verificado</th>
+    <th className="p-3 text-left font-semibold text-gray-600">Cargo</th>
+    <th className="p-3 text-center font-semibold text-gray-600">Ações</th>
+  </tr>
+</thead>
+<tbody>
+  {users.map((user, index) => (
+    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+      <td className="p-3 align-middle">
+        <div className="flex items-center gap-3">
+          <SafeImage 
+            src={user.photo_url || "/user_placeholder.png"} 
+            alt={user.display_name} 
+            fallbackSrc="/user_placeholder.png" 
+            className="w-9 h-9 rounded-full object-cover" 
+            width={96} 
+            height={96} 
+          />
+        </div>
+      </td>
+      <td className="p-3 align-middle">
+        <Link href={`/usuario/${user.slug}`} className="text-blue-600 hover:underline">
+          {user.display_name}
+        </Link>
+      </td>
+      <td className="p-3 align-middle">{user.email}</td>
+      <td className="p-3 align-middle">
+        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.verified ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+          {user.verified ? "Sim" : "Não"}
+        </span>
+      </td>
+      <td className="p-3 align-middle">
+        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.role === "admin" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>
+          {user.role}
+        </span>
+      </td>
+      <td className="p-3 align-middle">
+        <div className="flex gap-2 justify-center items-center">
+          <Button onClick={() => setUserModalState({ user })} variant="outline" title="Alterar Cargo">
+            <UserCog className="w-4 h-4" />
+          </Button>
+          <Button onClick={() => handleDeleteUser(user.slug)} variant="danger" title="Deletar Usuário">
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </td>
+    </tr>
+  ))}
+</tbody>
           </table>
             <Pagination className="mt-4 w-full" count={Math.ceil(totalUsers / pageSizeUser)} page={pageUser} onChange={(_, value) => setPageUser(value)} color="primary" />
           </div>
@@ -276,9 +308,9 @@ export default function AdminDashboardPage() {
           <section className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Categorias</h2>
-              <button onClick={() => setCategoryModalState({ type: "add" })} className="bg-sanca text-white px-3 py-1.5 rounded-md flex items-center gap-2 hover:opacity-90 text-sm font-medium cursor-pointer">
+              <Button onClick={() => setCategoryModalState({ type: "add" })}>
                 <PlusCircle className="w-4 h-4" /> Nova Categoria
-              </button>
+              </Button>
             </div>
             <ul className="space-y-2">{categories.map((cat) => (
               <li key={cat.id} className="flex justify-between items-center p-3 border border-gray-100 rounded-md hover:bg-gray-50">
@@ -291,8 +323,8 @@ export default function AdminDashboardPage() {
                   </div>
                 </span>
                 <div className="flex gap-2">
-                  <button onClick={() => setCategoryModalState({ type: "edit", category: cat })} className="text-blue-500 hover:text-blue-700 cursor-pointer"><Edit className="w-4 h-4" /></button>
-                  <button onClick={() => setCategoryModalState({ type: "delete", category: cat })} className="text-red-500 hover:text-red-700 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+                  <Button onClick={() => setCategoryModalState({ type: "edit", category: cat })} variant="outline"><Edit className="w-4 h-4" /></Button>
+                  <Button onClick={() => setCategoryModalState({ type: "delete", category: cat })} variant="danger"><Trash2 className="w-4 h-4" /></Button>
                 </div>
               </li>
             ))}</ul>
@@ -311,9 +343,9 @@ export default function AdminDashboardPage() {
                     <p className="font-semibold">{report.reason}</p>
                     <p className="text-sm text-gray-600">Denunciando: {report.target_type} ({report.target_name})</p>
                     <div className="mt-2">
-                      <button onClick={() => setReportModalState({ report })} className="text-sm bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 cursor-pointer">
+                      <Button onClick={() => setReportModalState({ report })} variant="primary">
                         Analisar Denúncia
-                      </button>
+                      </Button>
                     </div>
                   </li>
                 ))) : (

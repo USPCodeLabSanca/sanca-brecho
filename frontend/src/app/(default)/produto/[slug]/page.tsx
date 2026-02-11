@@ -17,6 +17,7 @@ import Spinner from "@/app/components/spinner";
 import { ReportDialog } from "@/app/components/reportModal";
 import CreateSaleModal from "@/app/components/createSaleModal";
 import LoginPromptModal from "@/app/components/loginPromptModal";
+import { Button } from "@/app/components/button";
 
 export default function ProdutoClient() {
   const { slug } = useParams<{ slug: string }>()
@@ -197,17 +198,20 @@ export default function ProdutoClient() {
                     <Heart className="h-5 w-5 text-gray-500 hover:text-sanca" />
                   </button>*/}
                   {isOwner && !isSold && (
-                    <Link href={`/produto/${product.slug}/editar`}>
-                      <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap border border-gray-300 rounded-md text-sm text-black font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-white hover:bg-sanca/10">
-                        <Edit className="h-4 w-4" />Editar
-                      </button>
-                    </Link>)}
-                  <button
+                    <Button
+                      variant="outline"
+                      href={`/produto/${product.slug}/editar`}
+                    >
+                      <Edit className="h-4 w-4" />
+                      Editar
+                    </Button>)}
+                  <Button
+                    variant="icon" 
                     onClick={handleShare}
-                    className="border-gray-200 text-gray-500 hover:text-sanca cursor-pointer"
+                    aria-label="Compartilhar"
                   >
                     <Share className="h-5 w-5" />
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -234,17 +238,19 @@ export default function ProdutoClient() {
 
               <div className="mb-4">
                 {isOwner && isAvailable ? (
-                  <button
+                  <Button
+                    variant="primary"
                     onClick={() => setIsModalOpen(true)}
-                    className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-9 px-3 w-full bg-sanca hover:bg-sanca-dark disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="w-full"
                   >
                     <Tag className="h-4 w-4" />Marcar como vendido
-                  </button>
+                  </Button>
                 ) : (
-                  <button
+                  <Button
                     onClick={handleWhatsAppClick}
+                    variant="green"
                     disabled={isSold}
-                    className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="w-full"
                   >
                     {isAvailable && <FaWhatsapp />}
                     {isSold ? 'Vendido' :
@@ -253,11 +259,11 @@ export default function ProdutoClient() {
                           Contatar Vendedor pelo WhatsApp
                         </>
                       ))}
-                  </button>
+                  </Button>
                 )}
               </div>
 
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex justify-between gap-3 mb-4">
                 <Link href={`/usuario/${product.user.slug}`} className="flex items-center">
                   <Image
                     width={50}
@@ -272,11 +278,9 @@ export default function ProdutoClient() {
                   </div>
                 </Link>
 
-                <Link href={`/usuario/${product.user.slug}`} className="ml-auto">
-                  <button className="border border-gray-300 hover:bg-gray-100 py-1 md:py-2 rounded-md px-3 cursor-pointer">
-                    Ver perfil
-                  </button>
-                </Link>
+                <Button variant="outline" href={`/usuario/${product.user.slug}`}>
+                  Ver perfil
+                </Button>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-gray-500 text-sm mb-6">
                 <div className="flex items-center">

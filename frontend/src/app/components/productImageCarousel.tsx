@@ -173,6 +173,8 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
         >
           <TransformWrapper>
             <button
+              type="button"
+              aria-label="Fechar visualizador"
               className="absolute top-2.5 left-2.5 z-50 text-white bg-black/80 px-3 py-3 rounded-full"
               onClick={closeViewer}
             >

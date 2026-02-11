@@ -18,6 +18,7 @@ import { createListing, createListingImage, createListingImagePresignedUrl } fro
 import axios from "axios";
 import Spinner from "@/app/components/spinner";
 import ActionPrompt from "@/app/components/actionPrompt";
+import { Button } from "@/app/components/button";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -379,9 +380,9 @@ export default function Anunciar() {
               </div>
 
               <div className="flex flex-col space-y-4">
-                <button type="submit" disabled={isSubmitting} className=" cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90 disabled:bg-sanca/50">
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? 'Publicando...' : 'Publicar Anúncio'}
-                </button>
+                </Button>
                 <div className="flex items-center space-x-2">
                   <CheckCircle2 className="text-green-600 w-7 h-7 sm:w-5 sm:h-5" />
                   <p className="text-sm text-gray-500">Seu anúncio estará visível para todos imediatamente após a publicação</p>
@@ -401,12 +402,12 @@ export default function Anunciar() {
               onClick={closeViewer}
             >
               <TransformWrapper>
-                <button
-                  className="absolute top-2.5 left-2.5 z-50 text-white bg-black/80 px-3 py-3 rounded-full"
+                <Button
+                  className="absolute top-2.5 left-2.5 z-50 px-3 py-3 !rounded-full"
                   onClick={closeViewer}
                 >
                   <ArrowLeft />
-                </button>
+                </Button>
                 <TransformComponent>
                   <div className="h-screen w-screen flex items-center justify-center">
                     <Image

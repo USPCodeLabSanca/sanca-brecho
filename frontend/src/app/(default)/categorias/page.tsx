@@ -135,6 +135,7 @@ export default function Categorias() {
         <ul className="space-y-2">
           <li>
             <button
+              type="button"
               onClick={() => handleCategorySelect(null)}
               className={`w-full text-left flex items-center gap-1 px-3 py-2 rounded-md transition-colors text-sm font-medium ${selectedCategoryId === null
                 ? "bg-blue-100 text-sanca"
@@ -148,6 +149,7 @@ export default function Categorias() {
           {categories.map((category) => (
             <li key={category.id}>
               <button
+                type="button"
                 onClick={() => handleCategorySelect(category.id)}
                 className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium ${selectedCategoryId === category.id
                   ? "bg-purple-100 text-sanca"

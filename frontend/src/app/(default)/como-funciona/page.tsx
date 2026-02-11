@@ -3,6 +3,7 @@
 import { CheckCircle, Clock, MessageCircle, Search, Upload, User } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
+import { Button } from "@/app/components/button";
 
 export default function ComoFunciona() {
   const { user, loading } = useAuth();
@@ -73,17 +74,13 @@ export default function ComoFunciona() {
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
         {user ? 
-        <Link href="/anunciar">
-          <button className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-sm font-medium text-white bg-sanca rounded-md cursor-pointer hover:opacity-50">
-          Anunciar produto
-          </button>
-        </Link>
+          <Button href="/anunciar">
+            Anunciar produto
+          </Button>
         :
-        <Link href="/login">
-           <button className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 text-sm font-medium text-white bg-sanca rounded-md cursor-pointer hover:opacity-50">
+          <Button href="/login">
             Criar conta
-          </button>
-        </Link> 
+          </Button>
         }
         </div>
       </div>

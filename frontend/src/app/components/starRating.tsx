@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 import { useState } from 'react';
+import { Button } from "./button";
 
 interface StarRatingProps {
   rating: number;
@@ -14,10 +15,10 @@ const StarRating = ({ rating, setRating }: StarRatingProps) => {
       {[...Array(5)].map((_, index) => {
         const ratingValue = index + 1;
         return (
-          <button
-            type="button"
+          <Button
             key={ratingValue}
             className="focus:outline-none"
+            variant="icon"
             onClick={() => setRating(ratingValue)}
             onMouseEnter={() => setHover(ratingValue)}
             onMouseLeave={() => setHover(0)}
@@ -28,7 +29,7 @@ const StarRating = ({ rating, setRating }: StarRatingProps) => {
               }`}
               fill={ratingValue <= (hover || rating) ? 'currentColor' : 'none'}
             />
-          </button>
+          </Button>
         )
       })}
     </div>

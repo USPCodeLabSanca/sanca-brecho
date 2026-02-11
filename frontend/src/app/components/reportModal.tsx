@@ -15,6 +15,7 @@ import {
 import { Flag } from "lucide-react"
 import { createReport } from "@/lib/services/reportService";
 import { showNotificationToast, showErrorToast } from "@/lib/toast"
+import { Button } from "./button";
 
 type ReportDialogProps = {
   targetId: string
@@ -57,12 +58,13 @@ export function ReportDialog({ targetId, targetType, triggerClassName }: ReportD
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button
+        <Button
+          variant="icon"
           className={`cursor-pointer text-gray-500 hover:text-sanca flex items-center text-sm ${triggerClassName ?? ""}`}
         >
           <Flag className="h-4 w-4 mr-1" />
           Denunciar
-        </button>
+        </Button>
       </DialogTrigger>
 
       <DialogOverlay className="fixed inset-0 bg-black/50" />
@@ -109,17 +111,16 @@ export function ReportDialog({ targetId, targetType, triggerClassName }: ReportD
 
         <DialogFooter className="flex justify-end gap-2 mt-2">
           <DialogClose asChild>
-            <button className="px-4 py-2 rounded-md border hover:bg-gray-100">
+            <Button variant="outline">
               Cancelar
-            </button>
+            </Button>
           </DialogClose>
-          <button
+          <Button
             onClick={handleSubmit}
             disabled={!reason || loading}
-            className="px-4 py-2 rounded-md bg-sanca text-white hover:bg-sanca/90 disabled:opacity-50"
           >
             {loading ? "Enviando..." : "Enviar denúncia"}
-          </button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

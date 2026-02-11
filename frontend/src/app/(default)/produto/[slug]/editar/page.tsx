@@ -17,6 +17,7 @@ import { getCategories } from "@/lib/services/categoryService";
 import axios from "axios";
 import Spinner from "@/app/components/spinner";
 import { ListingSelfDeleteModal } from "@/app/components/listingSelfDeleteModal";
+import { Button } from "@/app/components/button";
 
 const MAX_SIZE_MB = 5
 const MAX_WIDTH_OR_HEIGHT = 1024
@@ -292,13 +293,14 @@ export default function EditarProdutoClient() {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Editar Produto</h1>
                 </div>
-                <button
-                  onClick={() => window.open(`/produto/${slug}`, '_blank')}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
+                <Button
+                  variant="outline"
+                  href={`/produto/${slug}`}
+                  target="_blank"
                 >
                   <Eye className="h-4 w-4" />
                   Visualizar
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -442,31 +444,23 @@ export default function EditarProdutoClient() {
                   </div>
 
                   <div className="flex gap-4 pt-4">
-                    <Link href={`/produto/${slug}`} className="flex-1">
-                      <button
-                        type="button"
-                        className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
-                      >
-                        Cancelar
-                      </button>
-                    </Link>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-sanca disabled:bg-gray-400 text-white rounded-md hover:bg-sanca/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    <Button
+                      className="flex-1"
+                      variant="outline"
+                      href={`/produto/${slug}`}
                     >
-                      {isSubmitting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                          Salvando...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4" />
-                          Salvar Alterações
-                        </>
-                      )}
-                    </button>
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      type="submit"
+                      variant="primary"
+                      disabled={isSubmitting}
+                      isLoading={isSubmitting}
+                    >
+                      <Save className="h-4 w-4" />
+                      Salvar Alterações
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -475,17 +469,17 @@ export default function EditarProdutoClient() {
               <h2 className="text-lg font-semibold text-red-600">
                 Zona de Perigo
               </h2>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-gray-600 my-2">
                 A exclusão do seu anúncio é uma ação permanente e irreversível.
               </p>
-              <button
+              <Button
+                variant="danger"
                 onClick={() => setIsDeleteModalOpen(true)}
                 disabled={isSubmitting}
-                className="mt-4 inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                <Trash2 className="mr-2 h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
                 Excluir Anúncio
-              </button>
+              </Button>
             </div>
           </div>
         </main>

@@ -30,6 +30,7 @@ import { getReviewsReceived } from "@/lib/services/reviewService";
 import ReviewCard from "@/app/components/reviewCard";
 import { ReportDialog } from "@/app/components/reportModal";
 import LoginPromptModal from "@/app/components/loginPromptModal";
+import { Button } from "@/app/components/button";
 
 const Usuario = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -253,11 +254,9 @@ const Usuario = () => {
                 <p className="mt-1 mb-4 text-sm text-gray-600">
                   A verificação do seu telefone aumenta a confiança e a segurança para todos na plataforma.
                 </p>
-                <Link href="/onboarding">
-                  <button className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium text-white h-10 px-4 py-2 w-full sm:w-auto bg-sanca hover:bg-sanca/90 transition-colors">
-                    Completar Cadastro
-                  </button>
-                </Link>
+                <Button href="/onboarding">
+                  Completar Cadastro
+                </Button>
               </div>
             )}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
@@ -313,44 +312,40 @@ const Usuario = () => {
                     <div className="mt-4 md:mt-0 flex space-x-2">
                       {isOwnerProfile ? (
                         <>
-                          <Link href={`/usuario/${slug}/editar`}>
-                            <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap border border-gray-300 rounded-md text-sm text-black font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-white hover:bg-sanca/10">
-                              <Edit className="mr-1 h-4 w-4" />Editar Perfil
-                            </button>
-                          </Link>
+                          <Button href={`/usuario/${slug}/editar`} variant="outline">
+                            <Edit className="mr-1 h-4 w-4" />Editar Perfil
+                          </Button>
                           {userProfile.role === 'admin' && (
-                            <Link href="/admin">
-                              <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-full bg-sanca hover:bg-sanca/90">
-                                <Settings className="mr-1 h-4 w-4" />Admin
-                              </button>
-                            </Link>
+                            <Button href="/admin" variant="danger">
+                              <Settings className="mr-1 h-4 w-4" />Admin
+                            </Button>
                           )}
                         </>
                       ) : (
                         <div className="w-full flex items-center justify-between flex-wrap max-[388px]:gap-2 max-[388px]:justify-center">
                           {userProfile.verified && (
                             <div className="flex gap-1">
-                              <button
+                              <Button
                                 onClick={handleWhatsAppClick}
                                 disabled={isContactLoading}
-                                className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 bg-sanca hover:bg-sanca/90">
+                              >
                                 {isContactLoading ? 'Carregando...' : (
                                   <>
-                                    <FaWhatsapp className="text-white" />
+                                    <FaWhatsapp className="w-4 h-4" />
                                     Entrar em contato
                                   </>
                                 )}
-                              </button>
+                              </Button>
 
                               {/* Botão Telegram - aparece se contactInfo tiver telegram */}
                               {contactInfo?.telegram && (
-                                <button
+                                <Button
                                   onClick={handleTelegramClick}
                                   disabled={isContactLoading}
-                                  className="cursor-pointer inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 text-primary-foreground h-10 w-10 border border-gray-300 hover:bg-gray-100">
-
-                                  <FaTelegramPlane className="text-gray-500" />
-                                </button>
+                                  variant="outline"
+                                >
+                                  <FaTelegramPlane className="w-4 h-4" />
+                                </Button>
                               )}
                             </div>
                           )}
@@ -390,11 +385,9 @@ const Usuario = () => {
                       <Package className="h-12 w-12 mx-auto text-gray-300" />
                       <p className="mt-2 mb-6 text-gray-500">Nenhum produto anunciado</p>
                       {isOwnerProfile && (
-                        <Link href="/anunciar">
-                          <button className="cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm text-white font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 px-4 py-2 w-48 bg-sanca hover:bg-sanca/90">
-                            Anunciar Produto
-                          </button>
-                        </Link>
+                        <Button href="/anunciar">
+                          Anunciar Produto
+                        </Button>
                       )}
                     </div>
                   )}

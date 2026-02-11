@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import Image from 'next/image';
 import { X } from 'lucide-react';
+import { Button } from './button';
 
 type previewImage = { key: string; publicURL: string; };
 
@@ -68,13 +69,14 @@ export default function DraggableImage({ image, index, moveImage, openViewer, re
         onClick={() => openViewer(image)}
         className="object-cover rounded-md border cursor-pointer"
       />
-      <button
+      <Button
         onClick={() => removeImage(index)}
         type="button"
-        className="absolute top-1 right-1 bg-black bg-opacity-50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+        variant='icon'
+        className="absolute top-1 right-1"
       >
         <X size={16} />
-      </button>
+      </Button>
     </div>
   );
 }

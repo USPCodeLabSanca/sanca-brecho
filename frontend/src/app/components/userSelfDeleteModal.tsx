@@ -6,6 +6,7 @@ import { X, Trash2 } from "lucide-react";
 import { deleteMe } from "@/lib/services/userService";
 import { signOutUser } from "@/lib/firebase/auth";
 import { showErrorToast } from "@/lib/toast";
+import { Button } from "./button";
 
 interface UserSelfDeleteModalProps {
   isOpen: boolean;
@@ -45,18 +46,18 @@ export function UserSelfDeleteModal({ isOpen, onClose, onSuccess }: UserSelfDele
             Tem certeza que deseja excluir sua conta? Esta ação é permanente e não pode ser desfeita. Todos os seus anúncios e dados serão perdidos.
           </Dialog.Description>
           <div className="mt-6 flex justify-end gap-3">
-            <button type="button" onClick={onClose} disabled={isSubmitting} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancelar
-            </button>
-            <button onClick={handleDelete} disabled={isSubmitting} className="cursor-pointer inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 disabled:bg-gray-400">
+            </Button>
+            <Button variant="danger" onClick={handleDelete} disabled={isSubmitting}>
               <Trash2 className="w-4 h-4" />
               {isSubmitting ? "Excluindo..." : "Excluir minha conta"}
-            </button>
+            </Button>
           </div>
           <Dialog.Close asChild>
-            <button className="absolute right-4 top-4 rounded-sm opacity-70 cursor-pointer">
+            <Button variant="icon" className="absolute right-4 top-4">
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>

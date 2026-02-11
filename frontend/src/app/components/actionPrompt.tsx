@@ -34,7 +34,7 @@ const ActionPrompt: React.FC<ActionPromptProps> = ({ icon, title, description, a
       <div className="flex gap-4">
         {actions.map((action) => (
           <Link key={action.href} href={action.href}>
-            <button className={getButtonClass(action.variant)}>
+            <button type="button" className={getButtonClass(action.variant)}>
               {action.icon}
               {action.text}
             </button>

@@ -9,6 +9,7 @@ import { ChevronRight, MessageCircle } from "lucide-react";
 import CreateReviewModal from "./createReviewModal";
 import ReviewPrompt from "./reviewPrompt";
 import SafeImage from "./safeImage";
+import { Button } from "./button";
 
 interface SaleDetailsProps {
   sale: SaleType;
@@ -133,7 +134,7 @@ const SaleDetails = ({ sale, context, onReviewSuccess }: SaleDetailsProps) => {
           <h2 className="font-semibold">Contato com o {context === 'buyer' ? 'vendedor' : 'comprador'}</h2>
           <div className="flex justify-between py-4 gap-4">
             <div className="flex gap-4">
-              <button onClick={() => router.push(`/usuario/${otherPartyProfileSlug}`)} className="cursor-pointer">
+              <Button href={`/usuario/${otherPartyProfileSlug}`} variant="icon">
                 <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
                   <Image
                     alt="foto de perfil"
@@ -143,15 +144,15 @@ const SaleDetails = ({ sale, context, onReviewSuccess }: SaleDetailsProps) => {
                     src={otherPartyAvatarSrc}
                   />
                 </span>
-              </button>
+              </Button>
               <div className="flex flex-col justify-center">
                 <p className="text-sm">{otherParty?.display_name}</p>
                 <Link href={`/usuario/${otherPartyProfileSlug}`} className="text-sm text-sanca hover:underline">Ver perfil</Link>
               </div>
             </div>
-            <button onClick={handleWhatsAppClick} className="text-sanca cursor-pointer">
+            <Button onClick={handleWhatsAppClick} variant="icon">
               <MessageCircle />
-            </button>
+            </Button>
           </div>
         </div>
       </>}

@@ -5,6 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X, UserCog } from "lucide-react";
 import { UserType, UserRole } from "@/lib/types/api";
 import { updateUserRole } from "@/lib/services/userService";
+import { Button } from "./button";
 
 export type UserModalState = {
   user: UserType;
@@ -73,19 +74,19 @@ export function UserRoleModal({ modalState, setModalState, refetchUsers }: UserR
               </select>
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <button type="button" onClick={handleClose} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+              <Button variant="outline" onClick={handleClose}>
                 Cancelar
-              </button>
-              <button type="submit" disabled={isSubmitting} className="cursor-pointer inline-flex items-center gap-2 justify-center px-4 py-2 text-sm font-medium text-white bg-sanca border border-transparent rounded-md shadow-sm hover:opacity-90 disabled:bg-gray-400">
+              </Button>
+              <Button variant="primary" type="submit" disabled={isSubmitting}>
                 <UserCog className="w-4 h-4" />
                 {isSubmitting ? "Salvando..." : "Salvar Alterações"}
-              </button>
+              </Button>
             </div>
           </form>
           <Dialog.Close asChild>
-            <button className="cursor-pointer absolute right-4 top-4 rounded-sm opacity-70">
+            <Button variant="icon" className="absolute right-4 top-4">
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>

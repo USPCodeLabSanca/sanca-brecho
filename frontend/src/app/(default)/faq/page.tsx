@@ -66,6 +66,7 @@ export default function FAQ() {
                   className="border-b border-gray-300 py-4 transition-all duration-300"
                 >
                   <button
+                    type="button"
                     onClick={() => toggleIndex(index)}
                     className="w-full flex justify-between items-center text-left cursor-pointer font-medium hover:underline focus:outline-none"
                   >

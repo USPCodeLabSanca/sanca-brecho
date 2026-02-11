@@ -10,6 +10,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { UserType } from "@/lib/types/api";
 import { showErrorToast, showLogoutSuccessToast } from "@/lib/toast";
 import { getMe } from "@/lib/services/userService";
+import { Button } from "./button";
 
 export default function Navbar() {
   const router = useRouter();
@@ -128,7 +129,7 @@ export default function Navbar() {
                   onMouseEnter={handleMouseEnterProfile}
                   onMouseLeave={handleMouseLeaveProfile}
                 >
-                  <button aria-label="Menu do usuário" onClick={() => router.push(`/usuario/${userProfileSlug}`)} className="cursor-pointer">
+                  <Button aria-label="Menu do usuário" href={`/usuario/${userProfileSlug}`} variant="icon">
                     <span className="relative flex shrink-0 overflow-hidden rounded-full h-9 w-9">
                       <Image
                         alt="foto de perfil"
@@ -138,7 +139,7 @@ export default function Navbar() {
                         src={userAvatarSrc}
                       />
                     </span>
-                  </button>
+                  </Button>
                   {profileOpen && (
                     <div
                       className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200"
@@ -162,6 +163,7 @@ export default function Navbar() {
                         Minhas compras
                       </Link>
                       <button
+                        type="button"
                         onClick={handleLogout}
                         className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-sanca"
                       >
@@ -181,13 +183,14 @@ export default function Navbar() {
           </div>
 
           {/* Menu de Hamburguer (Mobile) */}
-          <button
+          <Button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden z-20"
+            variant="icon"
             aria-label="Toggle Menu"
           >
             <Menu className="w-6 h-6 text-gray-700" />
-          </button>
+          </Button>
         </div>
 
         {/* Mobile: Barra de Busca */}
@@ -248,6 +251,7 @@ export default function Navbar() {
                   Minhas compras
                 </Link>
                 <button
+                  type="button"
                   onClick={handleLogout}
                   className="flex items-center w-full text-left p-2 text-gray-700 hover:text-sanca rounded-md hover:bg-gray-50"
                 >
