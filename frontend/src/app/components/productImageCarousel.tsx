@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Thumbs, Pagination } from 'swiper/modules'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ListingImageType } from '@/lib/types/api'
 
 import 'swiper/css'
@@ -16,10 +16,13 @@ import 'swiper/css/pagination'
 import { getListingImages } from '@/lib/services/listingService'
 import { showErrorToast } from '@/lib/toast'
 import SafeImage from './safeImage'
+import { Button } from './button'
 
 type ProductImageCarouselProps = {
   productId: string; // ID do produto para buscar as imagens
 }
+
+const SWIPER_MODULES = [Navigation, Thumbs, Pagination];
 
 const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }) => {
   const router = useRouter()
@@ -77,13 +80,14 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
     }
   }, [searchParams, images])
 
-  /* Altera a imagem principal do carrossel se houver 'pid' na URL */
+  /* Sincroniza o índice ativo do Swiper com o estado local para manter a imagem correta em destaque */
   useEffect(() => {
-    const pictureId = searchParams.get('pid')
-    if (pictureId && swiperRef.current) {
-      swiperRef.current.swiper.slideTo(activeIndex, 0)
+    if (swiperRef.current && swiperRef.current.swiper) {
+      if (swiperRef.current.swiper.realIndex !== activeIndex) {
+        swiperRef.current.swiper.slideToLoop(activeIndex, 0)
+      }
     }
-  }, [activeIndex, searchParams])
+  }, [activeIndex])
 
   /* Abre a tela cheia da imagem clicada */
   const openViewer = (index: number) => {
@@ -101,26 +105,38 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
     setIsZoomActive(false)
   }
 
+  const navigateImage = (direction: 'next' | 'prev', e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (images.length <= 1) return
+
+    let nextIndex = activeIndex
+    if (direction === 'next') {
+      nextIndex = (activeIndex + 1) % images.length
+    } else {
+      nextIndex = (activeIndex - 1 + images.length) % images.length
+    }
+    openViewer(nextIndex)
+  }
+
   return (
     <div className="w-full">
-      <div className="relative group">
+      <div className="relative group select-none">
         <Swiper
-          modules={[Navigation, Thumbs, Pagination]}
-          thumbs={{ swiper: thumbnailSwiper }}
+          modules={SWIPER_MODULES}
+          thumbs={{ swiper: thumbnailSwiper && !thumbnailSwiper.destroyed ? thumbnailSwiper : null }}
           spaceBetween={10}
-          /* Setas laterais apenas em telas grandes */
+          loop={images.length > 1}
           navigation={{
             enabled: windowWidth >= 768,
             prevEl: '.swiper-button-prev',
             nextEl: '.swiper-button-next',
           }}
-          /* Paginação apenas em telas pequenas */
           pagination={{
             enabled: windowWidth < 768,
             dynamicBullets: true,
           }}
           className="mainSwiper"
-          onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
+          onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
           ref={swiperRef}
         >
           {images.map((img, index) => (
@@ -130,20 +146,20 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
                 alt={`Foto ${index + 1}`}
                 width={1280}
                 height={900}
-                className="mx-auto object-cover aspect-square md:aspect-[1280/900] w-full h-auto"
+                className="mx-auto object-cover aspect-square md:aspect-[1280/900] w-full h-auto select-none cursor-pointer"
                 onClick={() => openViewer(index)}
               />
             </SwiperSlide>
           ))}
         </Swiper>
-        <div className="swiper-button-prev !hidden md:!block" />
-        <div className="swiper-button-next !hidden md:!block" />
+        <div className="swiper-button-prev !hidden md:!block select-none" />
+        <div className="swiper-button-next !hidden md:!block select-none" />
       </div>
 
-      {windowWidth >= 768 && (
+      {windowWidth >= 768 && images.length > 1 && (
         <Swiper
           onSwiper={setThumbnailSwiper}
-          modules={[Thumbs]}
+          modules={SWIPER_MODULES}
           watchSlidesProgress
           slidesPerView={windowWidth >= 1024 ? 6 : 4}
           spaceBetween={10}
@@ -156,7 +172,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
                 alt={`Thumb ${index + 1}`}
                 width={150}
                 height={150}
-                className={`w-full h-full object-cover rounded cursor-pointer border transition-all ${index === activeIndex
+                className={`w-full h-full object-cover rounded cursor-pointer border transition-all select-none ${index === activeIndex
                   ? 'border-sanca border-2'
                   : 'border-gray-300 hover:border-2 hover:border-sanca'
                   }`}
@@ -168,18 +184,45 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
 
       {activeIndex !== null && isZoomActive && images.length > 0 && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center select-none"
           onClick={closeViewer}
         >
+          <Button
+            variant="icon"
+            aria-label="Fechar visualizador"
+            className="absolute top-4 left-4 z-[60] !text-white !p-2 !rounded-full hover:bg-white/10 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              closeViewer();
+            }}
+          >
+            <ArrowLeft size={48} />
+          </Button>
+
+          {images.length > 1 && (
+            <>
+              <Button
+                variant="icon"
+                className="absolute left-4 z-[60] !text-white !p-2 !rounded-full hover:bg-white/10 transition-colors hidden md:block"
+                style={{ top: '50%', transform: 'translateY(-50%)' }}
+                onClick={(e) => navigateImage('prev', e)}
+                aria-label="Imagem Anterior"
+              >
+                <ChevronLeft size={48} />
+              </Button>
+              <Button
+                variant="icon"
+                className="absolute right-4 z-[60] !text-white !p-2 !rounded-full hover:bg-white/10 transition-colors"
+                style={{ top: '50%', transform: 'translateY(-50%)' }}
+                onClick={(e) => navigateImage('next', e)}
+                aria-label="Próxima Imagem"
+              >
+                <ChevronRight size={48} />
+              </Button>
+            </>
+          )}
+
           <TransformWrapper>
-            <button
-              type="button"
-              aria-label="Fechar visualizador"
-              className="absolute top-2.5 left-2.5 z-50 text-white bg-black/80 px-3 py-3 rounded-full"
-              onClick={closeViewer}
-            >
-              <ArrowLeft />
-            </button>
             <TransformComponent>
               <div className="w-screen h-screen flex items-center justify-center">
                 <Image
@@ -188,7 +231,10 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
                   alt={`Foto ${activeIndex + 1}`}
                   width={1280}
                   height={900}
-                  className="object-contain max-h-screen max-w-screen !pointer-events-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  className="object-contain max-h-screen max-w-screen !pointer-events-auto select-none cursor-zoom-in"
                 />
               </div>
             </TransformComponent>
