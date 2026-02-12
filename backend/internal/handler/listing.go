@@ -504,3 +504,54 @@ func DeleteListingByAdmin(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Listing deleted successfully by admin"})
 }
+
+func GetListingsAdmin(c *gin.Context) {
+	pagination, errMsg := parsePaginationParams(c)
+	if errMsg != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errMsg})
+		return
+	}
+
+	var total int64
+	if err := database.DB.Model(&models.Listing{}).Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count listings"})
+		return
+	}
+	var listings []models.Listing
+	if err := baseListingQuery().
+		Order("created_at desc, id desc").
+		Limit(pagination.PageSize).
+		Offset(pagination.Offset).
+		Find(&listings).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
+		return
+	}
+
+	sendPaginatedResponse(c, listings, pagination, total)
+}
+
+func UpdateListingStatusByAdmin(c *gin.Context) {
+	id := c.Param("id")
+	var input struct {
+		Status models.Status `json:"status" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var listing models.Listing
+	if err := database.DB.First(&listing, "id = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+		return
+	}
+
+	if err := database.DB.Model(&listing).Update("status", input.Status).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update listing status"})
+		return
+	}
+
+	database.DB.First(&listing, "id = ?", id)
+	c.JSON(http.StatusOK, listing)
+}

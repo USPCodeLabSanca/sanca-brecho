@@ -116,3 +116,16 @@ export const searchListings = async (query: string, page: number = 1, pageSize: 
     const response = await api.get(`/listings/search`, { params });
     return response.data;
 }
+
+// Recupera todos os anúncios para o painel admin, com paginação
+export const getListingsAdmin = async (page: number = 1, pageSize: number = 20): Promise<PaginationType<ListingType>> => {
+    const params: any = { page, pageSize };
+    const response = await api.get('/listings/admin', { params });
+    return response.data;
+}
+
+// Admin atualiza o status de um anúncio
+export const updateListingStatus = async (id: string, status: string): Promise<ListingType> => {
+    const response = await api.put(`/listings/admin/${id}/status`, { status });
+    return response.data;
+}

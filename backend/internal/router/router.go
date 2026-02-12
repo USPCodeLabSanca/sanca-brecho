@@ -31,6 +31,8 @@ func New() *gin.Engine {
 		api.GET("/profile/:slug/is-owner", middleware.Auth, handler.CheckProfileOwnership) // usuário logado
 		api.GET("/profile/:slug/contact", middleware.Auth, handler.GetProfileContact)      // usuário logado
 
+		api.GET("/admin/stats", middleware.AdminAuth, handler.GetDashboardStats) // usuário admin
+
 		userRouter := api.Group("/users")
 		userRouter.Use(middleware.Auth)
 		{
@@ -44,18 +46,24 @@ func New() *gin.Engine {
 
 		listingRouter := api.Group("/listings")
 		{
-			listingRouter.GET("/", handler.GetListings)                      // qualquer usuário
-			listingRouter.GET("/search", handler.GetListingsSearch)          // qualquer usuário
-			listingRouter.GET("/:id", handler.GetListing)                    // qualquer usuário
-			listingRouter.GET("/slug/:slug", handler.GetListingBySlug)       // qualquer usuário
-			listingRouter.GET("/user/:user_slug", handler.GetListingsByUser) // qualquer usuário
+			// qualquer usuario
+			listingRouter.GET("/", handler.GetListings)
+			listingRouter.GET("/search", handler.GetListingsSearch)
+			listingRouter.GET("/:id", handler.GetListing)
+			listingRouter.GET("/slug/:slug", handler.GetListingBySlug)
+			listingRouter.GET("/user/:user_slug", handler.GetListingsByUser)
 
+			// usuarios logados
 			listingRouter.Use(middleware.Auth)
-			listingRouter.POST("/", handler.CreateListing)                   // usuário logado
-			listingRouter.PUT("/:id", handler.UpdateListing)                 // usuário logado
-			listingRouter.DELETE("/:id", handler.DeleteListing)              // usuário logado
-			listingRouter.POST("/:id/sell", handler.CreateSale)              // usuário logado
-			listingRouter.DELETE("/admin/:id", handler.DeleteListingByAdmin) // usuário admin
+			listingRouter.POST("/", handler.CreateListing)
+			listingRouter.PUT("/:id", handler.UpdateListing)
+			listingRouter.DELETE("/:id", handler.DeleteListing)
+			listingRouter.POST("/:id/sell", handler.CreateSale)
+
+			// apenas admins
+			listingRouter.GET("/admin", middleware.AdminAuth, handler.GetListingsAdmin)
+			listingRouter.DELETE("/admin/:id", middleware.AdminAuth, handler.DeleteListingByAdmin)
+			listingRouter.PUT("/admin/:id/status", middleware.AdminAuth, handler.UpdateListingStatusByAdmin)
 		}
 
 		salesRouter := api.Group("/sales")
