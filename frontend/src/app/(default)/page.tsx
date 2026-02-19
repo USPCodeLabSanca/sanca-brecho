@@ -12,17 +12,21 @@ import Link from "next/link";
 import { getCategories } from "@/lib/services/categoryService";
 import { getListings } from "@/lib/services/listingService";
 import { Button } from "../components/button";
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [categories, setCategories] = useState<CategoryType[]>([]);
   const [products, setProducts] = useState<ListingType[]>([]);
-  const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [total, setTotal] = useState(0);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [errorCategories, setErrorCategories] = useState<string | null>(null);
   const [errorProducts, setErrorProducts] = useState<string | null>(null);
+
+  const currentPage = Number(searchParams.get('pagina')) || 1; // Assume 1 como padrão
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -44,7 +48,7 @@ export default function Home() {
     const fetchProducts = async () => {
       setLoadingProducts(true);
       try {
-        const response = await getListings(page, pageSize);
+        const response = await getListings(currentPage, pageSize);
         setProducts(response.data);
         setTotal(response.total);
       } catch (error: any) {
@@ -55,7 +59,7 @@ export default function Home() {
       }
     };
     fetchProducts();
-  }, [page, pageSize]);
+  }, [currentPage, pageSize]);
 
   return (
     <>
@@ -167,8 +171,12 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Pagination count={Math.ceil(total / pageSize)} page={page} onChange={(_, value) => {
-                setPage(value);
+              <Pagination count={Math.ceil(total / pageSize)} page={currentPage} onChange={(_, value) => {
+                // Atualiza o URL com a página
+                const params = new URLSearchParams(searchParams.toString());
+                params.set('pagina', value.toString());
+                router.push(`/?${params.toString()}`, { scroll: false });
+
                 document
                   .getElementById("products-section")
                   ?.scrollIntoView({ behavior: "smooth" });

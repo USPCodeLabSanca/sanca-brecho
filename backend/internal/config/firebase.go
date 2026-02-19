@@ -16,7 +16,7 @@ var (
 
 func InitFirebase() error {
 	opt := option.WithCredentialsFile(os.Getenv("CREDENTIALS_PATH"))
-	config := &firebase.Config{ProjectID: "sanca-brecho"}
+	config := &firebase.Config{ProjectID: os.Getenv("PROJECT_ID")}
 	app, err := firebase.NewApp(context.Background(), config, opt)
 	if err != nil {
 		log.Fatalf("❌ error initializing app: %v\n", err)

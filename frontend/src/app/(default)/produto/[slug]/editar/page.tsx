@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, FormEvent } from "react";
 import { ArrowLeft, Camera, Save, Eye, Trash2 } from "lucide-react";
@@ -282,10 +281,10 @@ export default function EditarProdutoClient() {
         <main className="flex-grow pb-10">
           <div className="container mx-auto px-4">
             <div className="py-4">
-              <Link href={`/produto/${slug}`} className="text-gray-500 hover:text-sanca flex items-center text-sm">
-                <ArrowLeft className="h-4 w-4 mr-1" />
+              <Button href={`/produto/${slug}`} variant="icon">
+                <ArrowLeft className="h-4 w-4" />
                 Voltar para o produto
-              </Link>
+              </Button>
             </div>
 
             <div className="mb-6">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Truck, TrendingDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ListingType } from "@/lib/types/api"
@@ -21,6 +22,23 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   const [imageSrc, setImageSrc] = useState<string>('/product_placeholder.png');
   const [loadingImage, setLoadingImage] = useState(true);
   const [errorImage, setErrorImage] = useState<string | null>(null);
+
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  let refUrl = "/";
+  if (pathname.startsWith('/produto/')) {
+    // Se já estamos em uma página de produto, repassamos a ref que já existe na URL.
+    // Se por acaso alguém acessou o produto direto (sem ref), o fallback é a Home.
+    refUrl = searchParams?.get('ref') || '/?page=1';
+  } else {
+    // Se estamos fora (Home, Perfil do Usuário, etc), guardamos a URL exata atual.
+    const currentQuery = searchParams?.toString();
+    refUrl = currentQuery ? `${pathname}?${currentQuery}` : pathname;
+  }
+
+  // Codificamos para não quebrar a URL
+  const encodedRef = encodeURIComponent(refUrl);
 
   useEffect(() => {
     const fetchProductImage = async () => {
@@ -54,7 +72,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   }).format(product.price);
 
   return (
-    <Link href={`/produto/${product.slug}`}>
+    <Link href={`/produto/${product.slug}?ref=${encodedRef}`}>
       <div
         className={`bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md relative cursor-pointer ${className || ""
           }`}

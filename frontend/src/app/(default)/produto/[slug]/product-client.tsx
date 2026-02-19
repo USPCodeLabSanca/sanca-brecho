@@ -15,6 +15,7 @@ import { ReportDialog } from "@/app/components/reportModal";
 import CreateSaleModal from "@/app/components/createSaleModal";
 import LoginPromptModal from "@/app/components/loginPromptModal";
 import { Button } from "@/app/components/button";
+import { useSearchParams } from "next/navigation";
 
 interface ProductClientProps {
   initialProduct: ListingType;
@@ -28,6 +29,10 @@ export default function ProductClient({ initialProduct }: ProductClientProps) {
   const [metrics, setMetrics] = useState<ProfileMetricsType | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const searchParams = useSearchParams();
+
+  const ref = searchParams?.get("ref");
+  const backUrl = ref ? decodeURIComponent(ref) : "/?page=1";
 
   const getDisplayCondition = (condition: string): string => {
     switch (condition) {
@@ -115,10 +120,10 @@ export default function ProductClient({ initialProduct }: ProductClientProps) {
       <main className="flex-grow pb-10">
         <div className="container mx-auto px-4">
           <div className="py-4 flex justify-between items-center">
-            <Link href="/" className="text-gray-500 hover:text-sanca flex items-center text-sm">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Voltar para produtos
-            </Link>
+            <Button href={backUrl} variant="icon">
+              <ArrowLeft className="h-4 w-4" />
+              Voltar
+            </Button>
             {!isOwner && (
               <ReportDialog targetId={product.id} targetType="product" />
             )}
