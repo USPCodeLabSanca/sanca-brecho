@@ -338,21 +338,32 @@ func GetListingBySlug(c *gin.Context) {
 func GetListingsByUser(c *gin.Context) {
 	userSlug := c.Param("user_slug")
 
+	// Parâmetros opcionais para limitar número de resultados buscados e para excluir um ID específico da busca
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "0"))
+	excludeID := c.Query("exclude")
+
 	var user models.User
 	if err := database.DB.Where("slug = ?", userSlug).First(&user).Error; err != nil {
-		if err.Error() == "record not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
-		}
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
 	var listings []models.Listing
-	if err := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
+
+	query := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
 		return db.Select(publicUserFields)
-	}).Preload("Category").Where("user_id = ? AND status = ?", user.ID, models.Available).Find(&listings).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings for user"})
+	}).Preload("Category").Where("user_id = ? AND status = ?", user.ID, models.Available)
+
+	if excludeID != "" {
+		query = query.Where("id != ?", excludeID)
+	}
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	if err := query.Find(&listings).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
 		return
 	}
 

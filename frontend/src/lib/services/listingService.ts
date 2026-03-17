@@ -94,10 +94,12 @@ export const deleteListingImage = async (id: string): Promise<void> => {
     await api.delete(`/listing-images/${id}`);
 };
 
-export const getListingsByUser = async (slug: string): Promise<ListingType[]> => {
-    const response = await api.get(`/listings/user/${slug}`);
-    return response.data;
-}
+export const getListingsByUser = async (slug: string, limit?: number, excludeId?: string) => {
+  const response = await api.get(`/listings/user/${slug}`, {
+    params: { limit, exclude: excludeId }
+  });
+  return response.data;
+};
 
 export const createSale = async (id: string, buyer_identifier: string, final_price: number): Promise<SaleType | ErrorType> => {
     try {

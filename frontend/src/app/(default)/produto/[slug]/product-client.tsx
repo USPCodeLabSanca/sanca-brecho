@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ProductImageCarousel from "@/app/components/productImageCarousel";
 import { FaWhatsapp } from "react-icons/fa";
-import { ArrowLeft, Calendar, Edit, Handshake, MapPin, Share, Tag, TrendingDown, Truck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, Edit, Handshake, MapPin, Share, Tag, TrendingDown, Truck } from "lucide-react";
 import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
 import { useEffect, useState } from "react";
 import { ListingType, ProfileMetricsType } from "@/lib/types/api";
@@ -16,6 +16,9 @@ import CreateSaleModal from "@/app/components/createSaleModal";
 import LoginPromptModal from "@/app/components/loginPromptModal";
 import { Button } from "@/app/components/button";
 import { useSearchParams } from "next/navigation";
+import HorizontalProductCard from "@/app/components/responsiveProductCard";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { useUserProducts } from "@/lib/hooks/useUserProducts";
 
 interface ProductClientProps {
   initialProduct: ListingType;
@@ -30,6 +33,12 @@ export default function ProductClient({ initialProduct }: ProductClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const searchParams = useSearchParams();
+
+  const { 
+    products, 
+    loading: loadingProducts, 
+    error: errorProducts 
+  } = useUserProducts(product?.user.slug, 4, product?.id);
 
   const ref = searchParams?.get("ref");
   const backUrl = ref ? decodeURIComponent(ref) : "/?page=1";
@@ -108,7 +117,7 @@ export default function ProductClient({ initialProduct }: ProductClientProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col">
       {isModalOpen &&
         <CreateSaleModal
           isOpen={isModalOpen}
@@ -117,7 +126,7 @@ export default function ProductClient({ initialProduct }: ProductClientProps) {
           onSuccess={handleSaleSuccess}
         />}
       <LoginPromptModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
-      <main className="flex-grow pb-10">
+      <main className="grow pb-10">
         <div className="container mx-auto px-4">
           <div className="py-4 flex justify-between items-center">
             <Button href={backUrl} variant="icon">
@@ -136,7 +145,7 @@ export default function ProductClient({ initialProduct }: ProductClientProps) {
             <div>
               <div className="flex flex-col md:flex-row justify-between items-start mb-3">
                 <div className="max-w-full md:max-w-4/5">
-                  <h1 className="text-2xl font-bold text-gray-900 break-words text-ellipsis">{product.title}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900 wrap-break-word text-ellipsis">{product.title}</h1>
                   <p className="text-gray-500">{product.category.name} • {getDisplayCondition(product.condition)}</p>
                 </div>
                 <div className="flex gap-2">
@@ -246,7 +255,7 @@ export default function ProductClient({ initialProduct }: ProductClientProps) {
                 </TabList>
 
                 <TabPanel>
-                  <p className="text-gray-700 whitespace-pre-line break-words">{product.description}</p>
+                  <p className="text-gray-700 whitespace-pre-line wrap-break-word">{product.description}</p>
                 </TabPanel>
 
                 <TabPanel>
@@ -278,8 +287,41 @@ export default function ProductClient({ initialProduct }: ProductClientProps) {
                   </div>
                 </TabPanel>
               </Tabs>
-            </div>
+            </div> 
           </div>
+              { !loadingProducts && errorProducts ? ( // Não mostrar nada enquanto carrega, se der erro, mostrar erro
+                <p className="text-red-500">Erro ao carregar outros produtos desse vendedor</p>
+              ) : (
+                products.length > 0 && // Mostrar a seção apenas se o vendedor tiver outros produtos
+                <section className="pt-6 border-t mt-6 border-gray-200">
+                  <div className="container mx-auto">
+                    <div className="flex justify-between items-center pb-4">
+                      <h1 className="text-xl sm:text-2xl font-bold">Produtos do mesmo vendedor</h1>
+                      <Link className="hidden sm:flex gap-2 items-center text-sanca visited:text-sanca" href={`/usuario/${product.user.slug}`}>
+                        Ver Todos{" "}
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                    <Swiper
+                      observer={true}
+                      observeParents={true}
+                      spaceBetween={15}
+                      slidesPerView={2}
+                      breakpoints={{
+                        640: {
+                          slidesPerView: 3,
+                        }}
+                      }
+                    >
+                      {products.map((product) => (
+                        <SwiperSlide key={product.id} className="p-0.5">
+                          <HorizontalProductCard product={product}/>
+                        </SwiperSlide>
+                      ))}
+                    </Swiper>
+                  </div>
+                </section>
+              )}
         </div>
       </main>
     </div>

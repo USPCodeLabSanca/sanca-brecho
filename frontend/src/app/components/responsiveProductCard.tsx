@@ -17,7 +17,7 @@ interface ProductCardProps {
   showWishlist?: boolean;
 }
 
-const ProductCard = ({ product, className }: ProductCardProps) => {
+const HorizontalProductCard = ({ product, className }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageSrc, setImageSrc] = useState<string>('/product_placeholder.png');
   const [loadingImage, setLoadingImage] = useState(true);
@@ -74,13 +74,13 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   return (
     <Link href={`/produto/${product.slug}?ref=${encodedRef}`}>
       <div
-        className={`bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md relative cursor-pointer ${className || ""
+        className={`flex flex-col lg:flex-row w-full bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md relative cursor-pointer ${className || ""
           }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Image Section */}
-        <div className="aspect-square relative overflow-hidden">
+        <div className="aspect-square relative overflow-hidden lg:w-1/3">
           {loadingImage ? (
             Spinner()
           ) : errorImage ? (
@@ -97,42 +97,42 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
               style={{ transform: isHovered ? "scale(1.05)" : "scale(1)" }}
             />
           )}
-
-          {/* Badges */}
-          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/60 to-transparent p-2">
-            <div className="flex flex-wrap gap-1">
-              {product.is_negotiable && (
-                <div className="bg-white/90 text-gray-800 text-xs px-2 py-0.5 rounded flex items-center gap-1">
-                  <TrendingDown className="h-3 w-3" />
-                  Negociável
-                </div>
-              )}
-              {product.seller_can_deliver && (
-                <div className="bg-white/90 text-gray-800 text-xs px-2 py-0.5 rounded flex items-center gap-1">
-                  <Truck className="h-3 w-3" />
-                  Entrega
-                </div>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Content */}
-        <div className="p-3">
-          <div className="mb-1 flex justify-between">
-            <span className="font-semibold text-lg">{formattedPrice}</span>
-          </div>
-          <h3 className="h-10 text-sm font-medium line-clamp-2">{product.title}</h3>
+        <div className="p-3 lg:w-2/3 text-wrap break-all flex flex-col justify-between">
+          <div>
+            <div className="flex items-center mb-1 text-xs text-gray-500">
+              <Image
+                src={product.user.photo_url || '/user_placeholder.png'}
+                alt={product.user.display_name}
+                className="h-6 w-6 rounded-full mr-1 object-cover"
+                width={36}
+                height={36}
+              />
+              <span className="truncate">{product.user.display_name}</span>
+            </div>
 
-          <div className="flex items-center mt-2 text-xs text-gray-500">
-            <Image
-              src={product.user.photo_url || '/user_placeholder.png'}
-              alt={product.user.display_name}
-              className="h-4 w-4 rounded-full mr-1 object-cover"
-              width={36}
-              height={36}
-            />
-            <span className="truncate">{product.user.display_name}</span>
+            <h3 className="text-lg/5 font-medium line-clamp-2">{product.title}</h3>
+
+            <div className="mb-1 flex justify-between">
+              <span className="text-sanca font-semibold text-lg">{formattedPrice}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-1 justify-end">
+            {product.is_negotiable && (
+              <div className="bg-sanca text-white text-[10px] sm:text-xs font-normal sm:font-semibold px-2 py-0.5 rounded flex items-center gap-1">
+                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />
+                Negociável
+              </div>
+            )}
+            {product.seller_can_deliver && (
+              <div className="bg-sanca text-white text-[10px] sm:text-xs font-normal sm:font-semibold px-2 py-0.5 rounded flex items-center gap-1">
+                <Truck className="h-3 w-3 sm:h-4 sm:w-4" />
+                Entrega
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -140,4 +140,4 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   );
 };
 
-export default ProductCard;
+export default HorizontalProductCard;

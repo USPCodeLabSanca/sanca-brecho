@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import ProductCard from "@/app/components/productCard";
@@ -23,7 +22,6 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { getProfileBySlug } from "@/lib/services/profileService";
 import { getMe } from "@/lib/services/userService";
 import { getProfileContact } from "@/lib/services/profileService";
-import { getListingsByUser } from "@/lib/services/listingService";
 import { showErrorToast } from "@/lib/toast";
 import Spinner from "@/app/components/spinner";
 import { getReviewsReceived } from "@/lib/services/reviewService";
@@ -31,6 +29,7 @@ import ReviewCard from "@/app/components/reviewCard";
 import { ReportDialog } from "@/app/components/reportModal";
 import LoginPromptModal from "@/app/components/loginPromptModal";
 import { Button } from "@/app/components/button";
+import { useUserProducts } from "@/lib/hooks/useUserProducts";
 
 const Usuario = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -42,9 +41,11 @@ const Usuario = () => {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [errorProfile, setErrorProfile] = useState<string | null>(null);
 
-  const [userProducts, setUserProducts] = useState<ListingType[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
-  const [errorProducts, setErrorProducts] = useState<string | null>(null);
+  const { 
+    products, 
+    loading: loadingProducts, 
+    error: errorProducts 
+  } = useUserProducts(userProfile?.slug);
 
   const [userReviews, setUserReviews] = useState<ReviewType[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
@@ -130,27 +131,6 @@ const Usuario = () => {
       setIsOwnerProfile(false);
     }
   }, [slug, currentUserFirebase, loadingProfile, loadingAuth]);
-
-  // Busca os produtos do usuário encontrado
-  useEffect(() => {
-    const fetchUserProducts = async () => {
-      if (!userProfile?.slug) {
-        setLoadingProducts(false);
-        return;
-      }
-      try {
-        const data = await getListingsByUser(userProfile.slug);
-        setUserProducts(data);
-      } catch (error: any) {
-        setUserProducts([]);
-        setErrorProducts(error.message);
-        showErrorToast("Erro ao buscar produtos do usuário.");
-      } finally {
-        setLoadingProducts(false);
-      }
-    };
-    fetchUserProducts();
-  }, [userProfile?.slug]);
 
   useEffect(() => {
     if (isOwnerProfile) {
@@ -242,7 +222,7 @@ const Usuario = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-grow py-10">
+      <main className="grow py-10">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             {isOwnerProfile && !userProfile.verified && (
@@ -260,7 +240,7 @@ const Usuario = () => {
               </div>
             )}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
-              <div className="h-32 bg-gradient-to-r from-sanca to-[#0ea5e9]"></div>
+              <div className="h-32 bg-linear-to-r from-sanca to-[#0ea5e9]"></div>
               <div className="px-6 py-4 relative">
                 <div className="absolute -top-12 left-6 border-4 border-white rounded-full overflow-hidden bg-white">
                   <div className="h-24 w-24">
@@ -373,10 +353,10 @@ const Usuario = () => {
               </TabList>
               <TabPanel>
                 <div className="bg-white rounded-xl p-6">
-                  <h2 className="text-lg font-semibold mb-4">Produtos Anunciados ({userProducts.length})</h2>
-                  {userProducts.length > 0 ? (
+                  <h2 className="text-lg font-semibold mb-4">Produtos Anunciados ({products.length})</h2>
+                  {products.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {userProducts.map((product) => (
+                      {products.map((product) => (
                         <ProductCard product={product} key={product.id} />
                       ))}
                     </div>
