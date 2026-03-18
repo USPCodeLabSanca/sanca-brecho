@@ -100,7 +100,7 @@ const HorizontalProductCard = ({ product, className }: ProductCardProps) => {
         </div>
 
         {/* Content */}
-        <div className="p-3 lg:w-2/3 text-wrap break-all flex flex-col justify-between">
+        <div className="h-40 p-3 lg:w-2/3 text-wrap break-all flex flex-col justify-between">
           <div>
             <div className="flex items-center mb-1 text-xs text-gray-500">
               <Image
@@ -113,7 +113,7 @@ const HorizontalProductCard = ({ product, className }: ProductCardProps) => {
               <span className="truncate">{product.user.display_name}</span>
             </div>
 
-            <h3 className="text-lg/5 font-medium line-clamp-2">{product.title}</h3>
+            <h3 className="text-sm sm:text-lg/5 font-medium line-clamp-2">{product.title}</h3>
 
             <div className="mb-1 flex justify-between">
               <span className="text-sanca font-semibold text-lg">{formattedPrice}</span>
@@ -122,13 +122,13 @@ const HorizontalProductCard = ({ product, className }: ProductCardProps) => {
 
           <div className="flex flex-wrap gap-1 justify-end">
             {product.is_negotiable && (
-              <div className="bg-sanca text-white text-[10px] sm:text-xs font-normal sm:font-semibold px-2 py-0.5 rounded flex items-center gap-1">
+              <div className="bg-sanca text-nowrap truncate text-white text-[10px] sm:text-xs font-normal sm:font-semibold px-2 py-0.5 rounded flex items-center gap-1">
                 <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />
                 Negociável
               </div>
             )}
             {product.seller_can_deliver && (
-              <div className="bg-sanca text-white text-[10px] sm:text-xs font-normal sm:font-semibold px-2 py-0.5 rounded flex items-center gap-1">
+              <div className="bg-sanca text-nowrap truncate text-white text-[10px] sm:text-xs font-normal sm:font-semibold px-2 py-0.5 rounded flex items-center gap-1">
                 <Truck className="h-3 w-3 sm:h-4 sm:w-4" />
                 Entrega
               </div>
