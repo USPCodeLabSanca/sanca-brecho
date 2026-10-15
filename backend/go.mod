@@ -1,8 +1,8 @@
 module api
 
-go 1.24.0
+go 1.26.0
 
-toolchain go1.24.1
+toolchain go1.26.1
 
 require (
 	firebase.google.com/go/v4 v4.18.0
