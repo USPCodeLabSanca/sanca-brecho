@@ -4,6 +4,7 @@ import (
 	"api/internal/config"
 	"api/internal/models"
 	"api/internal/repository"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -62,58 +63,23 @@ func DeleteUser(c *gin.Context) {
 	currentUser := user.(models.User)
 	userID := currentUser.ID
 
-	// Use a transaction to ensure all or nothing is deleted
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
-		var listings []models.Listing
-		if err := tx.Where("user_id = ?", userID).Find(&listings).Error; err != nil {
-			return err
-		}
-
-		if len(listings) > 0 {
-			var listingIDs []uuid.UUID
-			for _, l := range listings {
-				listingIDs = append(listingIDs, l.ID)
-			}
-			// delete all images associated with the user's listings
-			if err := tx.Where("listing_id IN ?", listingIDs).Delete(&models.ListingImage{}).Error; err != nil {
-				return err
-			}
-			// delete all favorites associated with the user's listings
-			if err := tx.Where("listing_id IN ?", listingIDs).Delete(&models.Favorite{}).Error; err != nil {
-				return err
-			}
-		}
-
-		// delete favorites associated with the user
-		if err := tx.Where("user_id = ?", userID).Delete(&models.Favorite{}).Error; err != nil {
-			return err
-		}
-		// delete the user's listings
-		if err := tx.Where("user_id = ?", userID).Delete(&models.Listing{}).Error; err != nil {
-			return err
-		}
-		// delete the user
-		if err := tx.Where("id = ?", userID).Delete(&models.User{}).Error; err != nil {
-			return err
-		}
-
-		return nil
+		return DeleteUserData(tx, userID)
 	})
-
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user and associated data"})
+		log.Printf("DeleteUser %s: %v", userID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Não foi possível excluir sua conta. Tente novamente em instantes."})
 		return
 	}
 
-	// delete from firebase after the transaction is successful
 	ctx := c.Request.Context()
 	if err := config.AuthClient.DeleteUser(ctx, userID); err != nil {
-		// this is a critical error (user is deleted from the database but not from firebase) maybe we should log it to fix it later
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user from authentication service"})
+		log.Printf("DeleteUser %s: dados apagados, mas falhou no Firebase: %v", userID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Seus dados foram removidos, mas não conseguimos encerrar seu login. Fale com a gente para concluir."})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Conta excluída com sucesso."})
 }
 
 func CheckProfileOwnership(c *gin.Context) {
@@ -285,67 +251,38 @@ func DeleteUserByAdmin(c *gin.Context) {
 	var user models.User
 	if err := repository.DB.Where("slug = ?", userSlug).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado."})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user from database"})
+		log.Printf("DeleteUserByAdmin %s: erro ao buscar usuário: %v", userSlug, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Não foi possível buscar o usuário. Tente novamente em instantes."})
 		return
 	}
 
 	userID := user.ID
 
 	err := repository.DB.Transaction(func(tx *gorm.DB) error {
-		var listings []models.Listing
-		if err := tx.Where("user_id = ?", userID).Find(&listings).Error; err != nil {
-			return err
-		}
-
-		if len(listings) > 0 {
-			var listingIDs []uuid.UUID
-			for _, l := range listings {
-				listingIDs = append(listingIDs, l.ID)
-			}
-			if err := tx.Where("listing_id IN ?", listingIDs).Delete(&models.ListingImage{}).Error; err != nil {
-				return err
-			}
-			if err := tx.Where("listing_id IN ?", listingIDs).Delete(&models.Favorite{}).Error; err != nil {
-				return err
-			}
-		}
-
-		if err := tx.Where("user_id = ?", userID).Delete(&models.Favorite{}).Error; err != nil {
-			return err
-		}
-		if err := tx.Where("user_id = ?", userID).Delete(&models.Listing{}).Error; err != nil {
-			return err
-		}
-		result := tx.Where("id = ?", userID).Delete(&models.User{})
-		if result.Error != nil {
-			return result.Error
-		}
-		if result.RowsAffected == 0 {
-			return gorm.ErrRecordNotFound
-		}
-
-		return nil
+		return DeleteUserData(tx, userID)
 	})
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found during transaction"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado."})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user and associated data"})
+		log.Printf("DeleteUserByAdmin %s: %v", userID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Não foi possível excluir o usuário e seus dados. Tente novamente em instantes."})
 		return
 	}
 
 	ctx := c.Request.Context()
 	if err := config.AuthClient.DeleteUser(ctx, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User deleted from database, but failed to delete from authentication service"})
+		log.Printf("DeleteUserByAdmin %s: removido do banco, mas falhou no Firebase: %v", userID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Usuário removido do banco, mas não foi possível removê-lo do serviço de autenticação. Apague a conta manualmente no Firebase."})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully by admin"})
+	c.JSON(http.StatusOK, gin.H{"message": "Usuário excluído com sucesso."})
 }
 
 func UpdateUserRole(c *gin.Context) {
@@ -377,4 +314,67 @@ func UpdateUserRole(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+// deleteUserData remove o usuário e tudo que depende dele. Rodar dentro de uma transação.
+func DeleteUserData(tx *gorm.DB, userID string) error {
+	var listingIDs []uuid.UUID
+	if err := tx.Model(&models.Listing{}).
+		Where("user_id = ?", userID).Pluck("id", &listingIDs).Error; err != nil {
+		return err
+	}
+
+	if len(listingIDs) > 0 {
+		// vendas (e avaliações) dos anúncios do usuário
+		if err := DeleteSalesForListings(tx, listingIDs); err != nil {
+			return err
+		}
+		if err := tx.Where("listing_id IN ?", listingIDs).Delete(&models.ListingImage{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("listing_id IN ?", listingIDs).Delete(&models.Favorite{}).Error; err != nil {
+			return err
+		}
+
+		// denúncias contra os anúncios (target_id é texto, sem FK)
+		ids := make([]string, len(listingIDs))
+		for i, id := range listingIDs {
+			ids[i] = id.String()
+		}
+		if err := tx.Where("target_type = ? AND target_id IN ?", models.TargetTypeProduct, ids).
+			Delete(&models.Report{}).Error; err != nil {
+			return err
+		}
+	}
+
+	// compras: mantém a venda no histórico do vendedor, só remove o comprador
+	if err := tx.Model(&models.Sale{}).
+		Where("buyer_id = ?", userID).Update("buyer_id", nil).Error; err != nil {
+		return err
+	}
+
+	// denúncias feitas pelo usuário e contra ele
+	if err := tx.Where("reporter_id = ?", userID).Delete(&models.Report{}).Error; err != nil {
+		return err
+	}
+	if err := tx.Where("target_type = ? AND target_id = ?", models.TargetTypeUser, userID).
+		Delete(&models.Report{}).Error; err != nil {
+		return err
+	}
+
+	if err := tx.Where("user_id = ?", userID).Delete(&models.Favorite{}).Error; err != nil {
+		return err
+	}
+	if err := tx.Where("user_id = ?", userID).Delete(&models.Listing{}).Error; err != nil {
+		return err
+	}
+
+	result := tx.Where("id = ?", userID).Delete(&models.User{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

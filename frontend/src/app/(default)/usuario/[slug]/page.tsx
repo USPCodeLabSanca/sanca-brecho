@@ -243,7 +243,7 @@ const Usuario = () => {
               <div className="h-32 bg-linear-to-r from-sanca to-[#0ea5e9]"></div>
               <div className="px-6 py-4 relative">
                 <div className="absolute -top-12 left-6 border-4 border-white rounded-full overflow-hidden bg-white">
-                  <div className="h-24 w-24">
+                  <div className="relative h-24 w-24">
                     <Image
                       src={userAvatar}
                       alt={`Foto de perfil de ${userProfile.display_name}`}

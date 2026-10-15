@@ -2,7 +2,7 @@
 
 import ProductCard from "../components/productCard";
 import Categories from "../components/categories";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CategoryType, ListingType } from "@/lib/types/api"
 import Pagination from '@mui/material/Pagination';
 import { ArrowRight } from "lucide-react";
@@ -13,6 +13,9 @@ import { getCategories } from "@/lib/services/categoryService";
 import { getListings } from "@/lib/services/listingService";
 import { Button } from "../components/button";
 import { useRouter, useSearchParams } from 'next/navigation';
+import { FriendlyError, getFriendlyError } from "@/lib/errors";
+import { CategoriesSkeleton, ProductCardSkeleton } from "../components/skeleton";
+import ErrorState from "../components/errorState";
 
 export default function Home() {
   const router = useRouter();
@@ -23,61 +26,90 @@ export default function Home() {
   const [total, setTotal] = useState(0);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [errorCategories, setErrorCategories] = useState<string | null>(null);
-  const [errorProducts, setErrorProducts] = useState<string | null>(null);
+const [errorCategories, setErrorCategories] = useState<FriendlyError | null>(null);
+const [errorProducts, setErrorProducts] = useState<FriendlyError | null>(null);
 
   const currentPage = Number(searchParams.get('pagina')) || 1; // Assume 1 como padrão
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setLoadingCategories(true);
-      try {
-        const data = await getCategories();
-        setCategories(data);
-      } catch (error: any) {
-        setErrorCategories(error.response?.data?.error || error.message);
-        console.error("Failed to fetch categories:", error);
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
-    fetchCategories();
+  const fetchCategories = useCallback(async () => {
+    setLoadingCategories(true);
+    setErrorCategories(null);
+    try {
+      setCategories(await getCategories());
+    } catch (error) {
+      setErrorCategories(getFriendlyError(error));
+      console.error("Failed to fetch categories:", error);
+    } finally {
+      setLoadingCategories(false);
+    }
   }, []);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoadingProducts(true);
-      try {
-        const response = await getListings(currentPage, pageSize);
-        setProducts(response.data);
-        setTotal(response.total);
-      } catch (error: any) {
-        setErrorProducts(error.response?.data?.error || error.message);
-        console.error("Failed to fetch products:", error);
-      } finally {
-        setLoadingProducts(false);
-      }
-    };
-    fetchProducts();
+  useEffect(() => { fetchCategories(); }, [fetchCategories]);
+
+  const fetchProducts = useCallback(async () => {
+    setLoadingProducts(true);
+    setErrorProducts(null);
+    try {
+      const response = await getListings(currentPage, pageSize);
+      setProducts(response.data);
+      setTotal(response.total);
+    } catch (error) {
+      setErrorProducts(getFriendlyError(error));
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setLoadingProducts(false);
+    }
   }, [currentPage, pageSize]);
+
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  const handleHeroSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const q = String(new FormData(e.currentTarget).get("search") ?? "");
+    router.push(`/categorias?q=${encodeURIComponent(q)}`);
+  };
+
+  const tagStyles = ["-rotate-3 mt-6", "rotate-2", "-rotate-1 mt-10"];
 
   return (
     <>
-      <section className="mx-auto px-4 py-20 text-center text-white bg-sanca">
-        <h1 className="mb-4 text-3xl md:text-4xl font-bold">
-          Compre e venda entre universitários de São Carlos
-        </h1>
-        <p className="mx-auto mb-8 max-w-2xl text-lg">
-          Encontre livros, eletrônicos, móveis e muito mais para facilitar sua
-          vida universitária.
-        </p>
-        <div className="flex flex-row items-center justify-center gap-5 text-lg">
-          <Button variant="secondary" href="/anunciar">
-            Anunciar Produto
-          </Button>
-          <Button variant="outline" href="/categorias">
-            Ver Categorias
-          </Button>
+      <section className="bg-sanca text-white">
+        <div className="container mx-auto grid items-center gap-10 px-4 py-10 md:grid-cols-[1.1fr_0.9fr] md:py-16">
+          <div>
+            <h1 className="font-display text-4xl font-bold tracking-tight text-balance md:text-5xl text-center md:text-left">
+              Compre e venda entre universitários de São Carlos
+            </h1>
+            <p className="mt-4 max-w-xl text-lg text-white text-center md:text-left">
+              Encontre livros, eletrônicos, móveis e muito mais para facilitar sua vida universitária.
+            </p>
+
+            <form onSubmit={handleHeroSearch} className="mt-8 hidden max-w-xl gap-2 md:flex">
+              <input
+                name="search"
+                placeholder="Procure por livro, bicicleta, mesa de estudo..."
+                className="h-12 flex-1 rounded-lg bg-white px-4 text-gray-900 placeholder:text-gray-500 outline-none focus-visible:ring-2 focus-visible:ring-white"
+              />
+              <button className="h-12 cursor-pointer rounded-lg bg-white px-5 font-semibold text-sanca-dark">
+                Buscar
+              </button>
+            </form>
+
+            <Link href="/anunciar" className="mt-6 inline-block text-sm underline underline-offset-4 text-center md:text-left w-full">
+              Tem algo parado em casa? Anuncie aqui
+            </Link>
+          </div>
+
+          <div className="hidden justify-center gap-4 md:flex">
+            {products.slice(0, 3).map((p, i) => (
+              <div
+                key={p.id}
+                className={`tag-in relative w-40 text-gray-900 ${tagStyles[i]}`}
+                style={{ animationDelay: `${i * 120}ms` }}
+              >
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -92,9 +124,9 @@ export default function Home() {
           </div>
 
           {loadingCategories ? (
-            <p>Carregando categorias...</p>
+            <CategoriesSkeleton />
           ) : errorCategories ? (
-            <p className="text-red-500">Erro ao carregar as categorias: {errorCategories}</p>
+            <ErrorState error={errorCategories} onRetry={fetchCategories} />
           ) : (
             <Swiper
               spaceBetween={15}
@@ -157,9 +189,11 @@ export default function Home() {
           */}
 
           {loadingProducts ? (
-            <p>Carregando produtos...</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {Array.from({ length: 10 }).map((_, i) => <ProductCardSkeleton key={i} />)}
+            </div>
           ) : errorProducts ? (
-            <p className="text-red-500">Erro ao carregar os produtos: {errorProducts}</p>
+            <ErrorState error={errorProducts} onRetry={fetchProducts} />
           ) : products.length > 0 ? (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">

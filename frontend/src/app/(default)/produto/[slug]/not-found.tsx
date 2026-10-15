@@ -9,7 +9,7 @@ export default function NotFound() {
         <h1 className="text-6xl font-bold text-sanca mb-4">404</h1>
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Produto não encontrado</h2>
         <p className="text-gray-500 mb-8 max-w-md mx-auto">
-          O produto que você está procurando não existe.
+          O produto que você está procurando não existe ou o servidor não respondeu.
         </p>
         <Button href="/">
           <Home className="w-4 h-4" /> Voltar para a página inicial

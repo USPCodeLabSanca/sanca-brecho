@@ -75,13 +75,7 @@ const CreateSaleModal: React.FC<ModalProps> = ({ isOpen, onClose, listing, onSuc
     setIsLoading(false);
 
     if ('error' in result) {
-      // Mensagem de erro quando o comprador não é encontrado
-      if (result.error.includes("Failed to retrieve Buyer")) {
-        const buyerNotFoundError = "Usuário comprador não encontrado. Verifique o email ou slug.";
-        toast.error(buyerNotFoundError);
-      } else { // Fallback para outras mensagens de erro
-        toast.error(result.error);
-      }
+      toast.error(result.error);
     } else {
       toast.success('Anúncio marcado como vendido!');
       onSuccess();

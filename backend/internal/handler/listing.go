@@ -3,6 +3,7 @@ package handler
 import (
 	"api/internal/models"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -107,23 +108,26 @@ func CreateListing(c *gin.Context) {
 	CurrentUser := user.(models.User)
 
 	if !CurrentUser.Verified {
-		c.JSON(http.StatusForbidden, gin.H{"error": "User not verified"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "Verifique seu telefone para poder criar anúncios."})
 		return
 	}
 
 	var listing models.Listing
 	if err := c.ShouldBindJSON(&listing); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("CreateListing: corpo inválido: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Alguns dados do anúncio estão inválidos. Confira os campos e tente novamente.",
+		})
 		return
 	}
 
 	if len(listing.Title) > 100 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Title too long"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "O título deve ter no máximo 100 caracteres."})
 		return
 	}
 
 	if len(listing.Description) > 1000 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Description too long"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "A descrição deve ter no máximo 1000 caracteres."})
 		return
 	}
 
@@ -136,12 +140,12 @@ func CreateListing(c *gin.Context) {
 		Where("user_id = ? AND status = ?", CurrentUser.ID, models.Available).
 		Find(&userActiveListings).Error; err != nil {
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve listings"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha em recuperar os anúncios."})
 		return
 	}
 
 	if len(userActiveListings) > 20 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "You cannot create more than 5 active listings"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Você já atingiu o limite de 20 anúncios ativos. Remova ou marque algum como vendido para criar outro."})
 		return
 	}
 
@@ -153,16 +157,16 @@ func CreateListing(c *gin.Context) {
 	var category models.Category
 	if err := database.DB.First(&category, "id = ?", listing.CategoryID).Error; err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid CategoryID"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Categoria inválida. Selecione uma categoria da lista."})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve category"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Não foi possível carregar a categoria. Tente novamente em instantes."})
 		}
 		return
 	}
 
 	// Creating the listing
 	if err := database.DB.Create(&listing).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Listing"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao criar anúncio."})
 		return
 	}
 
@@ -170,7 +174,7 @@ func CreateListing(c *gin.Context) {
 	if err := database.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
 		return db.Select(publicUserFields)
 	}).Preload("Category").First(&listing, "id = ?", listing.ID).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load related data"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha em carregar dados relacionados."})
 		return
 	}
 
@@ -490,30 +494,30 @@ func DeleteListingByAdmin(c *gin.Context) {
 			return err
 		}
 
+		// remove venda e a avaliação antes (FK fk_listings_sale)
+		if err := DeleteSalesForListings(tx, []uuid.UUID{listing.ID}); err != nil {
+			return err
+		}
 		if err := tx.Where("listing_id = ?", id).Delete(&models.ListingImage{}).Error; err != nil {
 			return err
 		}
 		if err := tx.Where("listing_id = ?", id).Delete(&models.Favorite{}).Error; err != nil {
 			return err
 		}
-
-		if err := tx.Delete(&models.Listing{}, "id = ?", id).Error; err != nil {
-			return err
-		}
-
-		return nil
+		return tx.Delete(&models.Listing{}, "id = ?", id).Error
 	})
 
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Listing not found"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Anúncio não encontrado."})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete listing by admin", "details": err.Error()})
+		log.Printf("DeleteListingByAdmin %s: %v", id, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Não foi possível excluir o anúncio. Tente novamente em instantes."})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Listing deleted successfully by admin"})
+	c.JSON(http.StatusOK, gin.H{"message": "Anúncio excluído com sucesso."})
 }
 
 func GetListingsAdmin(c *gin.Context) {
