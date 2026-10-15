@@ -1,12 +1,12 @@
-// app/layout.tsx
-
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
 import "@/styles/globals.css";
 import { AuthProvider } from "@/lib/context/AuthContext";
 import DynamicToaster from "@/app/components/dynamic-toaster";
 import { Suspense } from "react";
 import Spinner from "@/app/components/spinner";
 import { Metadata } from "next";
+
+const bricolage = Bricolage_Grotesque({ variable: "--font-bricolage", subsets: ["latin"] });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
