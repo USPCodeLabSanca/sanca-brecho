@@ -146,14 +146,14 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
                 alt={`Foto ${index + 1}`}
                 width={1280}
                 height={900}
-                className="mx-auto object-cover aspect-square md:aspect-[1280/900] w-full h-auto select-none cursor-pointer"
+                className="mx-auto object-cover aspect-square md:aspect-1280/900 w-full h-auto select-none cursor-pointer"
                 onClick={() => openViewer(index)}
               />
             </SwiperSlide>
           ))}
         </Swiper>
-        <div className="swiper-button-prev !hidden md:!block select-none" />
-        <div className="swiper-button-next !hidden md:!block select-none" />
+        <div className="swiper-button-prev hidden! md:block! select-none" />
+        <div className="swiper-button-next hidden! md:block! select-none" />
       </div>
 
       {windowWidth >= 768 && images.length > 1 && (
@@ -190,7 +190,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
           <Button
             variant="icon"
             aria-label="Fechar visualizador"
-            className="absolute top-4 left-4 z-[60] !text-white !p-2 !rounded-full hover:bg-white/10 transition-colors"
+            className="absolute top-4 left-4 z-60 text-white! p-2! rounded-full! hover:bg-white/10 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               closeViewer();
@@ -203,7 +203,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
             <>
               <Button
                 variant="icon"
-                className="absolute left-4 z-[60] !text-white !p-2 !rounded-full hover:bg-white/10 transition-colors hidden md:block"
+                className="absolute left-4 z-60 text-white! p-2! rounded-full! hover:bg-white/10 transition-colors hidden md:block"
                 style={{ top: '50%', transform: 'translateY(-50%)' }}
                 onClick={(e) => navigateImage('prev', e)}
                 aria-label="Imagem Anterior"
@@ -212,7 +212,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
               </Button>
               <Button
                 variant="icon"
-                className="absolute right-4 z-[60] !text-white !p-2 !rounded-full hover:bg-white/10 transition-colors"
+                className="absolute right-4 z-60 text-white! p-2! rounded-full! hover:bg-white/10 transition-colors"
                 style={{ top: '50%', transform: 'translateY(-50%)' }}
                 onClick={(e) => navigateImage('next', e)}
                 aria-label="Próxima Imagem"
@@ -234,7 +234,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ productId }
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
-                  className="object-contain max-h-screen max-w-screen !pointer-events-auto select-none cursor-zoom-in"
+                  className="w-auto h-auto object-contain min-h-screen pointer-events-auto! select-none cursor-zoom-in"
                 />
               </div>
             </TransformComponent>

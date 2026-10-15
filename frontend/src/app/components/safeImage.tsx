@@ -19,6 +19,7 @@ const SafeImage: React.FC<SafeImageProps> = ({ src, fallbackSrc, ...props }) => 
   return (
     // eslint-disable-next-line jsx-a11y/alt-text
     <Image
+      loading='eager'
       src={imageError ? (fallbackSrc || DEFAULT_FALLBACK) : src}
       onError={handleError}
       {...props}
