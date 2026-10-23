@@ -15,8 +15,8 @@ import { Button } from "./button";
 // Banner de aviso de indisponibilidade
 const SHOW_OUTAGE_BANNER = true;
 const OUTAGE_MESSAGE =
-  "A equipe do Sanca Brechó está ciente de que os servidores estão inacessíveis e já está trabalhando com a STI para resolver o mais cedo possível. Pedimos a sua compreensão.";
-const OUTAGE_MESSAGE_SHORT = "Servidores fora do ar: já estamos resolvendo com a STI.";
+  "No momento, o Sanca Brechó está inacessível fora da rede USP. A equipe já está trabalhando com a STI para resolver o mais cedo possível. Pedimos a sua compreensão.";
+const OUTAGE_MESSAGE_SHORT = "Acesso só pela rede USP no momento. Já estamos resolvendo.";
 
 export default function Navbar() {
   const router = useRouter();
