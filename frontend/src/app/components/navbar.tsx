@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/context/AuthContext";
-import { Search, Menu, User as UserIcon, LogOut, Plus, LogIn, ShoppingBagIcon, Tag } from "lucide-react";
+import { Search, Menu, User as UserIcon, LogOut, Plus, LogIn, ShoppingBagIcon, Tag, AlertTriangle } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { signOutUser } from "@/lib/firebase/auth";
 import { useRouter, usePathname } from "next/navigation";
@@ -11,6 +11,12 @@ import { UserType } from "@/lib/types/api";
 import { showErrorToast, showLogoutSuccessToast } from "@/lib/toast";
 import { getMe } from "@/lib/services/userService";
 import { Button } from "./button";
+
+// Banner de aviso de indisponibilidade
+const SHOW_OUTAGE_BANNER = true;
+const OUTAGE_MESSAGE =
+  "A equipe do Sanca Brechó está ciente de que os servidores estão inacessíveis e já está trabalhando com a STI para resolver o mais cedo possível. Pedimos a sua compreensão.";
+const OUTAGE_MESSAGE_SHORT = "Servidores fora do ar: já estamos resolvendo com a STI.";
 
 export default function Navbar() {
   const router = useRouter();
@@ -85,6 +91,18 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200">
+      {SHOW_OUTAGE_BANNER && (
+        <div role="status" className="w-full bg-sanca text-white">
+          <div className="container mx-auto px-4 h-8 flex items-center justify-center gap-2 text-xs xl:text-sm">
+            <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <p className="truncate whitespace-nowrap" title={OUTAGE_MESSAGE}>
+              <span className="hidden lg:inline">{OUTAGE_MESSAGE}</span>
+              <span className="lg:hidden">{OUTAGE_MESSAGE_SHORT}</span>
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4">
         {/* Navbar do Header */}
         <div className="relative flex items-center justify-between h-16">
