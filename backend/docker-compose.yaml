@@ -1,3 +1,5 @@
+name: sanca-brecho-dev
+
 services:
   backend:
     build: .
@@ -11,7 +13,7 @@ services:
       - ./credentials.json:/app/credentials.json:ro
       - .:/app
     ports:
-      - 8080:8080
+      - "127.0.0.1:8080:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -23,7 +25,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - 5432:5432
+      - "127.0.0.1:5432:5432"
     volumes:
       - boost-aex_pgdata:/var/lib/postgresql/data
       - .:/app
@@ -37,7 +39,7 @@ services:
     image: sosedoff/pgweb
     restart: on-failure
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     environment:
       PGWEB_DATABASE_URL: ${PGWEB_DATABASE_URL}
     depends_on:
